@@ -6,3 +6,6 @@ function main()
     RN = loadInfrastructure()
 
 end
+
+R = main()
+println(R)
