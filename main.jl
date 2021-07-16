@@ -3,6 +3,6 @@ include("initialize.jl")
 
 function main()
 
-    loadNetwork()
+    RN = loadInfrastructure()
 
 end

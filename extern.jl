@@ -9,7 +9,8 @@ using DataFrames, CSV
 Double = Float64
 
 struct Block
-    id::Int #each block has got its own id number
+    id::String #each block has got its own name
+    idx::Int # and number
     minT::Int #minimum time of block travelling in seconds
     dueT::Int #due time of travelling in seconds
     parent::Vector{Int} #parent blocks where trains come from
@@ -19,8 +20,13 @@ end
 
 mutable struct Network
     nBlocks::Int # number of blocks
-    blocks::Vector{Block}
+    blocks::Vector{Block} #contains all the blocks
+    IDtoIDX::Dict{String,Int} #translates block IDs into array ids
 end
+function Network() # default initialization
+    Network(0,Vector{Block}[],Dict{String,Int}())
+end
+
 
 struct RailwayNetwork
     network::Network # the network where trains move
