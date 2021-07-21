@@ -42,3 +42,8 @@ function loadInfrastructure()
     loadBlockConnections!(RN, "data/network.csv")
     RN
 end
+
+function loadTimetable()
+    
+
+end

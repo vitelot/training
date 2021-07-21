@@ -32,3 +32,21 @@ struct RailwayNetwork
     network::Network # the network where trains move
     # trains
 end
+
+struct OPoint # Operational Point: Betriebstelle
+    id::String # id name
+    idx::Int # numerical index
+    lat::Double
+    long::Double
+end
+
+struct Transit
+    trainid::String # train id going through
+    opid::OPoint # Betriebstelle id
+    duetime::Int # due time in seconds from midnight
+end
+
+struct TimeTable
+    n::Int # dimension of vector below
+    list::Transit
+end
