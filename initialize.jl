@@ -69,9 +69,24 @@ end
 
 function loadInfrastructure()
     RN = loadNetwork("data/betriebstellen.csv", "data/blocks.csv")
+    println("Infrastructure loaded")
+    RN
 end
 
-function loadTimetable()
-
-
+function loadTimetable(file::String="data/timetable.csv")
+    TB = TimeTable(0, Dict{Int,Transit}())
+    df = DataFrame(CSV.File(file))
+    for i = 1:nrow(df)
+        tr = Transit(
+                string(df.trainid[i]),
+                df.opid[i],
+                df.kind[i],
+                dateToSeconds(df.duetime[i])
+        )
+        TB.n += 1
+        TB.timemap[dateToSeconds(df.duetime[i])] = tr
+    end
+    df = nothing
+    println("Timetable loaded")
+    TB
 end

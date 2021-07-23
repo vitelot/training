@@ -46,12 +46,13 @@ end
 
 struct Transit
     trainid::String # train id going through
-    opid::OPoint # Betriebstelle id
+    opid::String # Betriebstelle id
     kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
     duetime::Int # due time in seconds from midnight
 end
 
-struct TimeTable
+mutable struct TimeTable
     n::Int # dimension of vector below
-    list::Transit
+    #list::Vector{Transit}
+    timemap::Dict{Int,Transit}
 end
