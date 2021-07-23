@@ -8,4 +8,4 @@ function main()
 end
 
 R = main()
-println(R)
+println(dump(R))

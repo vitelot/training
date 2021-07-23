@@ -8,23 +8,33 @@ using DataFrames, CSV, Dates
 
 Double = Float64
 
+struct OPoint # Operational Point: Betriebstelle
+    id::String # id name
+    idx::Int # numerical index
+    lat::Double
+    long::Double
+    parent::Vector{String}
+    child::Vector{String}
+end
+
 struct Block
     id::String #each block has got its own name
     idx::Int # and number
     minT::Int #minimum time of block travelling in seconds
     dueT::Int #due time of travelling in seconds
-    parent::Vector{Int} #parent blocks where trains come from
-    child::Vector{Int} #child blocks where trains go to
+    # parent::Vector{Int} #parent blocks where trains come from
+    # child::Vector{Int} #child blocks where trains go to
     isStation::Bool #tells if a block is in a station and possibly involves passengers
 end
 
 mutable struct Network
-    nBlocks::Int # number of blocks
-    blocks::Vector{Block} #contains all the blocks
-    IDtoIDX::Dict{String,Int} #translates block IDs into array ids
+    n::Int # number of nodes (Operational Points = Betriebstellen)
+    nodes::Dict{String,OPoint} #contains all the ops
+    nb::Int # nr of blocks
+    blocks::Dict{String,Block} #all the blocks
 end
 function Network() # default initialization
-    Network(0,Vector{Block}[],Dict{String,Int}())
+    Network(0,Dict{String,OPoint}(),0,Dict{String,Block}())
 end
 
 
@@ -33,16 +43,11 @@ struct RailwayNetwork
     # trains
 end
 
-struct OPoint # Operational Point: Betriebstelle
-    id::String # id name
-    idx::Int # numerical index
-    lat::Double
-    long::Double
-end
 
 struct Transit
     trainid::String # train id going through
     opid::OPoint # Betriebstelle id
+    kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
     duetime::Int # due time in seconds from midnight
 end
 
