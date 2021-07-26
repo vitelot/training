@@ -90,3 +90,24 @@ function loadTimetable(file::String="data/timetable.csv")
     println("Timetable loaded")
     TB
 end
+
+function loadFleet(file::String="data/timetable.csv")
+    FL = Fleet(0,Dict{String, Train}())
+    df = DataFrame(CSV.File(file))
+    for i = 1:nrow(df)
+        #trainid,opid,kind,duetime = Tuple(df[i,:])
+        trainid=string(df.trainid[i])
+        duetime = dateToSeconds(df.duetime[i])
+        str = sTransit(
+                df.opid[i],
+                df.kind[i],
+        )
+        get!(FL.train, trainid, str)
+        # FL.train[trainid].trainid = trainid
+        # FL.train[trainid].schedule[duetime] = str
+    end
+    FL.n = length(FL.train)
+    df = nothing
+    println("Fleet loaded")
+    return FL
+end

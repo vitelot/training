@@ -16,7 +16,7 @@ function main()
             println("Train $train passed through $opid")
         end
     end
-
+    loadFleet()
 end
 
 main()

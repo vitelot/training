@@ -56,3 +56,18 @@ mutable struct TimeTable
     #list::Vector{Transit}
     timemap::Dict{Int,Transit}
 end
+
+struct sTransit
+    opid::String # Betriebstelle id
+    kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
+end
+
+mutable struct Train
+    id::String
+    schedule::Dict{Int,sTransit} # schedule[duetime] = info on stops
+end
+
+mutable struct Fleet
+    n::Int
+    train::Dict{String, Train} # train[trainid]=Train
+end
