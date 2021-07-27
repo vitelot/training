@@ -5,13 +5,13 @@ For example, loading the network, the block characteristics, the timetables
 
 function loadNetwork(fileOP::String, fileB::String)
     RN = Network()
-    loadOPoints(fileOP, RN)
-    loadBlocks(fileB, RN)
+    loadOPoints!(fileOP, RN)
+    loadBlocks!(fileB, RN)
     RN
 end
 
-function loadOPoints(file::String, RN::Network)
-    df = DataFrame(CSV.File(file))
+function loadOPoints!(file::String, RN::Network)
+    df = DataFrame(CSV.File(file, comment="#"))
 
     for i = 1:nrow(df)
         name = string(df.id[i])
@@ -30,9 +30,9 @@ function loadOPoints(file::String, RN::Network)
 end
 
 
-function loadBlocks(fileblock::String, RN::Network)
+function loadBlocks!(fileblock::String, RN::Network)
 
-    df = DataFrame(CSV.File(fileblock))
+    df = DataFrame(CSV.File(fileblock, comment="#"))
 
     for i = 1:nrow(df)
         from = df.from[i]
@@ -73,38 +73,25 @@ function loadInfrastructure()
     RN
 end
 
-function loadTimetable(file::String="data/timetable.csv")
-    TB = TimeTable(0, Dict{Int,Transit}())
-    df = DataFrame(CSV.File(file))
-    for i = 1:nrow(df)
-        tr = Transit(
-                string(df.trainid[i]),
-                df.opid[i],
-                df.kind[i],
-                dateToSeconds(df.duetime[i])
-        )
-        TB.n += 1
-        TB.timemap[dateToSeconds(df.duetime[i])] = tr
-    end
-    df = nothing
-    println("Timetable loaded")
-    TB
-end
-
 function loadFleet(file::String="data/timetable.csv")
     FL = Fleet(0,Dict{String, Train}())
-    df = DataFrame(CSV.File(file))
+    df = DataFrame(CSV.File(file, comment="#"))
     for i = 1:nrow(df)
         #trainid,opid,kind,duetime = Tuple(df[i,:])
         trainid=string(df.trainid[i])
         duetime = dateToSeconds(df.duetime[i])
-        str = sTransit(
+        str = Transit(
+                trainid,
                 df.opid[i],
                 df.kind[i],
+                duetime
         )
-        get!(FL.train, trainid, str)
-        # FL.train[trainid].trainid = trainid
-        # FL.train[trainid].schedule[duetime] = str
+        if !haskey(FL.train, trainid)
+            get!(FL.train, trainid, Train(trainid, Dict(duetime=>str)))
+        else
+            FL.train[trainid].schedule[duetime] = str
+        end
+
     end
     FL.n = length(FL.train)
     df = nothing

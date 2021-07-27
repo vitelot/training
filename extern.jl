@@ -51,20 +51,20 @@ struct Transit
     duetime::Int # due time in seconds from midnight
 end
 
+# struct sTransit
+#     opid::String # Betriebstelle id
+#     kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
+# end
+
 mutable struct TimeTable
     n::Int # dimension of vector below
     #list::Vector{Transit}
-    timemap::Dict{Int,Transit}
-end
-
-struct sTransit
-    opid::String # Betriebstelle id
-    kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
+    timemap::Dict{Int,Vector{Transit}}
 end
 
 mutable struct Train
     id::String
-    schedule::Dict{Int,sTransit} # schedule[duetime] = info on stops
+    schedule::Dict{Int,Transit} # schedule[duetime] = info on stops
 end
 
 mutable struct Fleet
