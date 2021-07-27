@@ -23,6 +23,6 @@ function generateTimetable(fl::Fleet)
     end
     # passed by reference: TB.timemap[21162][1]===FL.train["REX7104"].schedule[21162] -> true
 
-    println("Timetable loaded")
+    println("Timetable generated with $(TB.n) events")
     TB
 end
