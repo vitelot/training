@@ -37,24 +37,12 @@ function Network() # default initialization
     Network(0,Dict{String,OPoint}(),0,Dict{String,Block}())
 end
 
-
-struct RailwayNetwork
-    network::Network # the network where trains move
-    # trains
-end
-
-
 struct Transit
     trainid::String # train id going through
     opid::String # Betriebstelle id
     kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
     duetime::Int # due time in seconds from midnight
 end
-
-# struct sTransit
-#     opid::String # Betriebstelle id
-#     kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
-# end
 
 mutable struct TimeTable
     n::Int # dimension of vector below
@@ -70,4 +58,9 @@ end
 mutable struct Fleet
     n::Int
     train::Dict{String, Train} # train[trainid]=Train
+end
+
+struct RailwayNetwork
+    network::Network # the network where trains move
+    # trains
 end

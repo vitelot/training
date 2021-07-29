@@ -26,3 +26,4 @@ Manifest.toml
 # my things
 vari/
 out
+.DS_Store
