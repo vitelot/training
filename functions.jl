@@ -7,6 +7,18 @@ returns the number of seconds elapsed from midnight
     return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
 end
 
+function printDebug(lvl::Int, s...)
+    if lvl == 0
+        return;
+    elseif lvl == 1
+        println(s...); return;
+    elseif lvl <= 2
+        println(s...); return;
+    else
+        return;
+    end
+end
+
 function generateTimetable(fl::Fleet)
     TB = TimeTable(0, Dict{Int,Vector{Transit}}())
 
@@ -14,10 +26,11 @@ function generateTimetable(fl::Fleet)
 
     for trainid in keys(fl.train)
         println("\tTrain $trainid")
-        for duetime in keys(fl.train[trainid].schedule)
+        for s in fl.train[trainid].schedule
             TB.n += 1
+            duetime = s.duetime
             get!(TB.timemap, duetime, Transit[])
-            push!(TB.timemap[duetime], fl.train[trainid].schedule[duetime])
+            push!(TB.timemap[duetime], s)
 
         end
     end

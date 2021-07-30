@@ -15,6 +15,7 @@ struct OPoint # Operational Point: Betriebstelle
     long::Double
     parent::Vector{String}
     child::Vector{String}
+    isStation::Bool
 end
 
 struct Block
@@ -22,8 +23,6 @@ struct Block
     idx::Int # and number
     minT::Int #minimum time of block travelling in seconds
     dueT::Int #due time of travelling in seconds
-    # parent::Vector{Int} #parent blocks where trains come from
-    # child::Vector{Int} #child blocks where trains go to
     isStation::Bool #tells if a block is in a station and possibly involves passengers
 end
 
@@ -52,7 +51,9 @@ end
 
 mutable struct Train
     id::String
-    schedule::Dict{Int,Transit} # schedule[duetime] = info on stops
+    schedule::Vector{Transit} # schedule[duetime] = info on stops
+    currentBlock::String
+    nextBlock::String
 end
 
 mutable struct Fleet

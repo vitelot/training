@@ -21,7 +21,8 @@ function loadOPoints!(file::String, RN::Network)
                 df.lat[i],
                 df.long[i],
                 String[],
-                String[]
+                String[],
+                false
         )
         RN.n += 1
         RN.nodes[name]=op
@@ -87,9 +88,10 @@ function loadFleet(file::String="data/timetable.csv")
                 duetime
         )
         if !haskey(FL.train, trainid)
-            get!(FL.train, trainid, Train(trainid, Dict(duetime=>str)))
+            get!(FL.train, trainid,
+                    Train(trainid, [str], "",""))
         else
-            FL.train[trainid].schedule[duetime] = str
+            push!(FL.train[trainid].schedule, str)
         end
 
     end
