@@ -46,7 +46,8 @@ function loadBlocks!(fileblock::String, RN::Network)
                 df[i,:dueT],
                 # [],
                 # [],
-                df[i,:isStation]
+                df[i,:isStation],
+                ""
         )
         RN.nb += 1
         RN.blocks[name]=b
@@ -89,7 +90,8 @@ function loadFleet(file::String="data/timetable.csv")
         )
         if !haskey(FL.train, trainid)
             get!(FL.train, trainid,
-                    Train(trainid, [str], "",""))
+                    Train(trainid, [str],
+                        DynTrain(0,"","",0,0)))
         else
             push!(FL.train[trainid].schedule, str)
         end
@@ -97,6 +99,6 @@ function loadFleet(file::String="data/timetable.csv")
     end
     FL.n = length(FL.train)
     df = nothing
-    println("Fleet loaded")
+    println("Fleet loaded ($(FL.n) trains)")
     return FL
 end

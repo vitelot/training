@@ -24,6 +24,7 @@ struct Block
     minT::Int #minimum time of block travelling in seconds
     dueT::Int #due time of travelling in seconds
     isStation::Bool #tells if a block is in a station and possibly involves passengers
+    train::String # which train is on it
 end
 
 mutable struct Network
@@ -49,11 +50,19 @@ mutable struct TimeTable
     timemap::Dict{Int,Vector{Transit}}
 end
 
+mutable struct DynTrain
+    #id::String
+    opn::Int # tells which was last visited op (points to the schedule)
+    currentBlock::String
+    nextBlock::String
+    currentBlockDueTime::Int
+    currentBlockRealTime::Int
+end
+
 mutable struct Train
     id::String
     schedule::Vector{Transit} # schedule[duetime] = info on stops
-    currentBlock::String
-    nextBlock::String
+    dyn::DynTrain
 end
 
 mutable struct Fleet

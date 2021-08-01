@@ -14,7 +14,7 @@ function main()
         D = TB.timemap
 
 
-        if haskey(D, t # there may be more trains at time t
+        if haskey(D, t) # there may be more trains at time t
             for transit in D[t]
 
                 train = transit.trainid
