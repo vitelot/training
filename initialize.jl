@@ -102,3 +102,28 @@ function loadFleet(file::String="data/timetable.csv")
     println("Fleet loaded ($(FL.n) trains)")
     return FL
 end
+
+function initEvent(TB::TimeTable)
+    E = Dict{Int,Vector{Transit}}()
+    println("Initializing the event table")
+
+    S = Set{String}() # trains circulating
+
+    for t = 1:86400
+        D = TB.timemap
+        if haskey(D, t)
+            for transit in D[t] # there may be more trains at time t
+
+                trainid = transit.trainid
+
+                if trainid ∉ S # add new train in the current day events
+                    get!(E,t,Transit[])
+                    push!(E[t], transit)
+                    push!(S, trainid)
+                    #println("New train $trainid starting at $opid")
+                end
+            end
+        end
+    end
+    E
+end
