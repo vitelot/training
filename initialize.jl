@@ -103,8 +103,11 @@ function loadFleet(file::String="data/timetable.csv")
     return FL
 end
 
-function initEvent(TB::TimeTable)
+function initEvent(FL::Fleet)
     E = Dict{Int,Vector{Transit}}()
+
+    TB = generateTimetable(FL)
+
     println("Initializing the event table")
 
     S = Set{String}() # trains circulating

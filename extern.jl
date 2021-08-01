@@ -4,7 +4,7 @@ useful shortcuts,
 and the packages to be loaded
 """
 
-using DataFrames, CSV, Dates
+using DataFrames, CSV, Dates #, PrettyPrint
 
 Double = Float64
 
