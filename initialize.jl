@@ -76,6 +76,9 @@ function loadInfrastructure()
 end
 
 function loadFleet(file::String="data/timetable.csv")
+
+    println("Loading fleet information")
+
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
     for i = 1:nrow(df)
@@ -112,8 +115,11 @@ function initEvent(FL::Fleet)
 
     S = Set{String}() # trains circulating
 
-    for t = 1:86400
-        D = TB.timemap
+    D = TB.timemap
+    t_initial = minimum(keys(D))
+    t_final = maximum(keys(D))
+
+    for t = t_initial:t_final
         if haskey(D, t)
             for transit in D[t] # there may be more trains at time t
 

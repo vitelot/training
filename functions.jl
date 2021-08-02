@@ -1,10 +1,11 @@
 function dateToSeconds(d::String)
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"
-returns the number of seconds elapsed from midnight
+returns the number of seconds elapsed from the epoch #midnight
 """
     dt=Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-    return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
+    return Dates.value(dt)÷1000
+    #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
 end
 
 function printDebug(lvl::Int, s...)
@@ -20,9 +21,9 @@ function printDebug(lvl::Int, s...)
 end
 
 function generateTimetable(fl::Fleet)
-    TB = TimeTable(0, Dict{Int,Vector{Transit}}())
-
     println("Generating the timetable")
+
+    TB = TimeTable(0, Dict{Int,Vector{Transit}}())
 
     for trainid in keys(fl.train)
         println("\tTrain $trainid")
