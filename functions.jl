@@ -40,3 +40,8 @@ function generateTimetable(fl::Fleet)
     println("Timetable generated with $(TB.n) events")
     TB
 end
+
+function myRand()::Double
+    return 1.0;
+    return rand(0.95:0.01:1.1)
+end

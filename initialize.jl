@@ -3,9 +3,9 @@ This file contains all the functions that have to initialize the system.
 For example, loading the network, the block characteristics, the timetables
 """
 
-function loadNetwork(fileOP::String, fileB::String)
+function loadNetwork(fileOP::String, fileB::String)::Network
     RN = Network()
-    loadOPoints!(fileOP, RN)
+    #loadOPoints!(fileOP, RN)
     loadBlocks!(fileB, RN)
     RN
 end
@@ -36,23 +36,17 @@ function loadBlocks!(fileblock::String, RN::Network)
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
     for i = 1:nrow(df)
-        from = df.from[i]
-        to = df.to[i]
-        name = "$from-$to"
+        name = df.id[i]
         b = Block(
                 name,
-                i,
-                df[i,:minT],
-                df[i,:dueT],
-                # [],
-                # [],
-                df[i,:isStation],
-                ""
+                # i,
+                df.tracks[i],
+                String[]
         )
         RN.nb += 1
         RN.blocks[name]=b
-        push!(RN.nodes[from].child, to)
-        push!(RN.nodes[to].parent, from)
+        # push!(RN.nodes[from].child, to)
+        # push!(RN.nodes[to].parent, from)
     end
     df = nothing # explicitly free the memory
 end
@@ -69,13 +63,13 @@ end
 #     end
 # end
 
-function loadInfrastructure()
+function loadInfrastructure()::Network
     RN = loadNetwork("data/betriebstellen.csv", "data/blocks.csv")
     println("Infrastructure loaded")
     RN
 end
 
-function loadFleet(file::String="data/timetable.csv")
+function loadFleet(file::String="data/timetable.csv")::Fleet
 
     println("Loading fleet information")
 
@@ -106,7 +100,8 @@ function loadFleet(file::String="data/timetable.csv")
     return FL
 end
 
-function initEvent(FL::Fleet)
+function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
+
     E = Dict{Int,Vector{Transit}}()
 
     TB = generateTimetable(FL)

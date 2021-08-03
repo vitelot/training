@@ -5,10 +5,10 @@ include("simulation.jl")
 
 function main()
     println("Compilation ended. Starting the program.")
-    # RN = loadInfrastructure()
+    RN = loadInfrastructure()
     FL = loadFleet()
 
-    simulation(FL)
+    simulation(RN, FL)
 
 end
 

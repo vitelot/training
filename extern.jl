@@ -18,13 +18,14 @@ struct OPoint # Operational Point: Betriebstelle
     isStation::Bool
 end
 
-struct Block
+mutable struct Block
     id::String #each block has got its own name
-    idx::Int # and number
-    minT::Int #minimum time of block travelling in seconds
-    dueT::Int #due time of travelling in seconds
-    isStation::Bool #tells if a block is in a station and possibly involves passengers
-    train::String # which train is on it
+    # idx::Int # and number
+    # minT::Int #minimum time of block travelling in seconds
+    # dueT::Int #due time of travelling in seconds
+    #isStation::Bool #tells if a block is in a station and possibly involves passengers
+    tracks::Int # number of parallel tracks (multiple trains allowed)
+    train::Vector{String} # which train is on it
 end
 
 mutable struct Network
@@ -55,8 +56,8 @@ mutable struct DynTrain
     opn::Int # tells which was last visited op (points to the schedule)
     currentBlock::String
     nextBlock::String
-    currentBlockDueTime::Int
-    currentBlockRealTime::Int
+    nextBlockDueTime::Int
+    nextBlockRealTime::Int
 end
 
 mutable struct Train
