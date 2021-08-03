@@ -41,7 +41,8 @@ function loadBlocks!(fileblock::String, RN::Network)
                 name,
                 # i,
                 df.tracks[i],
-                String[]
+                0,
+                Set{String}()
         )
         RN.nb += 1
         RN.blocks[name]=b
@@ -49,6 +50,13 @@ function loadBlocks!(fileblock::String, RN::Network)
         # push!(RN.nodes[to].parent, from)
     end
     df = nothing # explicitly free the memory
+
+    RN.blocks[""] = Block( # the null block
+                        "",
+                        0,
+                        0,
+                        Set{String}()
+    )
 end
 
 # function loadBlockConnections!(RN::Network, filenet::String)

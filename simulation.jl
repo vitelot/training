@@ -3,7 +3,10 @@ simulation engine
 """
 function simulation(RN::Network, FL::Fleet)
     S  = Set{String}() # running trains
-    TrainOnBlock = Dict{String,String}()
+
+    BK = RN.blocks # Dict{String,Block}
+
+    #TrainOnBlock = Dict{String,String}()
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
@@ -49,12 +52,22 @@ function simulation(RN::Network, FL::Fleet)
                 nop = train.dyn.opn # number of opoints passed
                 if nop < length(train.schedule)
                     nextopid = train.schedule[nop+1].opid
-                    train.dyn.nextBlock = opid*"-"*nextopid
+                    train.dyn.nextBlock = nextBlockid = opid*"-"*nextopid
+                    nextBlock = BK[nextBlockid]
 
-                    if (get!(TrainOnBlock, train.dyn.nextBlock, "") == "") || (opid==nextopid) #next block is free or is a station!!!! Let's goooo!!!
-                        TrainOnBlock[train.dyn.nextBlock] = trainid # we occupy the block
-                        TrainOnBlock[train.dyn.currentBlock] = ""
-                        train.dyn.currentBlock = train.dyn.nextBlock
+                    currentBlock = BK[train.dyn.currentBlock]
+
+                    if nextBlock.nt < nextBlock.tracks # if there are less trains than the number of available tracks
+
+                        nextBlock.nt += 1
+                        push!(nextBlock.train, trainid)
+
+                        if currentBlock.id != ""
+                            currentBlock.nt -= 1
+                            pop!(currentBlock.train, trainid)
+                        end
+
+                        train.dyn.currentBlock = nextBlockid
 
                         train.dyn.nextBlockDueTime = train.schedule[nop+1].duetime - train.schedule[nop].duetime
 
@@ -67,16 +80,23 @@ function simulation(RN::Network, FL::Fleet)
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
                     else
-                        println("There is train $(TrainOnBlock[train.dyn.nextBlock]) on the next block [$(train.dyn.nextBlock)]. Train $trainid needs to wait.")
+                        println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
+                        #println("There is train $(TrainOnBlock[train.dyn.nextBlock]) on the next block [$(train.dyn.nextBlock)]. Train $trainid needs to wait.")
                         get!(Event, t+1, Transit[])
                         push!(Event[t+1], train.schedule[nop])
                         train.dyn.opn -= 1
                     end
                 else
-                    println("Train $trainid ended in $opid")
-                    TrainOnBlock[train.dyn.currentBlock] = ""
+                    if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
+                        println("Train $trainid ended in $opid")
+                        BK[train.dyn.currentBlock].nt -= 1
+                        pop!(BK[train.dyn.currentBlock].train, trainid)
+                    else
+                        println("Train $trainid is a fossile")
+                    end
                     pop!(S,trainid)
                     train.dyn.opn = 0 # reset the train for further use
+                    train.dyn.currentBlock = train.dyn.nextBlock = ""
                 end
             end
         end

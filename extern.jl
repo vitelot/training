@@ -25,7 +25,8 @@ mutable struct Block
     # dueT::Int #due time of travelling in seconds
     #isStation::Bool #tells if a block is in a station and possibly involves passengers
     tracks::Int # number of parallel tracks (multiple trains allowed)
-    train::Vector{String} # which train is on it
+    nt::Int # number of trains on the block (size of next set)
+    train::Set{String} # which train is on it
 end
 
 mutable struct Network
