@@ -6,13 +6,11 @@ and the packages to be loaded
 
 using DataFrames, CSV, Dates #, PrettyPrint
 
-Double = Float64
-
 struct OPoint # Operational Point: Betriebstelle
     id::String # id name
     idx::Int # numerical index
-    lat::Double
-    long::Double
+    lat::Float64
+    long::Float64
     parent::Vector{String}
     child::Vector{String}
     isStation::Bool

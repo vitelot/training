@@ -12,7 +12,7 @@ function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
 
     #totDelay = 0
 
-    t = t_initial = minimum(keys(Event)) - 1
+    t = minimum(keys(Event)) - 1
     t_final = maximum(keys(Event))
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop

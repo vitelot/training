@@ -41,7 +41,7 @@ function generateTimetable(fl::Fleet)::TimeTable
     TB
 end
 
-function myRand(min::Double, max::Double)::Float64
+function myRand(min::Float64, max::Float64)::Float64
 
     return rand(range(min,length=20,stop=max))
 end
