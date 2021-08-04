@@ -25,7 +25,7 @@ Manifest.toml
 
 # my things
 vari/
-out
+out*
 .DS_Store
 data/test.csv
 data/04.02.19*

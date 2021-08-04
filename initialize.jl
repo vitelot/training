@@ -59,27 +59,16 @@ function loadBlocks!(fileblock::String, RN::Network)
     )
 end
 
-# function loadBlockConnections!(RN::Network, filenet::String)
-#     df = DataFrame(CSV.File(filenet))
-#     for i = 1:nrow(df)
-#         fromID = string(df[i, :from])
-#         toID = string(df[i, :to])
-#         fromIDX = RN.IDtoIDX[fromID]
-#         toIDX = RN.IDtoIDX[toID]
-#         push!(RN.blocks[toIDX].parent, fromIDX)
-#         push!(RN.blocks[fromIDX].child, toIDX)
-#     end
-# end
-
 function loadInfrastructure()::Network
     RN = loadNetwork("data/betriebstellen.csv", "data/blocks.csv")
-    println("Infrastructure loaded")
+    Opt["print_flow"] && println("Infrastructure loaded")
     RN
 end
 
 function loadFleet(file::String="data/timetable.csv")::Fleet
 
-    println("Loading fleet information")
+    Opt["print_flow"] && println("Loading fleet information")
+    Opt["TEST"] && (file="data/test.csv")
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
@@ -104,7 +93,7 @@ function loadFleet(file::String="data/timetable.csv")::Fleet
     end
     FL.n = length(FL.train)
     df = nothing
-    println("Fleet loaded ($(FL.n) trains)")
+    Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
 end
 
@@ -114,7 +103,7 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 
     TB = generateTimetable(FL)
 
-    println("Initializing the event table")
+    Opt["print_flow"] && println("Initializing the event table")
 
     S = Set{String}() # trains circulating
 
@@ -138,4 +127,34 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
         end
     end
     E
+end
+
+function loadOptions(file::String="run/par.ini")
+    df  = DataFrame(CSV.File(file, delim="=", comment="#", type=String))
+    for i = 1:nrow(df)
+        key = df.key[i] ; val = df.value[i]
+        if(key == "debug_lvl") Opt[key] = parse(Int, val)
+        elseif(key=="minrnd") Opt[key] = parse(Float64, val)
+        elseif(key=="maxrnd") Opt[key] = parse(Float64, val)
+        elseif(key=="print_options") Opt[key] = parse(Bool, val)
+        elseif(key=="print_flow") Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_status") Opt[key] = parse(Bool, val)
+        elseif(key=="print_new_train") Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_wait") Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_end") Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_fossile") Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_list") Opt[key] = parse(Bool, val)
+        elseif(key=="TEST") Opt[key] = parse(Bool, val)
+        else println("WARNING: input parameter $key does not exist")
+        end
+    end
+    df = nothing
+    if Opt["print_options"]
+        println("########################")
+        println("List of input parameters")
+        for (i,j) in Opt
+            println("$i = $j")
+        end
+        println("########################")
+    end
 end

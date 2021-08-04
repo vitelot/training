@@ -21,12 +21,13 @@ function printDebug(lvl::Int, s...)
 end
 
 function generateTimetable(fl::Fleet)::TimeTable
-    println("Generating the timetable")
+    Opt["print_flow"] && println("Generating the timetable")
+    print_train_list = Opt["print_train_list"]
 
     TB = TimeTable(0, Dict{Int,Vector{Transit}}())
 
     for trainid in keys(fl.train)
-        println("\tTrain $trainid")
+        print_train_list && println("\tTrain $trainid")
         for s in fl.train[trainid].schedule
             TB.n += 1
             duetime = s.duetime
@@ -37,7 +38,7 @@ function generateTimetable(fl::Fleet)::TimeTable
     end
     # passed by reference: TB.timemap[21162][1]===FL.train["REX7104"].schedule[21162] -> true
 
-    println("Timetable generated with $(TB.n) events")
+    Opt["print_flow"] && println("Timetable generated with $(TB.n) events")
     TB
 end
 

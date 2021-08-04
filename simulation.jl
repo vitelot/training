@@ -1,7 +1,17 @@
 """
 simulation engine
 """
-function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
+function simulation(RN::Network, FL::Fleet)
+
+    # get the required options
+    maxrnd = Opt["maxrnd"]
+    minrnd = Opt["minrnd"]
+    print_train_status = Opt["print_train_status"]
+    print_new_train = Opt["print_new_train"]
+    print_train_wait = Opt["print_train_wait"]
+    print_train_end = Opt["print_train_end"]
+    print_train_fossile = Opt["print_train_fossile"]
+
     S  = Set{String}() # running trains
 
     BK = RN.blocks # Dict{String,Block}
@@ -27,7 +37,7 @@ function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
                 #println("Train $train passed through $opid at $t sec ($kind)")
 
                 if t<duetime # wow, we arrived earlier
-                    println("Train $trainid is $(duetime-t) seconds early at $opid ($kind)")
+                    print_train_status && println("Train $trainid is $(duetime-t) seconds early at $opid ($kind)")
                     if kind == "Abfahrt"
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
@@ -37,15 +47,15 @@ function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
                     end
 
                 elseif t>duetime # ouch, we are late
-                    println("Train $trainid is $(t-duetime) seconds late at $opid ($kind)")
+                    print_train_status && println("Train $trainid is $(t-duetime) seconds late at $opid ($kind)")
 
                 else # we are perfectly on time
-                    println("Train $trainid is on time at $opid ($kind)")
+                    print_train_status && println("Train $trainid is on time at $opid ($kind)")
                 end
 
                 if trainid ∉ S # new train in the current day
                     push!(S,trainid)
-                    println("New train $trainid starting at $opid")
+                    print_new_train && println("New train $trainid starting at $opid")
                 end
 
                 # we are in opid and would like to move to nextopid travelling on block "opid-nextopid"
@@ -76,13 +86,13 @@ function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
-                        train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(0.95,maxrnd))
+                        train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(minrnd,maxrnd))
                         tt = t + train.dyn.nextBlockRealTime
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
                     else
-                        println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
+                        print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
                         #println("There is train $(TrainOnBlock[train.dyn.nextBlock]) on the next block [$(train.dyn.nextBlock)]. Train $trainid needs to wait.")
                         get!(Event, t+1, Transit[])
                         push!(Event[t+1], train.schedule[nop])
@@ -90,12 +100,12 @@ function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
                     end
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
-                        println("Train $trainid ended in $opid")
+                        print_train_end && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds")
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
                         #t>duetime && ( totDelay += (t-duetime); println("Delay $(t-duetime) seconds") )
                     else
-                        println("Train $trainid is a fossile")
+                        print_train_fossile && println("Train $trainid is a fossile")
                     end
                     pop!(S,trainid)
                     train.dyn.opn = 0 # reset the train for further use

@@ -6,6 +6,8 @@ and the packages to be loaded
 
 using DataFrames, CSV, Dates #, PrettyPrint
 
+Opt = Dict{String,Any}()
+
 struct OPoint # Operational Point: Betriebstelle
     id::String # id name
     idx::Int # numerical index

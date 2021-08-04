@@ -4,7 +4,11 @@ include("functions.jl")
 include("simulation.jl")
 
 function main()
-    println("Starting the program.")
+
+    loadOptions()
+
+    Opt["print_flow"] && println("Starting the program.")
+
     RN = loadInfrastructure()
     FL = loadFleet()
 
