@@ -1,7 +1,7 @@
 """
 simulation engine
 """
-function simulation(RN::Network, FL::Fleet)
+function simulation(RN::Network, FL::Fleet, maxrnd::Float64=1.1)
     S  = Set{String}() # running trains
 
     BK = RN.blocks # Dict{String,Block}
@@ -9,6 +9,8 @@ function simulation(RN::Network, FL::Fleet)
     #TrainOnBlock = Dict{String,String}()
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
+
+    #totDelay = 0
 
     t = t_initial = minimum(keys(Event)) - 1
     t_final = maximum(keys(Event))
@@ -74,7 +76,7 @@ function simulation(RN::Network, FL::Fleet)
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
-                        train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand())
+                        train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(0.95,maxrnd))
                         tt = t + train.dyn.nextBlockRealTime
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
@@ -91,6 +93,7 @@ function simulation(RN::Network, FL::Fleet)
                         println("Train $trainid ended in $opid")
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
+                        #t>duetime && ( totDelay += (t-duetime); println("Delay $(t-duetime) seconds") )
                     else
                         println("Train $trainid is a fossile")
                     end
@@ -102,5 +105,5 @@ function simulation(RN::Network, FL::Fleet)
         end
 
     end
-
+    #totDelay
 end

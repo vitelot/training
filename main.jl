@@ -4,7 +4,7 @@ include("functions.jl")
 include("simulation.jl")
 
 function main()
-    println("Compilation ended. Starting the program.")
+    println("Starting the program.")
     RN = loadInfrastructure()
     FL = loadFleet()
 

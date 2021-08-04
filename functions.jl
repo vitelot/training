@@ -1,9 +1,9 @@
-function dateToSeconds(d::String)
+function dateToSeconds(d::String)::Int
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"
 returns the number of seconds elapsed from the epoch #midnight
 """
-    dt=Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
+    dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
     return Dates.value(dt)÷1000
     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
 end
@@ -20,7 +20,7 @@ function printDebug(lvl::Int, s...)
     end
 end
 
-function generateTimetable(fl::Fleet)
+function generateTimetable(fl::Fleet)::TimeTable
     println("Generating the timetable")
 
     TB = TimeTable(0, Dict{Int,Vector{Transit}}())
@@ -41,7 +41,7 @@ function generateTimetable(fl::Fleet)
     TB
 end
 
-function myRand()::Double
-    return 1.0;
-    return rand(0.95:0.01:1.1)
+function myRand(min::Double, max::Double)::Float64
+
+    return rand(range(min,length=20,stop=max))
 end
