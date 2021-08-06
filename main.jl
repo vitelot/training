@@ -12,8 +12,14 @@ function main()
     RN = loadInfrastructure()
     FL = loadFleet()
 
-    simulation(RN, FL)
-
+    if Opt["simulate"]
+        simulation(RN, FL)
+        if Opt["TEST"]
+            runTest(RN,FL)
+        end
+    else
+        return (RN,FL)
+    end
 end
 
 main()

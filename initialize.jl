@@ -3,14 +3,16 @@ This file contains all the functions that have to initialize the system.
 For example, loading the network, the block characteristics, the timetables
 """
 
-function loadNetwork(fileOP::String, fileB::String)::Network
+function loadNetwork()::Network
     RN = Network()
-    #loadOPoints!(fileOP, RN)
-    loadBlocks!(fileB, RN)
+    #loadOPoints!(RN)
+    loadBlocks!(RN)
     RN
 end
 
 function loadOPoints!(file::String, RN::Network)
+
+    file  = Opt["opoint_file"]
     df = DataFrame(CSV.File(file, comment="#"))
 
     for i = 1:nrow(df)
@@ -31,8 +33,9 @@ function loadOPoints!(file::String, RN::Network)
 end
 
 
-function loadBlocks!(fileblock::String, RN::Network)
+function loadBlocks!(RN::Network)
 
+    fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
     for i = 1:nrow(df)
@@ -60,15 +63,16 @@ function loadBlocks!(fileblock::String, RN::Network)
 end
 
 function loadInfrastructure()::Network
-    RN = loadNetwork("data/betriebstellen.csv", "data/blocks.csv")
+    RN = loadNetwork()
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
 end
 
-function loadFleet(file::String="data/timetable.csv")::Fleet
+function loadFleet()::Fleet
+
+    file = Opt["timetable_file"]
 
     Opt["print_flow"] && println("Loading fleet information")
-    Opt["TEST"] && (file="data/test.csv")
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
@@ -130,21 +134,33 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 end
 
 function loadOptions(file::String="run/par.ini")
-    df  = DataFrame(CSV.File(file, delim="=", comment="#", type=String))
-    for i = 1:nrow(df)
-        key = df.key[i] ; val = df.value[i]
-        if(key == "debug_lvl") Opt[key] = parse(Int, val)
+
+    for line in eachline(file)
+        occursin(r"^#", line) && continue
+        df = split(line, r"\s+")
+        key = df[1] ; val = df[2]
+        ####################################################################
+        if(key=="TEST") Opt[key] = parse(Bool, val)
+        ####################################################################
+        elseif(key=="block_file")       Opt[key] = val
+        elseif(key=="timetable_file")   Opt[key] = val
+        elseif(key=="opoint_file")      Opt[key] = val
+        ####################################################################
+        elseif(key=="simulate") Opt[key] = parse(Bool, val)
+        ####################################################################
         elseif(key=="minrnd") Opt[key] = parse(Float64, val)
         elseif(key=="maxrnd") Opt[key] = parse(Float64, val)
-        elseif(key=="print_options") Opt[key] = parse(Bool, val)
-        elseif(key=="print_flow") Opt[key] = parse(Bool, val)
-        elseif(key=="print_train_status") Opt[key] = parse(Bool, val)
-        elseif(key=="print_new_train") Opt[key] = parse(Bool, val)
-        elseif(key=="print_train_wait") Opt[key] = parse(Bool, val)
-        elseif(key=="print_train_end") Opt[key] = parse(Bool, val)
-        elseif(key=="print_train_fossile") Opt[key] = parse(Bool, val)
-        elseif(key=="print_train_list") Opt[key] = parse(Bool, val)
-        elseif(key=="TEST") Opt[key] = parse(Bool, val)
+        ####################################################################
+        ####################################################################
+        elseif(key=="print_options")        Opt[key] = parse(Bool, val)
+        elseif(key=="print_flow")           Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_status")   Opt[key] = parse(Bool, val)
+        elseif(key=="print_new_train")      Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_wait")     Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_end")      Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_fossile")  Opt[key] = parse(Bool, val)
+        elseif(key=="print_train_list")     Opt[key] = parse(Bool, val)
+        ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end
     end
@@ -152,8 +168,9 @@ function loadOptions(file::String="run/par.ini")
     if Opt["print_options"]
         println("########################")
         println("List of input parameters")
-        for (i,j) in Opt
-            println("$i = $j")
+        println("########################")
+        for i in sort(collect(keys(Opt)))
+            println("$i = $(Opt[i])")
         end
         println("########################")
     end

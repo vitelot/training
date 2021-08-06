@@ -4,7 +4,7 @@ useful shortcuts,
 and the packages to be loaded
 """
 
-using DataFrames, CSV, Dates #, PrettyPrint
+using DataFrames, CSV, Dates, BenchmarkTools
 
 Opt = Dict{String,Any}()
 

@@ -8,17 +8,17 @@ returns the number of seconds elapsed from the epoch #midnight
     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
 end
 
-function printDebug(lvl::Int, s...)
-    if lvl == 0
-        return;
-    elseif lvl == 1
-        println(s...); return;
-    elseif lvl <= 2
-        println(s...); return;
-    else
-        return;
-    end
-end
+# function printDebug(lvl::Int, s...)
+#     if lvl == 0
+#         return;
+#     elseif lvl == 1
+#         println(s...); return;
+#     elseif lvl <= 2
+#         println(s...); return;
+#     else
+#         return;
+#     end
+# end
 
 function generateTimetable(fl::Fleet)::TimeTable
     Opt["print_flow"] && println("Generating the timetable")
@@ -45,4 +45,17 @@ end
 function myRand(min::Float64, max::Float64)::Float64
 
     return rand(range(min,length=20,stop=max))
+end
+
+function runTest(RN::Network, FL::Fleet)
+
+    print("\nPerforming test with no output. Please be patient.\r")
+    for k in keys(Opt)
+        if occursin(r"^print", k)
+            Opt[k] = false
+        end
+    end
+
+    @btime simulation($RN, $FL)
+
 end
