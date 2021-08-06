@@ -42,20 +42,15 @@ function generateTimetable(fl::Fleet)::TimeTable
     TB
 end
 
-function myRand(min::Float64, max::Float64)::Float64
-
-    return rand(range(min,length=20,stop=max))
-end
-
 function runTest(RN::Network, FL::Fleet)
 
-    print("\nPerforming test with no output. Please be patient.\r")
-    for k in keys(Opt)
-        if occursin(r"^print", k)
-            Opt[k] = false
-        end
-    end
+#    print("\nPerforming test with no output. Please be patient.\r")
 
     @btime simulation($RN, $FL)
 
+end
+
+function myRand(min::Float64, max::Float64)::Float64
+
+    return rand(range(min,length=20,stop=max))
 end

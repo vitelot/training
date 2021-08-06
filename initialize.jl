@@ -164,7 +164,15 @@ function loadOptions(file::String="run/par.ini")
         else println("WARNING: input parameter $key does not exist")
         end
     end
-    df = nothing
+    if Opt["TEST"]
+        print("\nPerforming test with no output. Please be patient.\r")
+        for k in keys(Opt)
+            if occursin(r"^print", k)
+                Opt[k] = false
+            end
+        end
+    end
+
     if Opt["print_options"]
         println("########################")
         println("List of input parameters")
