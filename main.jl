@@ -5,21 +5,20 @@ include("simulation.jl")
 
 function main()
 
-    loadOptions()
+    loadOptions();
 
     Opt["print_flow"] && println("Starting the program.")
 
-    RN = loadInfrastructure()
-    FL = loadFleet()
+    RN = loadInfrastructure();
+    FL = loadFleet();
 
     if Opt["simulate"]
         simulation(RN, FL)
-        if Opt["TEST"]
-            runTest(RN,FL)
-        end
+        Opt["TEST"] && runTest(RN,FL)
     else
         return (RN,FL)
     end
+    nothing
 end
 
 main()

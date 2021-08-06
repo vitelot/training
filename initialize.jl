@@ -160,6 +160,7 @@ function loadOptions(file::String="run/par.ini")
         elseif(key=="print_train_end")      Opt[key] = parse(Bool, val)
         elseif(key=="print_train_fossile")  Opt[key] = parse(Bool, val)
         elseif(key=="print_train_list")     Opt[key] = parse(Bool, val)
+        elseif(key=="print_elapsed_time")   Opt[key] = parse(Bool, val)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end

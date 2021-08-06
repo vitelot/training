@@ -11,23 +11,23 @@ function simulation(RN::Network, FL::Fleet)
     print_train_wait = Opt["print_train_wait"]
     print_train_end = Opt["print_train_end"]
     print_train_fossile = Opt["print_train_fossile"]
+    print_elapsed_time = Opt["print_elapsed_time"]
 
     S  = Set{String}() # running trains
 
     BK = RN.blocks # Dict{String,Block}
 
-    #TrainOnBlock = Dict{String,String}()
-
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
-    #totDelay = 0
+    #totDelay = 0 #####
 
-    t = minimum(keys(Event)) - 1
+    t0 = t = minimum(keys(Event)) - 1
     t_final = maximum(keys(Event))
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
         t += 1
         if haskey(Event, t)
+            print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
             for transit in Event[t]
 
                 trainid = transit.trainid
@@ -65,6 +65,9 @@ function simulation(RN::Network, FL::Fleet)
                 if nop < length(train.schedule)
                     nextopid = train.schedule[nop+1].opid
                     train.dyn.nextBlock = nextBlockid = opid*"-"*nextopid
+                    # if nextBlockid == "NB-LG" # this occurs with train SB22674 as error when using @btime and maxrnd=1.5
+                    #     return(train)
+                    # end
                     nextBlock = BK[nextBlockid]
 
                     currentBlock = BK[train.dyn.currentBlock]
@@ -93,27 +96,29 @@ function simulation(RN::Network, FL::Fleet)
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
                     else
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
-                        #println("There is train $(TrainOnBlock[train.dyn.nextBlock]) on the next block [$(train.dyn.nextBlock)]. Train $trainid needs to wait.")
-                        get!(Event, t+1, Transit[])
-                        push!(Event[t+1], train.schedule[nop])
+                        tt = t+1
+                        get!(Event, tt, Transit[])
+                        push!(Event[tt], train.schedule[nop])
                         train.dyn.opn -= 1
+                        t_final = max(tt, t_final)
                     end
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds")
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
-                        #t>duetime && ( totDelay += (t-duetime); println("Delay $(t-duetime) seconds") )
+                        #t>duetime && ( totDelay += (t-duetime); ) #println("Delay $(t-duetime) seconds") ) #####
                     else
                         print_train_fossile && println("Train $trainid is a fossile")
                     end
                     pop!(S,trainid)
-                    train.dyn.opn = 0 # reset the train for further use
-                    train.dyn.currentBlock = train.dyn.nextBlock = ""
+                    train.dyn = DynTrain(0,"","",0,0) #.opn = 0 # reset the train for further use
+                    # train.dyn.currentBlock = train.dyn.nextBlock = ""
                 end
             end
         end
 
     end
-    #totDelay
+    Event = nothing
+    #totDelay #####
 end
