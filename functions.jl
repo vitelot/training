@@ -44,7 +44,7 @@ end
 
 function runTest(RN::Network, FL::Fleet)
 
-#    print("\nPerforming test with no output. Please be patient.\r")
+#    print("\nPerforming speed test with no output. Please be patient.\r")
 
     @btime simulation($RN, $FL)
 
