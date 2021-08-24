@@ -86,5 +86,7 @@ print_elapsed_time      1   # display elapsed simulated seconds
 """
 )
     close(INI)
-    println("Parameter file \"$file\" was missing and a default one was created.")
+    println("Parameter file \"$file\" was missing and a default one was created.\nPlease edit it and rerun.")
+    exit()
+    
 end
