@@ -35,7 +35,7 @@ function loadOptions(file::String="run/par.ini")
         end
     end
     if Opt["TEST"]>0
-        print("\nPerforming speed test with no output.\nPlease be patient.\r")
+        print("\nPerforming speed test with no output.\nPlease be patient. ")
         for k in keys(Opt)
             if occursin(r"^print", k)
                 Opt[k] = false

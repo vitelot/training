@@ -46,9 +46,13 @@ function runTest(RN::Network, FL::Fleet)
 
 #    print("\nPerforming speed test with no output. Please be patient.\r")
     if Opt["TEST"] == 2
+        print("Using @btime ...\r")
         @btime simulation($RN, $FL)
+    # elseif Opt["TEST"] == 3
+    #     @benchmark simulation($RN, $FL)
     else
         @time simulation(RN, FL)
+        print("Macro @time was used.\n")
     end
 end
 
