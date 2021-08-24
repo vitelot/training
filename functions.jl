@@ -45,9 +45,11 @@ end
 function runTest(RN::Network, FL::Fleet)
 
 #    print("\nPerforming speed test with no output. Please be patient.\r")
-
-    @btime simulation($RN, $FL)
-
+    if Opt["TEST"] == 2
+        @btime simulation($RN, $FL)
+    else
+        @time simulation(RN, FL)
+    end
 end
 
 function myRand(min::Float64, max::Float64)::Float64

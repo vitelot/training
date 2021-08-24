@@ -20,7 +20,7 @@ function main()
 
     if Opt["simulate"]
         simulation(RN, FL)
-        Opt["TEST"] && runTest(RN,FL)
+        Opt["TEST"]>0 && runTest(RN,FL)
     else
         return (RN,FL)
     end

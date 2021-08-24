@@ -9,7 +9,7 @@ function loadOptions(file::String="run/par.ini")
         length(df) < 2 && continue # ignore empty lines
         key = df[1] ; val = df[2]
         ####################################################################
-        if(key=="TEST") Opt[key] = parse(Bool, val)
+        if(key=="TEST") Opt[key] = parse(Int, val)
         ####################################################################
         elseif(key=="block_file")       Opt[key] = val
         elseif(key=="timetable_file")   Opt[key] = val
@@ -34,7 +34,7 @@ function loadOptions(file::String="run/par.ini")
         else println("WARNING: input parameter $key does not exist")
         end
     end
-    if Opt["TEST"]
+    if Opt["TEST"]>0
         print("\nPerforming speed test with no output.\nPlease be patient.\r")
         for k in keys(Opt)
             if occursin(r"^print", k)
@@ -61,7 +61,7 @@ function createIniFile(file::String)
 """
 #key                    value
 #############################
-TEST                    0   # if true perform a test using @btime
+TEST                    0   # if true perform a test: 1 use @time, 2 use @btime
 #############################
 block_file              data/blocks.csv
 timetable_file          data/timetable.csv
