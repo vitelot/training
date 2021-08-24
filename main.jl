@@ -1,5 +1,6 @@
 include("extern.jl")
 include("initialize.jl")
+include("parameters.jl")
 include("functions.jl")
 include("simulation.jl")
 
