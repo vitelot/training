@@ -5,6 +5,11 @@ include("simulation.jl")
 
 function main()
 
+    if VERSION < v"1.6"
+        println("Please upgrade Julia to at least version 1.6. Exiting.")
+        exit()
+    end
+
     loadOptions();
 
     Opt["print_flow"] && println("Starting the program.")
