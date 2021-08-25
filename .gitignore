@@ -27,7 +27,8 @@ Manifest.toml
 vari/
 out*
 .DS_Store
-data/test.csv
-data/04.02.19*
+data/*.csv
+data/*.gz
+data/data_password
 p?pp?
 par.ini
