@@ -128,7 +128,7 @@ function dayofWeek(d) {
 }
 
 function delay2color(delay) {
-    let bad_delay = 60 // seconds
+    let bad_delay = 300 // seconds
 
     if(delay<0) delay=0;
 
