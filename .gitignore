@@ -32,3 +32,10 @@ data/*.gz
 data/data_password
 p?pp?
 par.ini
+
+/visualization/Austria
+/visualization/vis/*
+!visualization/vis
+!visualization/vis/*.js
+!visualization/vis/*.html
+!visualization/vis/*.css

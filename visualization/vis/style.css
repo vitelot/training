@@ -1,0 +1,79 @@
+html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+}
+
+#mapid {
+                position : relative;
+                width : 100.0%;
+                height: 100.0%;
+                left: 0.0%;
+                top: 0.0%;
+}
+
+p.circlepopup {
+    font-size: 30px;
+}
+p.linkpopup {
+    font-size: 30px;
+}
+
+.info {
+    padding: 30px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    /*background: white;*/
+    background: rgba(167,167,167,0.4);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    font-size: 40px;
+}
+.info h4 {
+                margin: 0 0 5px;
+                color: #777;
+}
+
+.doc_info {
+    padding: 4px 4px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    /*background: white;*/
+    background: rgba(167,167,167,0.4);
+    /* box-shadow: 0 0 15px rgba(0,0,0,0.2); */
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.slow_button {
+                    background: rgba(255,255,255,0);
+                    padding: 20px 8px;
+/*                    font: 14px/16px Arial, Helvetica, sans-serif;
+                    background: white;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                    border-radius: 5px; 
+                    font-size: 50px; */
+}
+
+.stop_button {
+                    background: rgba(255,255,255,0);
+                    padding: 20px 8px;
+/*                    font: 14px/16px Arial, Helvetica, sans-serif;
+                    background: white;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                    border-radius: 5px;
+                    font-size: 50px;*/
+}
+
+.choose_button {
+                    background: rgba(255,255,255,0);
+                    padding: 20px 8px;
+/*                    font: 14px/16px Arial, Helvetica, sans-serif;
+                    background: white;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                    border-radius: 5px;
+                    font-size: 50px;*/
+}
+
+.bezirk_txt {
+    font-size: 20px;
+}
