@@ -1,7 +1,7 @@
 function docButtons() {
 
 	//ChooseButton();
-	runningSim = ActiveTrains;
+	// runningSim = ActiveTrains;
 
     SlowButton();
     StopButton();

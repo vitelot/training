@@ -49,7 +49,7 @@ function DrawBS() {
         var doctor = docs[i];
         var circle = L.circle([doctor.lat, doctor.long], {
             color: 'Null',
-            fillColor: '#00DD00',
+            fillColor: 'rgb(0,200,0)',
             fillOpacity: 0.8,
             radius: 500
         }).addTo(mymap);
@@ -127,13 +127,47 @@ function dayofWeek(d) {
   }
 }
 
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-function ActiveTrains(starting_sec=30000) {
+function delay2color(delay) {
+    let bad_delay = 60 // seconds
 
-  runningSim = ActiveTrains;
+    if(delay<0) delay=0;
+
+    let r = Math.min(1.0, delay/bad_delay);
+
+    let red = Math.floor(200*r);
+    let green = 200-red; //Math.floor(200*(1-r));
+    let blue = 0
+
+    return int2rgb([red,green,blue])
+}
+
+function rgb2int(color) {
+  // var rgbColor = 'rgb(46, 123, 14)';
+  // rgbArr = rgbColor.substring(4, rgbColor.length-1).replace(/ /g, '').split(',');
+  // console.log(rgbArr);
+
+    astring = color.substring(4, color.length-1).split(',');
+    aint = [0,0,0];
+    for(i=0; i<3; i++) {
+      aint[i] = parseInt(astring[i])
+    }
+    return aint
+}
+
+function int2rgb(a) {
+  return 'rgb('+a[0].toString()+','+a[1].toString()+','+a[2].toString()+')';
+}
+
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+function runningSim(starting_sec=0) {
+  // starting_sec = (typeof start !== 'undefined') ?  start : 0;
+  // runningSim = ActiveTrains;
+
+  running_sec = starting_sec;
 
   if(play_stop==false) return;
 
@@ -155,12 +189,13 @@ function ActiveTrains(starting_sec=30000) {
       for(var i in transits) {
         var transit = transits[i];
         var bscode = transit.bscode;
+        rsec = parseInt(transit.realtime);
         sec = parseInt(transit.duetime);
-        if(!transit_array[sec]) {
-            transit_array[sec] = [];
+        if(!transit_array[rsec]) {
+            transit_array[rsec] = [];
         }
-        if(maxsec<sec) maxsec = sec;
-        transit_array[sec].push(bscode);
+        if(maxsec<rsec) maxsec = rsec;
+        transit_array[rsec].push([bscode, rsec-sec]);
       }
 
       transits = [];
@@ -180,23 +215,29 @@ function ActiveTrains(starting_sec=30000) {
 
         for(c in circle_list) { // reduce the radius of all circles
           reduceRadius(circle_list[c]);
-          circle_list[c].setStyle({fillColor:'#00dd00'})
+          reduceColor(circle_list[c]);
         }
 
         var nrtrains = 0;
-        for(var v in transit_array[d]) {
-          var bscode = transit_array[d][v];
+        for(var events in transit_array[d]) {
+          var bscode = transit_array[d][events][0];
+          var delay = transit_array[d][events][1];
+
           { // increase the radius of doctors active that day
             increaseRadius(circle_list[bscode]); /////
-            circle_list[bscode].setStyle({fillColor:'#dd4400'})
+            circle_list[bscode].setStyle({fillColor: delay2color(delay)})
             nrtrains++;
           }
         }
         //return;
 
+        hour=String(Math.floor(d/3600)).padStart(2,'0');
+        minute = String(Math.floor(d/60)-hour*60).padStart(2,'0');
+        second = String(d%60).padStart(2,'0');
+
         var x=document.getElementsByClassName("info");  // Find the element
         x[0].innerHTML =
-          "Sec:"+String(d)+"<br><br><br>"+
+          hour+":"+minute+":"+second+"<br><br><br>"+
           "<span style=\"color: #ff0000; font-size: 60%\" >"+
           "#Transits:"+("0000"+String(nrtrains)).slice(-4)+    // padding zeroes
           "</span>";
@@ -217,6 +258,13 @@ function ActiveTrains(starting_sec=30000) {
           circle.setRadius(radius*1.5);
         }
       }
+      function reduceColor(circle) {
+        let damp = 1.05;
+        [r,g,b] = rgb2int(circle.options.fillColor)
+        r = Math.floor(r/damp)
+        g = 200 - r; //Math.floor( 200 - (200-g)/damp )
 
+        circle.setStyle({fillColor: int2rgb([r,g,b])})
+      }
     } // end: reqListener()
 }  // end:ActiveTrains()

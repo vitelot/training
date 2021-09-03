@@ -7,4 +7,4 @@ var timer_id;			// timer associated to the current setTimeout
 var circle_list = {};	// list of circles (doctors)
 var link_list = [];		// active polyline links on map
 var running_sec;		// day number displayed right now
-var runningSim;			// the function that displays things
+//var runningSim;			// the function that displays things
