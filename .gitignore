@@ -32,8 +32,9 @@ data/*.gz
 data/data_password
 p?pp?
 par.ini
+run/*.gz
 
-/visualization/Austria
+/visualization/austria
 /visualization/vis/*
 !visualization/vis
 !visualization/vis/*.js
