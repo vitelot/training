@@ -24,11 +24,12 @@ docs/site/
 Manifest.toml
 
 # my things
-vari/
+vari
 out*
 .DS_Store
 data/*.csv
 data/*.gz
+data/OeBB
 data/data_password
 p?pp?
 par.ini
