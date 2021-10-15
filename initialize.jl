@@ -97,8 +97,42 @@ function loadFleet()::Fleet
     end
     FL.n = length(FL.train)
     df = nothing
+
+    assignImposedDelay(FL);
+
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
+end
+
+function assignImposedDelay(FL::Fleet)
+    file = Opt["imposed_delay_file"]
+    print_imposed_delay = Opt["print_imposed_delay"];
+
+    if !isfile(file) # do nothing if file does not exist
+        print_imposed_delay && println("No imposed delay file was foud.")
+        return nothing;
+    end
+
+    df = DataFrame(CSV.File(file, comment="#"))
+    c=0;
+    for i = 1:nrow(df)
+        (train, op, kind, delay) = df[i,:];
+        v = FL.train[train].schedule;
+        idx = findfirst(x->x.opid==op && x.kind==kind, v);
+        if print_imposed_delay
+            if isnothing(idx)
+                println("Imposing delay: train $train, op $op, kind $kind, not found.");
+                continue;
+            else
+                println("Imposing $delay seconds delay to train $train, $kind at $op.")
+            end
+        end
+        FL.train[train].schedule[idx].imposed_delay.delay = delay;
+        c += 1;
+    end
+
+    Opt["print_flow"] && println("$c Delays imposed");
+    df = nothing;
 end
 
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
@@ -130,5 +164,6 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
             end
         end
     end
+    TB = nothing;
     E
 end

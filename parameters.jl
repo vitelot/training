@@ -14,6 +14,7 @@ function loadOptions(file::String="run/par.ini")
         elseif(key=="block_file")       Opt[key] = val
         elseif(key=="timetable_file")   Opt[key] = val
         elseif(key=="opoint_file")      Opt[key] = val
+        elseif(key=="imposed_delay_file")      Opt[key] = val
         ####################################################################
         elseif(key=="simulate") Opt[key] = parse(Bool, val)
         ####################################################################
@@ -30,6 +31,7 @@ function loadOptions(file::String="run/par.ini")
         elseif(key=="print_train_fossile")  Opt[key] = parse(Bool, val)
         elseif(key=="print_train_list")     Opt[key] = parse(Bool, val)
         elseif(key=="print_elapsed_time")   Opt[key] = parse(Bool, val)
+        elseif(key=="print_imposed_delay")  Opt[key] = parse(Bool, val)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end
@@ -66,6 +68,7 @@ TEST                    0   # if true perform a test: 1 use @time, 2 use @btime
 block_file              data/blocks.csv
 timetable_file          data/timetable.csv
 opoint_file             data/betriebstellen.csv
+imposed_delay_file      data/imposed_delay.csv
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 #############################
@@ -82,11 +85,12 @@ print_train_end         1   # display train status at their final destination
 print_train_fossile     1   # display trains that never travel (?)
 print_train_list        1   # display the id of processed trains
 print_elapsed_time      1   # display elapsed simulated seconds
+print_imposed_delay     1   # display trains with imposed delay
 #############################
 """
 )
     close(INI)
     println("Parameter file \"$file\" was missing and a default one was created.\nPlease edit it and rerun.")
     exit()
-    
+
 end

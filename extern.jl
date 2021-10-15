@@ -39,12 +39,19 @@ function Network() # default initialization
     Network(0,Dict{String,OPoint}(),0,Dict{String,Block}())
 end
 
+mutable struct Delay # used to keep Transit as immutable
+    delay::Int
+end
+
 struct Transit
     trainid::String # train id going through
     opid::String # Betriebstelle id
     kind::String # Ankunft/Abfahrt/Durchfahrt/Ende
     duetime::Int # due time in seconds from midnight
+    imposed_delay::Delay # forced delay in seconds - used to test robustness
 end
+Transit(trainid::String, opid::String7, kind::String15, duetime::Int) =
+    Transit(trainid, opid, kind, duetime, Delay(0)); # sets the default imposed delay to zero
 
 mutable struct TimeTable
     n::Int # dimension of vector below

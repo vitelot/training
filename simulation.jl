@@ -90,7 +90,7 @@ function simulation(RN::Network, FL::Fleet)
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(minrnd,maxrnd))
-                        tt = t + train.dyn.nextBlockRealTime
+                        tt = t + train.dyn.nextBlockRealTime + train.schedule[nop].imposed_delay.delay;
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
