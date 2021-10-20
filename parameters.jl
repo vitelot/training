@@ -15,6 +15,8 @@ function loadOptions(file::String="run/par.ini")
         elseif(key=="timetable_file")   Opt[key] = val
         elseif(key=="opoint_file")      Opt[key] = val
         elseif(key=="imposed_delay_file")      Opt[key] = val
+        elseif(key=="imposed_delay_repo_path")      Opt[key] = val
+            
         ####################################################################
         elseif(key=="simulate") Opt[key] = parse(Bool, val)
         ####################################################################

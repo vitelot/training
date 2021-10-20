@@ -18,13 +18,24 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-    if Opt["simulate"]
-        simulation(RN, FL)
-        Opt["TEST"]>0 && runTest(RN,FL)
-    else
-        return (RN,FL)
+    delays_array= loadDelays()#Arr{Dataframe}, each is delay imposed in one simulation
+
+
+    for simulation_id in 1:Opt["number_simulations"]
+
+        Opt["print_flow"] && println("Starting simulation number $simulation_id.")
+
+
+        imposeDelays(FL,delays_array,simulation_id)
+
+        if Opt["simulate"]
+            simulation(RN, FL)
+            Opt["TEST"]>0 && runTest(RN,FL)
+        else
+            return (RN,FL)
+        end
+        nothing
     end
-    nothing
 end
 
-main()
+@time main()

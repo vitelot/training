@@ -1,2 +1,2 @@
 cd ..
-julia main.jl
+julia @time main.jl

@@ -120,5 +120,6 @@ function simulation(RN::Network, FL::Fleet)
 
     end
     Event = nothing
+    println("Simulation finished.")
     #totDelay #####
 end
