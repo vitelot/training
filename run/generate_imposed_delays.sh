@@ -1,13 +1,16 @@
-#! /bin/bash -f
+#! /bin/bash
 
 train='SB22674'
-delays=`seq 0 60 10800`
+delays=`seq 0 60 600`
 #echo "${delays}"
 #for i in `seq 0 2 10`; do echo $i; done
-cd ../data/delays
+dir="../data/delays/"
+rm "${dir}"*
+cd $dir
+
 
 for delay in ${delays[@]}; do
-        rm -f imposed_${train}_delay_${delay}.csv
+
         #echo "starting with delay ${delay}"
         echo "trainid,opid,kind,delay" >> imposed_${train}_delay_${delay}.csv
         echo "$train,NB,Beginn,$delay" >> imposed_${train}_delay_${delay}.csv

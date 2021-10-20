@@ -4,6 +4,8 @@ include("parameters.jl")
 include("functions.jl")
 include("simulation.jl")
 
+using Profile
+
 function main()
 
     if VERSION < v"1.6"
@@ -38,4 +40,4 @@ function main()
     end
 end
 
-@time main()
+main()
