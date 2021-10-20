@@ -1,0 +1,2 @@
+cd ..
+julia main.jl
