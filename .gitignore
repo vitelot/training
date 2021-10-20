@@ -35,6 +35,9 @@ p?pp?
 par.ini
 run/*.gz
 
+# Simone things
+data/simone
+
 /visualization/austria
 /visualization/vis/*
 !visualization/vis
