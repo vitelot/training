@@ -37,6 +37,9 @@ run/*.gz
 
 # Simone things
 data/simone
+data/img
+data/delays
+data/empty
 
 /visualization/austria
 /visualization/vis/*

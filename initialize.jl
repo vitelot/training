@@ -111,17 +111,31 @@ function read_non_hidden_files(repo)::Vector{String}
     return filter(!startswith(".") ∘ basename, readdir(repo))
 end
 
+#customized sorting, for correctly sorting strings based on last digits
+function custom_cmp(x::String)
+    arr_str = rsplit(x, "_",limit=2)
+    str1, _ = arr_str[1], arr_str[2]
+    number_idx = findlast(isdigit, arr_str[2])
+    num,str2 = SubString(arr_str[2], 1, number_idx), SubString(arr_str[2], number_idx+1, length(arr_str[2]))
+    return str1,parse(Int, num)
+end
+
+
+
+
+
 function loadDelays()::Vector{Any}
     print_imposed_delay = Opt["print_imposed_delay"];
 
     delays_array=[]
     repo = Opt["imposed_delay_repo_path"]
-    files=read_non_hidden_files(repo)
+    files=sort!(read_non_hidden_files(repo), by = custom_cmp)
     println("The collection of files read is $files")
     if isempty(files)
         print_imposed_delay && println("No imposed delay file was found.")
         return nothing;
     end
+    println(files)
 
     for file in files
         delay= DataFrame(CSV.File(repo*file, comment="#"))
