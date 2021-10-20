@@ -91,6 +91,7 @@ function simulation(RN::Network, FL::Fleet)
 
                         train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(minrnd,maxrnd))
                         tt = t + train.dyn.nextBlockRealTime + train.schedule[nop].imposed_delay.delay;
+
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
@@ -120,6 +121,6 @@ function simulation(RN::Network, FL::Fleet)
 
     end
     Event = nothing
-    println("Simulation finished.")
+    Opt["print_flow"] && println("Simulation finished.")
     #totDelay #####
 end

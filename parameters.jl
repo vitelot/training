@@ -16,7 +16,7 @@ function loadOptions(file::String="run/par.ini")
         elseif(key=="opoint_file")      Opt[key] = val
         elseif(key=="imposed_delay_file")      Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
-            
+
         ####################################################################
         elseif(key=="simulate") Opt[key] = parse(Bool, val)
         ####################################################################
@@ -71,6 +71,7 @@ block_file              data/blocks.csv
 timetable_file          data/timetable.csv
 opoint_file             data/betriebstellen.csv
 imposed_delay_file      data/imposed_delay.csv
+imposed_delay_repo_path data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 #############################
