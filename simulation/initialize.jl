@@ -130,12 +130,12 @@ function loadDelays()::Vector{Any}
     delays_array=[]
     repo = Opt["imposed_delay_repo_path"]
     files=sort!(read_non_hidden_files(repo), by = custom_cmp)
-    println("The collection of files read is $files")
+
+
     if isempty(files)
-        print_imposed_delay && println("No imposed delay file was found.")
+        print_imposed_delay && println("No imposed delay file was found. Simulating without imposed delays.")
         return nothing;
     end
-    println(files)
 
     for file in files
         delay= DataFrame(CSV.File(repo*file, comment="#"))
@@ -143,9 +143,7 @@ function loadDelays()::Vector{Any}
     end
 
     Opt["number_simulations"]=length(delays_array)
-
-
-
+    Opt["print_flow"] && println("The number of simulations is: ",Opt["number_simulations"])
     delay=nothing
 
     return delays_array
@@ -211,7 +209,6 @@ function imposeDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
         c += 1;
     end
 
-    println("delay imposed: $df")
     Opt["print_flow"] && println("$c Delays imposed");
     df = nothing;
 

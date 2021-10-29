@@ -12,14 +12,14 @@ function simulation(RN::Network, FL::Fleet)
     print_train_end = Opt["print_train_end"]
     print_train_fossile = Opt["print_train_fossile"]
     print_elapsed_time = Opt["print_elapsed_time"]
-
+    print_tot_delay = Opt["print_tot_delay"]
     S  = Set{String}() # running trains
 
     BK = RN.blocks # Dict{String,Block}
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
-    #totDelay = 0 #####
+    totDelay = 0 #####
 
     t0 = t = minimum(keys(Event)) - 1
     t_final = maximum(keys(Event))
@@ -108,7 +108,8 @@ function simulation(RN::Network, FL::Fleet)
                         print_train_end && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds")
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
-                        #t>duetime && ( totDelay += (t-duetime); ) #println("Delay $(t-duetime) seconds") ) #####
+                        t>duetime && ( totDelay += (t-duetime); ) #
+                        #Opt["print_tot_delay"] && println("Delay $(t-duetime) seconds") ) #####
                     else
                         print_train_fossile && println("Train $trainid is a fossile")
                     end
@@ -122,5 +123,5 @@ function simulation(RN::Network, FL::Fleet)
     end
     Event = nothing
     Opt["print_flow"] && println("Simulation finished.")
-    #totDelay #####
+    print_tot_delay && println("Total delay at the end of simulation is $totDelay") 
 end

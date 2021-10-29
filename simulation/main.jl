@@ -15,7 +15,7 @@ function main()
 
     loadOptions();
 
-    Opt["print_flow"] && println("Starting the program.")
+    Opt["print_flow"] && println("Options loaded, starting the program.")
 
     RN = loadInfrastructure();
     FL = loadFleet();
@@ -25,8 +25,9 @@ function main()
 
     for simulation_id in 1:Opt["number_simulations"]
 
-        Opt["print_flow"] && println("Starting simulation number $simulation_id.")
-
+        Opt["print_flow"] && println("##################################################################")
+        Opt["print_flow"] && println("Starting simulation number $simulation_id")
+        Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")
 
         imposeDelays(FL,delays_array,simulation_id)
 
@@ -37,6 +38,9 @@ function main()
             return (RN,FL)
         end
         nothing
+        # if simulation_id == 2
+        #      break
+        # end
     end
 end
 

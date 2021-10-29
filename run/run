@@ -1,2 +1,2 @@
-cd ..
+cd ../simulation
 julia @time main.jl
