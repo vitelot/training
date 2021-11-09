@@ -1,11 +1,18 @@
 function dateToSeconds(d::String31)::Int
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"
-returns the number of seconds elapsed from the epoch #midnight
+returns the number of seconds elapsed from the epoch
 """
     dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
     return Dates.value(dt)÷1000
     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
+end
+function dateToSeconds(d::Int)::Int
+"""
+If the input is an Int do nothing
+assuming that it is already the number of seconds elapsed from the epoch
+"""
+    return d
 end
 
 # function printDebug(lvl::Int, s...)
