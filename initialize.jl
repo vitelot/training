@@ -109,7 +109,7 @@ function assignImposedDelay(FL::Fleet)
     print_imposed_delay = Opt["print_imposed_delay"];
 
     if !isfile(file) # do nothing if file does not exist
-        print_imposed_delay && println("No imposed delay file was foud.")
+        print_imposed_delay && println("No imposed delay file was found.")
         return nothing;
     end
 
