@@ -44,3 +44,10 @@ data/simone
 !visualization/vis/*.js
 !visualization/vis/*.html
 !visualization/vis/*.css
+
+# Simone things
+data/simone
+data/img
+data/delays
+data/simulation_data
+postprocessing
