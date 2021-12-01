@@ -100,9 +100,22 @@ function main()
 
     ############################################################################################################
     path_ini="../data/data/"
+
     path_end="../data/simulation_data/"
-    for file in filter(x -> endswith(x, ".csv"), readdir(path_ini))
-        mv(path_ini*file,path_end*file,force=true)
+
+    if !isdir(path_end)
+      mkdir(path_end)
+    end
+
+    if !isdir(path_ini)
+      path_alternative="../data/"
+      for file in filter(x -> endswith(x, ".csv"), readdir(path_alternative))
+          mv(path_alternative*file,path_end*file,force=true)
+      end
+    else
+      for file in filter(x -> endswith(x, ".csv"), readdir(path_ini))
+          mv(path_ini*file,path_end*file,force=true)
+      end
     end
     ############################################################################################################
 
@@ -171,6 +184,11 @@ function main()
 
     #removing previous defined delay files
     delays_path="../data/delays/"
+
+    if !isdir(delays_path)
+      mkdir(delays_path)
+    end
+
     files=read_non_hidden_files(delays_path)
     for file in files
        rm(delays_path*file)
