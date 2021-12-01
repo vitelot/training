@@ -54,3 +54,4 @@ postprocessing
 preprocessing/trainIni.in
 map/
 data/data/
+training_env/
