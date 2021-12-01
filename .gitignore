@@ -46,7 +46,6 @@ run/*.gz
 !visualization/vis/*.css
 
 # Simone things
-
 data/img
 data/delays
 data/simulation_data
