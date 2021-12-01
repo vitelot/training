@@ -51,3 +51,5 @@ data/img
 data/delays
 data/simulation_data
 postprocessing
+map/
+data/data/

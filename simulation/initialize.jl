@@ -124,9 +124,10 @@ end
 
 
 
-function loadDelays()::Vector{Any}
+function loadDelays()::Tuple{Vector{Any},Int}
     print_imposed_delay = Opt["print_imposed_delay"];
 
+    n=0
     delays_array=[]
     repo = Opt["imposed_delay_repo_path"]
     files=sort!(read_non_hidden_files(repo), by = custom_cmp)
@@ -142,11 +143,12 @@ function loadDelays()::Vector{Any}
         push!(delays_array,delay)
     end
 
-    Opt["number_simulations"]=length(delays_array)
-    Opt["print_flow"] && println("The number of simulations is: ",Opt["number_simulations"])
+    #print(delays_array)
+    n=length(delays_array)
+    Opt["print_flow"] && println("Delays loaded. The number of simulations is: ",n)
     delay=nothing
 
-    return delays_array
+    return (delays_array,n)
 end
 
 function resetDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
