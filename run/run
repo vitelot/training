@@ -1,2 +1,2 @@
 cd ../simulation
-julia @time main.jl
+julia main.jl
