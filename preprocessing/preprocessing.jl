@@ -174,7 +174,7 @@ function main()
     starts= DataFrame(CSV.File(path_out*outfile, comment="#"))
 
     #creating a dict from it
-    start_dict=Dict((starts.trainid[i] => starts[i,2:3] for i=1:nrow(starts)) )
+    start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
 
     #defining the train list and delay list
     #bad_trains=String["SB22674","SB24686"]#String["SB22674","SB24686","R2246","R2265","R2248","RJ750","SB21714"]
@@ -203,8 +203,8 @@ function main()
             outfile = delays_path*"imposed_delay_simulation_$count.csv"
             f = open(outfile, "w")
 
-            println(f,"trainid,opid,kind,duetime")
-            println(f,train,",",start_dict[train].opid,",",start_dict[train].kind,",",delay)
+            println(f,"trainid,opid,kind,duetime,delay")
+            println(f,train,",",start_dict[train].opid,",",start_dict[train].kind,",",start_dict[train].duetime,",",delay)
 
             close(f)
 

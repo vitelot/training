@@ -34,7 +34,7 @@ function simulation(RN::Network, FL::Fleet)
                 opid = transit.opid
                 kind = transit.kind
                 duetime = transit.duetime
-                #println("Train $train passed through $opid at $t sec ($kind)")
+
 
                 if t<duetime # wow, we arrived earlier
                     print_train_status && println("Train $trainid is $(duetime-t) seconds early at $opid ($kind)")
@@ -92,6 +92,7 @@ function simulation(RN::Network, FL::Fleet)
                         train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(minrnd,maxrnd))
                         tt = t + train.dyn.nextBlockRealTime + train.schedule[nop].imposed_delay.delay;
 
+
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
@@ -105,7 +106,7 @@ function simulation(RN::Network, FL::Fleet)
                     end
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
-                        print_train_end && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds")
+                        print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds at time $t seconds"))
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
                         t>duetime && ( totDelay += (t-duetime); ) #
@@ -123,5 +124,5 @@ function simulation(RN::Network, FL::Fleet)
     end
     Event = nothing
     Opt["print_flow"] && println("Simulation finished.")
-    print_tot_delay && println("Total delay at the end of simulation is $totDelay") 
+    print_tot_delay && println("Total delay at the end of simulation is $totDelay")
 end

@@ -159,7 +159,7 @@ function resetDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
 
     c=0;
     for i = 1:nrow(df)
-        (train, op, kind, delay) = df[i,:];
+        (train, op, kind,duetime, delay) = df[i,:];
 
         v = FL.train[train].schedule;
         idx = findfirst(x->x.opid==op && x.kind==kind, v);
@@ -195,7 +195,7 @@ function imposeDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
 
     c=0;
     for i = 1:nrow(df)
-        (train, op, kind, delay) = df[i,:];
+        (train, op, kind,duetime, delay) = df[i,:];
         v = FL.train[train].schedule;
         idx = findfirst(x->x.opid==op && x.kind==kind, v);
 
@@ -204,7 +204,7 @@ function imposeDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
                 println("Imposing delay: train $train, op $op, kind $kind, not found.");
                 continue;
             else
-                println("Imposing $delay seconds delay to train $train, $kind at $op.")
+                println("Imposing $delay seconds delay to train $train, $kind at $op at $duetime, in seconds $(dateToSeconds(duetime)).")
             end
         end
         FL.train[train].schedule[idx].imposed_delay.delay = delay;
