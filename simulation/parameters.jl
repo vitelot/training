@@ -1,3 +1,4 @@
+
 function loadOptions(file::String="../data/simulation_data/par.ini")
     if !isfile(file)
         createIniFile(file)

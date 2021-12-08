@@ -1,7 +1,7 @@
 """
 simulation engine
 """
-function simulation(RN::Network, FL::Fleet)
+function simulation(RN::Network, FL::Fleet)::Bool
 
     # get the required options
     maxrnd = Opt["maxrnd"]
@@ -22,9 +22,10 @@ function simulation(RN::Network, FL::Fleet)
     totDelay = 0 #####
 
     t0 = t = minimum(keys(Event)) - 1
-    t_final = maximum(keys(Event))
-
+    t_final=t_final_starting = maximum(keys(Event))
+    println("t final starting is $t_final_starting")
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
+
         t += 1
         if haskey(Event, t)
             print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
@@ -68,6 +69,7 @@ function simulation(RN::Network, FL::Fleet)
                     # if nextBlockid == "NB-LG" # this occurs with train SB22674 as error when using @btime and maxrnd=1.5
                     #     return(train)
                     # end
+
                     nextBlock = BK[nextBlockid]
 
                     currentBlock = BK[train.dyn.currentBlock]
@@ -90,12 +92,17 @@ function simulation(RN::Network, FL::Fleet)
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         train.dyn.nextBlockRealTime = floor(Int, train.dyn.nextBlockDueTime * myRand(minrnd,maxrnd))
-                        tt = t + train.dyn.nextBlockRealTime + train.schedule[nop].imposed_delay.delay;
 
+                        delay_imposed=train.schedule[nop].imposed_delay.delay
+                        tt = t + train.dyn.nextBlockRealTime + delay_imposed;
+
+                        isdir(Opt["imposed_delay_repo_path"]) && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid] "))
 
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
+
+
                     else
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
                         tt = t+1
@@ -104,6 +111,10 @@ function simulation(RN::Network, FL::Fleet)
                         train.dyn.opn -= 1
                         t_final = max(tt, t_final)
                     end
+
+
+
+                    isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) && (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");Event = nothing;return true))
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds at time $t seconds"))
@@ -125,4 +136,5 @@ function simulation(RN::Network, FL::Fleet)
     Event = nothing
     Opt["print_flow"] && println("Simulation finished.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
+    return false
 end

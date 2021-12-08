@@ -197,18 +197,20 @@ function main()
     #writing the new delay files
 
     count=1
-
+    train_keys=collect(keys(start_dict))
     for train in Trains
         for delay in delays
-            outfile = delays_path*"imposed_delay_simulation_$count.csv"
-            f = open(outfile, "w")
+            if train in train_keys
+                outfile = delays_path*"imposed_delay_simulation_$count.csv"
+                f = open(outfile, "w")
 
-            println(f,"trainid,opid,kind,duetime,delay")
-            println(f,train,",",start_dict[train].opid,",",start_dict[train].kind,",",start_dict[train].duetime,",",delay)
+                println(f,"trainid,opid,kind,duetime,delay")
+                println(f,train,",",start_dict[train].opid,",",start_dict[train].kind,",",start_dict[train].duetime,",",delay)
 
-            close(f)
+                close(f)
 
-            count+=1
+                count+=1
+            end
         end
     end
 

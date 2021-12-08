@@ -26,7 +26,8 @@ function main()
     println(number_simulations)
 
     for simulation_id in 1:number_simulations
-
+        res=1
+        #simulation_id=613
         Opt["print_flow"] && println("##################################################################")
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
         Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")
@@ -34,15 +35,13 @@ function main()
         imposeDelays(FL,delays_array,simulation_id)
 
         if Opt["simulate"]
-            simulation(RN, FL)
+            simulation(RN, FL)  && (println("returned 1 , restarting");FL = loadFleet();) #;RN = loadInfrastructure()
             Opt["TEST"]>0 && runTest(RN,FL)
         else
             return (RN,FL)
         end
         nothing
-        # if simulation_id == 2
-        #      break
-        # end
+
     end
 end
 
