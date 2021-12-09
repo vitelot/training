@@ -114,7 +114,9 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
 
 
-                    isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) && (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");Event = nothing;return true))
+                    isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) &&
+                        (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");
+                        Event = nothing;return true))
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds at time $t seconds"))

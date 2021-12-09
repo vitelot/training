@@ -10,27 +10,27 @@ function loadNetwork()::Network
     RN
 end
 
-function loadOPoints!(file::String, RN::Network)
-
-    file  = Opt["opoint_file"]
-    df = DataFrame(CSV.File(file, comment="#"))
-
-    for i = 1:nrow(df)
-        name = string(df.id[i])
-        op = OPoint(
-                name,
-                i,
-                df.lat[i],
-                df.long[i],
-                String[],
-                String[],
-                false
-        )
-        RN.n += 1
-        RN.nodes[name]=op
-    end
-    df = nothing # explicitly free the memory
-end
+# function loadOPoints!(file::String, RN::Network)
+#
+#     file  = Opt["opoint_file"]
+#     df = DataFrame(CSV.File(file, comment="#"))
+#
+#     for i = 1:nrow(df)
+#         name = string(df.id[i])
+#         op = OPoint(
+#                 name,
+#                 i,
+#                 df.lat[i],
+#                 df.long[i],
+#                 String[],
+#                 String[],
+#                 false
+#         )
+#         RN.n += 1
+#         RN.nodes[name]=op
+#     end
+#     df = nothing # explicitly free the memory
+# end
 
 
 function loadBlocks!(RN::Network)
