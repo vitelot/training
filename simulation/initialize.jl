@@ -135,7 +135,7 @@ function loadDelays()::Tuple{Vector{Any},Int}
 
     if isempty(files)
         print_imposed_delay && println("No imposed delay file was found. Simulating without imposed delays.")
-        return nothing;
+        return (delays_array,1);
     end
 
     for file in files
