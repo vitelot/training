@@ -35,11 +35,10 @@ function createTrainIni(file::String)
 #############################
 step_beginning         0
 step_end               3000
-step_length            60
+step_length            300
 #############################
 #List of trains to be delayed
 #############################
-SB22674
 SB24686
 """
 )

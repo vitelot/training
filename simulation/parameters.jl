@@ -86,7 +86,7 @@ print_flow              1   # notify when a new function starts and ends
 print_train_status      0   # notify the status of trains on operation points
 print_new_train         0   # notify when a new train is found in the timetable
 print_train_wait        0   # notify when a train has to wait because next block is occupied
-print_train_end         0   # display train status at their final destination
+print_train_end         1   # display train status at their final destination
 print_train_fossile     0   # display trains that never travel (?)
 print_train_list        0   # display the id of processed trains
 print_elapsed_time      0   # display elapsed simulated seconds
