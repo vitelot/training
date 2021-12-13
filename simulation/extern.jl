@@ -4,7 +4,7 @@ useful shortcuts,
 and the packages to be loaded
 """
 
-using DataFrames, CSV, Dates, BenchmarkTools
+using DataFrames, CSV, Dates, BenchmarkTools, SHA;
 
 Opt = Dict{String,Any}()
 

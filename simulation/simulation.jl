@@ -20,6 +20,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
     totDelay = 0 #####
+    old_status = status = ""; # trains going around, used to get stuck status
 
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
@@ -110,6 +111,16 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         push!(Event[tt], train.schedule[nop])
                         train.dyn.opn -= 1
                         t_final = max(tt, t_final)
+                        if t%300 == 0
+                            # check stuck func here // Vitus
+                            status = netStatus(S,BK);
+                            if old_status == status
+                                println("We are stuck. Exiting.")
+                                println(status);
+                                exit();
+                            end
+                            old_status = status;
+                        end
                     end
 
 

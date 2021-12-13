@@ -67,3 +67,19 @@ function myRand(min::Float64, max::Float64)::Float64
 
     return rand(range(min,length=20,stop=max))
 end
+
+function netStatus(S::Set{String}, BK::Dict{String,Block}; sha::Bool=false)
+    status = "";
+    for blk_id in keys(BK) # we might need a sort here because the order of keys may change
+        blk = BK[blk_id];
+        if blk.nt > 0
+            status *= "$(blk_id):$(blk.train) ";
+        end
+    end
+
+    status *= "\n$S";
+
+    sha && return sha256(status) |> bytes2hex;
+
+    return status
+end
