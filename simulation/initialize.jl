@@ -3,12 +3,7 @@ This file contains all the functions that have to initialize the system.
 For example, loading the network, the block characteristics, the timetables
 """
 
-function loadNetwork()::Network
-    RN = Network()
-    #loadOPoints!(RN)
-    loadBlocks!(RN)
-    RN
-end
+
 
 # function loadOPoints!(file::String, RN::Network)
 #
@@ -33,8 +28,15 @@ end
 # end
 
 
-function loadBlocks!(RN::Network)
 
+
+function loadInfrastructure()::Network
+
+    #creating and initializing a data struct network
+    RN = Network()
+
+
+    #function loadBlocks!(RN::Network)
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
@@ -60,10 +62,9 @@ function loadBlocks!(RN::Network)
                         0,
                         Set{String}()
     )
-end
 
-function loadInfrastructure()::Network
-    RN = loadNetwork()
+    
+
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
 end
