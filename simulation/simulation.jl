@@ -13,6 +13,21 @@ function simulation(RN::Network, FL::Fleet)::Bool
     print_train_fossile = Opt["print_train_fossile"]
     print_elapsed_time = Opt["print_elapsed_time"]
     print_tot_delay = Opt["print_tot_delay"]
+
+    ##variabili
+
+    #t in events that are between an evaluation of stuck sim and another
+    t_evaluated=0
+    #minimum number of t for evaluating
+    min_t_evaluated=10
+    #time interval in seconds between an evaluation of stuck and another
+    stuck_interval=3000
+
+    old_status = status = ""; # trains going around, used to get stuck status
+
+
+
+
     S  = Set{String}() # running trains
 
     BK = RN.blocks # Dict{String,Block}
@@ -20,15 +35,20 @@ function simulation(RN::Network, FL::Fleet)::Bool
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
     totDelay = 0 #####
-    old_status = status = ""; # trains going around, used to get stuck status
+
 
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
     println("t final starting is $t_final_starting")
+
+
+
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
 
         t += 1
         if haskey(Event, t)
+
+            t_evaluated+=1
             print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
             for transit in Event[t]
 
@@ -111,23 +131,26 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         push!(Event[tt], train.schedule[nop])
                         train.dyn.opn -= 1
                         t_final = max(tt, t_final)
-                        if t%300 == 0
-                            # check stuck func here // Vitus
-                            status = netStatus(S,BK);
-                            if old_status == status
-                                println("We are stuck. Exiting.")
-                                println(status);
-                                exit();
-                            end
-                            old_status = status;
-                        end
+
+                        # if t%300 == 0
+                        #     println("t is $t")
+                        #     # check stuck func here // Vitus
+                        #     status = netStatus(S,BK);
+                        #     if old_status == status
+                        #         println("We are stuck. Exiting.")
+                        #         println(status);
+                        #         exit();
+                        #     end
+                        #     old_status = status;
+                        # end
+
                     end
 
 
 
-                    isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) &&
-                        (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");
-                        Event = nothing;return true))
+                    # isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) &&
+                    #     (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");
+                    #     Event = nothing;return true))
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $opid with a delay of $(t-duetime) seconds at time $t seconds"))
@@ -143,6 +166,23 @@ function simulation(RN::Network, FL::Fleet)::Bool
                     # train.dyn.currentBlock = train.dyn.nextBlock = ""
                 end
             end
+        end#haskey
+
+        if (t%stuck_interval == 0) && (t_evaluated > min_t_evaluated) && (t > t_final_starting) #check if every 3000 seconds and if has evaluated enough events, if sim is stuck
+
+
+            # check stuck func here // Vitus
+            status = netStatus(S,BK);
+            if (old_status == status) && (!isempty(status))
+                println("Simulation is stuck with times t_finals $t_final and $t_final_starting")
+                println("t is $t ; t%stuck_interval is $(t%stuck_interval)) and t_evaluated are $t_evaluated ")
+                println("status is ",status);
+                println("old_status is ",old_status);
+                Event = nothing;
+                return true;
+            end
+            t_evaluated=0
+            old_status = status;
         end
 
     end

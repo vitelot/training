@@ -69,17 +69,23 @@ function myRand(min::Float64, max::Float64)::Float64
 end
 
 function netStatus(S::Set{String}, BK::Dict{String,Block}; sha::Bool=false)
+
+    if isempty(S)
+        println("in netstatus S is empty")
+        return ""
+    end
+
     status = "";
-    for blk_id in keys(BK) # we might need a sort here because the order of keys may change
+    for blk_id in sort(collect(keys(BK))) # we might need a sort here because the order of keys may change
         blk = BK[blk_id];
         if blk.nt > 0
             status *= "$(blk_id):$(blk.train) ";
         end
     end
 
-    status *= "\n$S";
+    #status *= "\n$S";
 
-    sha && return sha256(status) |> bytes2hex;
+    sha && return sha256(status) |> bytes2hex; #sha256()->hexadecimal; bytes2hex(sha256())->string
 
     return status
 end
