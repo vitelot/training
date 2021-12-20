@@ -74,7 +74,7 @@ function myRand(min::Float64, max::Float64)::Float64
     return rand(range(min,length=20,stop=max))
 end
 
-function netStatus(S::Set{String}, BK::Dict{String,Block}; sha::Bool=false)
+function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
 
     if isempty(S)
         println("in netstatus S is empty")
@@ -91,7 +91,11 @@ function netStatus(S::Set{String}, BK::Dict{String,Block}; sha::Bool=false)
 
     #status *= "\n$S";
 
-    sha && return sha256(status) |> bytes2hex; #sha256()->hexadecimal; bytes2hex(sha256())->string
+    #hashing && return sha256(status) |> bytes2hex; #sha256()->hexadecimal; bytes2hex(sha256())->string
+    hashing && return hash(status);
 
     return status
 end
+
+import Base.sort!
+sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
