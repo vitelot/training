@@ -69,6 +69,8 @@ function loadInfrastructure()::Network
     RN
 end
 
+
+
 function loadFleet()::Fleet
 
     file = Opt["timetable_file"]
@@ -77,6 +79,7 @@ function loadFleet()::Fleet
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
+
     for i = 1:nrow(df)
         #trainid,opid,kind,duetime = Tuple(df[i,:])
         trainid=string(df.trainid[i])
@@ -99,7 +102,10 @@ function loadFleet()::Fleet
     FL.n = length(FL.train)
     df = nothing
 
-    #assignImposedDelay(FL);
+    
+    for trainid in keys(FL.train)
+        !issorted(FL.train[trainid].schedule) && sort!(FL.train[trainid].schedule)#(println("here!");exit())#()
+    end
 
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL

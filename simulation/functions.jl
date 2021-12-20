@@ -99,3 +99,6 @@ end
 
 import Base.sort!
 sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
+
+import Base.issorted
+issorted(v::Vector{Transit}) = issorted(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
