@@ -32,7 +32,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     BK = RN.blocks # Dict{String,Block}
 
-    Event = initEvent2(FL) # initialize the events with the departure of new trains
+    Event = initEvent(FL) # initialize the events with the departure of new trains
 
     # println("Event Dict is : ", Event[63684945420])
     #

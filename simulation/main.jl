@@ -21,16 +21,15 @@ function main()
     FL = loadFleet();
 
     if isdir(Opt["imposed_delay_repo_path"])
-        delays_array,number_simulations = loadDelays()
+        delays_array,number_simulations = loadDelays() #Arr{Dataframe}, each is delay imposed in one simulation
     else
         delays_array,number_simulations=[],1
     end
-    #(delays_array,number_simulations) = loadDelays()#Arr{Dataframe}, each is delay imposed in one simulation
+
 
 
     for simulation_id in 1:number_simulations
-        #res=1
-        #simulation_id=613
+        
         Opt["print_flow"] && println("##################################################################")
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
         Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")

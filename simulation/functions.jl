@@ -27,29 +27,29 @@ end
 #     end
 # end
 
-function generateTimetable(fl::Fleet)::TimeTable
-    
-    Opt["print_flow"] && println("Generating the timetable")
-    print_train_list = Opt["print_train_list"]
-
-    TB = TimeTable(0, Dict{Int,Vector{Transit}}())
-
-    for trainid in keys(fl.train)
-        print_train_list && println("\tTrain $trainid")
-
-        for s in fl.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
-            TB.n += 1
-            duetime = s.duetime
-            get!(TB.timemap, duetime, Transit[])
-            push!(TB.timemap[duetime], s)
-
-        end
-    end
-    # passed by reference: TB.timemap[21162][1]===FL.train["REX7104"].schedule[21162] -> true
-
-    Opt["print_flow"] && println("Timetable generated with $(TB.n) events")
-    TB
-end
+# function generateTimetable(fl::Fleet)::TimeTable
+#
+#     Opt["print_flow"] && println("Generating the timetable")
+#     print_train_list = Opt["print_train_list"]
+#
+#     TB = TimeTable(0, Dict{Int,Vector{Transit}}())
+#
+#     for trainid in keys(fl.train)
+#         print_train_list && println("\tTrain $trainid")
+#
+#         for s in fl.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
+#             TB.n += 1
+#             duetime = s.duetime
+#             get!(TB.timemap, duetime, Transit[])
+#             push!(TB.timemap[duetime], s)
+#
+#         end
+#     end
+#     # passed by reference: TB.timemap[21162][1]===FL.train["REX7104"].schedule[21162] -> true
+#
+#     Opt["print_flow"] && println("Timetable generated with $(TB.n) events")
+#     TB
+# end
 
 
 

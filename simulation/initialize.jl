@@ -249,41 +249,41 @@ end
 end
 =#
 
+# function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
+#
+#     E = Dict{Int,Vector{Transit}}()
+#
+#     TB = generateTimetable(FL)
+#
+#     Opt["print_flow"] && println("Initializing the event table")
+#
+#     S = Set{String}() # trains circulating
+#
+#     D = TB.timemap
+#     t_initial = minimum(keys(D))
+#     t_final = maximum(keys(D))
+#
+#     for t = t_initial:t_final
+#         if haskey(D, t)
+#             for transit in D[t] # there may be more trains at time t
+#
+#                 trainid = transit.trainid
+#
+#                 if trainid ∉ S # add new train in the current day events
+#                     get!(E,t,Transit[])
+#                     push!(E[t], transit)
+#                     push!(S, trainid)
+#                     #println("New train $trainid starting at $opid")
+#                 end
+#             end
+#         end
+#     end
+#     TB = nothing;
+#     E
+# end
+
+
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
-
-    E = Dict{Int,Vector{Transit}}()
-
-    TB = generateTimetable(FL)
-
-    Opt["print_flow"] && println("Initializing the event table")
-
-    S = Set{String}() # trains circulating
-
-    D = TB.timemap
-    t_initial = minimum(keys(D))
-    t_final = maximum(keys(D))
-
-    for t = t_initial:t_final
-        if haskey(D, t)
-            for transit in D[t] # there may be more trains at time t
-
-                trainid = transit.trainid
-
-                if trainid ∉ S # add new train in the current day events
-                    get!(E,t,Transit[])
-                    push!(E[t], transit)
-                    push!(S, trainid)
-                    #println("New train $trainid starting at $opid")
-                end
-            end
-        end
-    end
-    TB = nothing;
-    E
-end
-
-
-function initEvent2(FL::Fleet)::Dict{Int,Vector{Transit}}
 
     E = Dict{Int,Vector{Transit}}()
 
