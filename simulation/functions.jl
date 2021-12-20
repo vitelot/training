@@ -4,7 +4,7 @@ Given a string in the format "yyyy-mm-dd HH:MM:SS"
 returns the number of seconds elapsed from the epoch
 """
     dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-    return Dates.value(dt)÷1000
+    return Int(floor(datetime2unix(dt)))
     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
 end
 function dateToSeconds(d::Int)::Int
