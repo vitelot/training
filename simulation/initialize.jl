@@ -63,7 +63,7 @@ function loadInfrastructure()::Network
                         Set{String}()
     )
 
-    
+
 
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
@@ -279,5 +279,38 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
         end
     end
     TB = nothing;
+    E
+end
+
+
+function initEvent2(FL::Fleet)::Dict{Int,Vector{Transit}}
+
+    E = Dict{Int,Vector{Transit}}()
+
+    #TB = generateTimetable(FL)
+
+    Opt["print_flow"] && println("Initializing the event table")
+
+    S = Set{String}() # trains circulating
+
+    for trainid in keys(FL.train)
+
+        Opt["print_train_list"] && println("\tTrain $trainid")
+
+        for s in FL.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
+
+            duetime = s.duetime
+
+            if trainid ∉ S # add new train in the current day events
+
+                get!(E,duetime,Transit[])
+                push!(E[duetime], s)
+                push!(S, trainid)
+                #println("New train $trainid starting at $opid")
+            end
+
+        end
+    end
+
     E
 end

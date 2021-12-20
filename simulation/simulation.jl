@@ -32,14 +32,23 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     BK = RN.blocks # Dict{String,Block}
 
-    Event = initEvent(FL) # initialize the events with the departure of new trains
+    Event = initEvent2(FL) # initialize the events with the departure of new trains
+
+    # println("Event Dict is : ", Event[63684945420])
+    #
+    # Event2 = initEvent(FL) # initialize the events with the departure of new trains
+    #
+    # println("Event Dict 2 is : ", Event2[63684945420])
+    #
+    # println("Are the event dict the same  : ", isequal(Event,Event2))
 
     totDelay = 0 #####
 
 
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
-    println("t final starting is $t_final_starting")
+
+    print_elapsed_time && println("t final starting is $t_final_starting")
 
 
 
@@ -117,7 +126,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         delay_imposed=train.schedule[nop].imposed_delay.delay
                         tt = t + train.dyn.nextBlockRealTime + delay_imposed;
 
-                        isdir(Opt["imposed_delay_repo_path"]) && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid] "))
+                        print_train_status && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid]; Opt[imposed_delay_repo_path] is $(Opt["imposed_delay_repo_path"]) "))
 
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[nop+1])

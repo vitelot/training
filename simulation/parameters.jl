@@ -41,13 +41,18 @@ function loadOptions(file::String="../data/simulation_data/par.ini")
         else println("WARNING: input parameter $key does not exist")
         end
     end
+
     if Opt["TEST"]>0
+
         print("\nPerforming speed test with no output.\nPlease be patient. ")
+
         for k in keys(Opt)
             if occursin(r"^print", k)
                 Opt[k] = false
             end
         end
+
+        Opt["imposed_delay_repo_path"] = "None"
     end
 
     if Opt["print_options"]

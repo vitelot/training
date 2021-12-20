@@ -28,6 +28,7 @@ end
 # end
 
 function generateTimetable(fl::Fleet)::TimeTable
+    
     Opt["print_flow"] && println("Generating the timetable")
     print_train_list = Opt["print_train_list"]
 
@@ -35,7 +36,8 @@ function generateTimetable(fl::Fleet)::TimeTable
 
     for trainid in keys(fl.train)
         print_train_list && println("\tTrain $trainid")
-        for s in fl.train[trainid].schedule
+
+        for s in fl.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
             TB.n += 1
             duetime = s.duetime
             get!(TB.timemap, duetime, Transit[])
@@ -48,6 +50,10 @@ function generateTimetable(fl::Fleet)::TimeTable
     Opt["print_flow"] && println("Timetable generated with $(TB.n) events")
     TB
 end
+
+
+
+
 
 function runTest(RN::Network, FL::Fleet)
 

@@ -20,10 +20,12 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-    isdir(Opt["imposed_delay_repo_path"]) && ((delays_array,number_simulations) = loadDelays())
+    if isdir(Opt["imposed_delay_repo_path"])
+        delays_array,number_simulations = loadDelays()
+    else
+        delays_array,number_simulations=[],1
+    end
     #(delays_array,number_simulations) = loadDelays()#Arr{Dataframe}, each is delay imposed in one simulation
-
-    println(number_simulations)
 
 
     for simulation_id in 1:number_simulations
