@@ -5,6 +5,7 @@ include("functions.jl")
 include("simulation.jl")
 
 using Profile
+using InteractiveUtils
 
 function main()
 
@@ -29,7 +30,7 @@ function main()
 
 
     for simulation_id in 1:number_simulations
-        
+
         Opt["print_flow"] && println("##################################################################")
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
         Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")

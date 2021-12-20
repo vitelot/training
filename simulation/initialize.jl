@@ -102,7 +102,7 @@ function loadFleet()::Fleet
     FL.n = length(FL.train)
     df = nothing
 
-    
+
     for trainid in keys(FL.train)
         !issorted(FL.train[trainid].schedule) && sort!(FL.train[trainid].schedule)#(println("here!");exit())#()
     end
@@ -131,11 +131,12 @@ end
 
 
 
-function loadDelays()::Tuple{Vector{Any},Int}
+function loadDelays()::Tuple{Vector{DataFrame},Int}
     print_imposed_delay = Opt["print_imposed_delay"];
 
     n=0
-    delays_array=[]
+    delays_array=DataFrame[];
+
     repo = Opt["imposed_delay_repo_path"]
     files=sort!(read_non_hidden_files(repo), by = custom_cmp)
 
@@ -158,7 +159,7 @@ function loadDelays()::Tuple{Vector{Any},Int}
     return (delays_array,n)
 end
 
-function resetDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
+function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
 
     print_imposed_delay = Opt["print_imposed_delay"];
 
@@ -187,7 +188,7 @@ function resetDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
 
 end
 
-function imposeDelays(FL::Fleet,delays_array::Vector{Any},simulation_id::Int)
+function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
 
     print_imposed_delay = Opt["print_imposed_delay"];
 
