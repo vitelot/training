@@ -170,6 +170,15 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
+## Code Structure:
+
+- [/data/](/data/)
+  - nested
+  - nested
+  - nested
+    - nested 2
+    - nested 2
+
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -235,15 +244,3 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png
-
-
-
-
-// ## Code Structure:
-//
-// 1.  [/data/](/data/)
-//     * nested
-//     * nested
-//     - nested
-//         * nested 2
-//         - nested 2
