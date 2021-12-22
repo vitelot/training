@@ -159,10 +159,10 @@ _For more examples, please refer to the [Article/Documentation](https://example.
 ## Roadmap
 
 - [X] Done Feature 1
-- [] Feature 2
-- [] Feature 3
+- [ ] Feature 2
+- [ ] Feature 3
     - [X] Done Nested Feature
-    - [X] Not Done Nested Feature
+    - [ ] Not Done Nested Feature
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
