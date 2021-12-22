@@ -243,11 +243,11 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [contributors-url]: https://github.com/vitelot/training/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
 [forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge&logo=star_trek
 [stars-url]: https://github.com/github_username/repo_name/stargazers
 [issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
 [issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/vitelot/training.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/vitelot/training.svg?style=for-the-badge&logo=atari
 [license-url]: https://github.com/vitelot/training/blob/dev/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
