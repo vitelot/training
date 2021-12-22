@@ -61,11 +61,11 @@ Transit(trainid::String, opid::String7, kind::String15, duetime::Int) =
 
 mutable struct DynTrain
     #id::String
-    opn::Int # tells which was last visited op (points to the schedule)
+    n_opoints_visited::Int # tells which was last visited op (points to the schedule)
     currentBlock::String
     nextBlock::String
-    nextBlockDueTime::Int
-    nextBlockRealTime::Int
+    #nextBlockDueTime::Int
+    #nextBlockRealTime::Int
 end
 
 mutable struct Train

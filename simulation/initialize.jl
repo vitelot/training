@@ -91,9 +91,13 @@ function loadFleet()::Fleet
                 duetime
         )
         if !haskey(FL.train, trainid)
+
             get!(FL.train, trainid,
                     Train(trainid, [str],
-                        DynTrain(0,"","",0,0)))
+                        DynTrain(0,"","")))
+            # get!(FL.train, trainid,
+            #         Train(trainid, [str],
+            #             DynTrain(0,"","",0,0)))
         else
             push!(FL.train[trainid].schedule, str)
         end

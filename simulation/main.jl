@@ -35,10 +35,10 @@ function main()
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
         Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")
 
-        !isempty(delays_array) && imposeDelays(FL,delays_array,simulation_id)
+        isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 
         if Opt["simulate"]
-            simulation(RN, FL)  && (println("returned 1 , restarting");FL = loadFleet();) #;RN = loadInfrastructure()
+            simulation(RN, FL)  && (println("returned 1 , restarting");) #FL = loadFleet();;RN = loadInfrastructure()
             Opt["TEST"]>0 && runTest(RN,FL)
         else
             return (RN,FL)
