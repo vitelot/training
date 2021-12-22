@@ -1,4 +1,4 @@
-# training: a delay tail handling simulation
+# TRAINING: a delay tail handling simulation
 
 ## Usage:
 * extract data/data.zip
@@ -6,7 +6,8 @@
 * to run the simulation, in /run/ , run `./run.sh`
 
 ## Code Structure:
-1.  /data/
+
+1.  [/data/](/data/)
     * nested
     * nested
     - nested
