@@ -243,7 +243,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [contributors-url]: https://github.com/vitelot/training/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
 [forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge&logo=star_trek
+[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge&logo=startrek
 [stars-url]: https://github.com/github_username/repo_name/stargazers
 [issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
 [issues-url]: https://github.com/github_username/repo_name/issues
