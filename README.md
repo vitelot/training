@@ -105,9 +105,9 @@ To get a local copy up and running follow these simple example steps.
 ### Prerequisites
 
 Software to be installed to run simulation.
-* npm
+* package_name
   ```sh
-  npm install npm@latest -g
+  install package package
   ```
 
 ### Installation
@@ -167,7 +167,7 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
+<!-- CODE STRUCTURE -->
 ## Code Structure:
 
 - [/data/](/data/)
