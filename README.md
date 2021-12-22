@@ -231,7 +231,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/vitelot/training.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/vitelot/training.svg?style=for-the-badge&logo=moleculer
 [contributors-url]: https://github.com/vitelot/training/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
 [forks-url]: https://github.com/github_username/repo_name/network/members
@@ -244,7 +244,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 
-[julia-shield]: https://img.shields.io/badge/Julia_vers-1.6.4-green?style=social&logo=julia
+[julia-shield]: https://img.shields.io/badge/Julia_vers-1.6.4-green?style=plastic&logo=julia
 [julia-url]: https://julialang.org/downloads/
 
 [product-screenshot]: images/screenshot.png
