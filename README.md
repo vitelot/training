@@ -172,13 +172,17 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 <!-- CODE STRUCTURE -->
 ## Code Structure:
 
-- [/data/](/data/) : zipped data to be preprocessed
+- [`/data/`](/data/) : zipped data to be preprocessed
 
 - [`/images/`](/images/) : img needed for readme, for now
 
-- [/Preprocessing/](/preprocessing/) : scripts to handle preprocessing; everything needed to create the input for the simulation
+- [`/Preprocessing/`](/preprocessing/) : scripts to handle preprocessing; everything needed to create the input for the simulation
   - [preprocessing.jl](/preprocessing/preprocessing.jl) : script that takes the unzipped data, creates right repos in /data/ and moves and manipulates it
-  - nested
+
+- [`/run/`](/run/) : containing script for running main.jl in /simulation/ (see following)
+
+- [`/simulation/`](/simulation/) : libraries and main script of the simulation
+  - [`/simulation/`](/simulation/) TO BE DONE
   - nested
     - nested 2
     - nested 2
