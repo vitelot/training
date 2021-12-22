@@ -104,27 +104,25 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+Software to be installed to run simulation.
 * npm
   ```sh
   npm install npm@latest -g
   ```
 
 ### Installation
+Procedure to locally set up the directory
 
 1. Get a free API Key at [https://example.com](https://example.com)
 2. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/vitelot/training.git
    ```
-3. Install NPM packages
+3. Install packages
    ```sh
-   npm install
+    install blabla
    ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -149,9 +147,9 @@ This is an example of how to list things you need to use the software and how to
 
 
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+useful examples of how the project can be used. Additional screenshots, code examples and demos work well in this space.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+_For more examples, please refer to the [Article/Documentation](https://example.com)_
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
