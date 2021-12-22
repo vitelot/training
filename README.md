@@ -139,6 +139,22 @@ This is an example of how to list things you need to use the software and how to
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+
+1. extract data/data.zip
+2. in preprocessing/ , run
+   ```sh
+   ./run_preprocessing.sh
+   ```
+   this will move the unzipped data into the correct directory(data/simulation_data/), create /data/simulation_data/trains_beginning.ini for the starting of trains, create preprocessing/trainIni.in if not present (selection of trains to be delayed), and create the delay files in data/delays/
+
+3. to run the simulation, in /run/ , run
+   ```sh
+   ./run.sh
+   ```
+
+
+
+
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
@@ -212,7 +228,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/vitelot/training.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/vitelot/training.svg?style=for-the-badge-blue
 [contributors-url]: https://github.com/vitelot/training/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
 [forks-url]: https://github.com/github_username/repo_name/network/members
@@ -229,16 +245,11 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 
 
 
-<!-- ## Usage:
-* extract data/data.zip
-* in preprocessing/ , run `./run_preprocessing.sh`: this will move the unzipped data into the correct directory(data/simulation_data/), create /data/simulation_data/trains_beginning.ini for the starting of trains, create preprocessing/trainIni.in if not present (selection of trains to be delayed), and create the delay files in data/delays/
-* to run the simulation, in /run/ , run `./run.sh`
-
-## Code Structure:
-
-1.  [/data/](/data/)
-    * nested
-    * nested
-    - nested
-        * nested 2
-        - nested 2 -->
+// ## Code Structure:
+//
+// 1.  [/data/](/data/)
+//     * nested
+//     * nested
+//     - nested
+//         * nested 2
+//         - nested 2
