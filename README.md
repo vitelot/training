@@ -30,6 +30,8 @@
     <img src="images/logo.png" alt="Logo" width="200" height="80">
   </a>
 
+[![Contributors][julia-shield]][julia-url]
+
 <h3 align="center"> TRAINING: a delay tail handling simulation</h3>
 
   <p align="center">
@@ -242,4 +244,8 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [license-url]: https://github.com/vitelot/training/blob/dev/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
+
+[julia-shield]: https://img.shields.io/badge/julia%20version-1.6.4-green?style=for-the-badge
+[julia-url]: https://julialang.org/downloads/
+
 [product-screenshot]: images/screenshot.png
