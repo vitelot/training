@@ -244,7 +244,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 
-[julia-shield]: https://img.shields.io/badge/julia%20version-1.6.4-green?style=?style=plastic
+[julia-shield]: https://img.shields.io/badge/Julia_vers-1.6.4-green?style=?style=plastic&logo=julia
 [julia-url]: https://julialang.org/downloads/
 
 [product-screenshot]: images/screenshot.png
