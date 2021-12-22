@@ -6,9 +6,9 @@
 * to run the simulation, in /run/ , run `./run.sh`
 
 ## Code Structure:
-1. /data/
-  * nested
-  * nested
-  - nested
-    * nested 2
-    - nested 2
+1.  /data/
+    * nested
+    * nested
+    - nested
+        * nested 2
+        - nested 2
