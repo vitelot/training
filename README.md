@@ -170,6 +170,7 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- CODE STRUCTURE -->
+
 ## Code Structure:
 
 - [`/data/`](/data/) : zipped data to be preprocessed
@@ -214,6 +215,11 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
   - [simulation.jl](/simulation/simulation.jl) : core part of the simulation; it is called in main.jl; returns false if the simulation doesn't get stuck, true otherwise
 
 - [`/visualization/`](/visualization/) : basic visualization of the delays in the simulation
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
 <!-- CONTRIBUTING -->
 ## Contributing
 
