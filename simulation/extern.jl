@@ -6,9 +6,10 @@ and the packages to be loaded
 
 using DataFrames, CSV, Dates, BenchmarkTools;
 using StatsBase;
+
 Opt = Dict{String,Any}()
 
-struct OPoint # Operational Point: Betriebstelle
+"struct OPoint # Operational Point: Betriebstelle
     id::String # id name
     idx::Int # numerical index
     lat::Float64
@@ -17,7 +18,7 @@ struct OPoint # Operational Point: Betriebstelle
     child::Vector{String}
     isStation::Bool
 end
-
+"
 mutable struct Block
     id::String #each block has got its own name
     # idx::Int # and number

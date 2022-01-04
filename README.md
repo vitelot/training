@@ -183,15 +183,35 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 
 - [`/simulation/`](/simulation/) : libraries and main script of the simulation
   - [extern.jl](/simulation/extern.jl) : This file contains the definition of data structures,useful shortcuts,and the packages to be loaded. All the structs are commented, and we can find:
-    - [`mutable struct Block`]
-    - nested 2
+    - mutable struct `Block` : , which has block_id, number of tracks and trains actually in it
+    - mutable struct `Network`: fixed part of the railway network, so operational points and blocks (infrastructure)
+    - mutable struct `Delay` : struct for inserting the delay
+    - struct `Transit`: struct that stands for Event on the timetable: train arrived in ops with a delay...
+    - mutable struct `DynTrain`: dynamical part of Train: where it is and where it's going
+    - mutable struct `Train`: struct with id, dyntrain, and its schedule
+    - mutable struct `Fleet`: how trains interact with the infrastructure (sort of timetable but ordered by train_id)
 
+  - [functions.jl](/simulation/functions.jl) : This file contains the definition of functions that are NOT needed for initializing our system on the infrastructure
 
-  - nested
-    - nested 2
-    - nested 2
+    - function `dateToSeconds(d::String31)::Int` : Given a string in the format "yyyy-mm-dd HH:MM:SS" ; returns the number of seconds elapsed from the epoch
+    - function `dateToSeconds(d::Int)::Int` : If the input is an Int do nothing; assuming that it is already the number of seconds elapsed from the epoch
+    - function `runTest(RN::Network, FL::Fleet)` : If test mode is enabled, runs test without printing simulation results on std out
+    - function `myRand(min::Float64, max::Float64)::Float64` : ranged random number generator
+    - function `netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)` : function that calculates the status of the simulation as a string of blocks and their occupancies in terms of train id; has also a hashing function to try to speed up
+    - function `sort!(v::Vector{Transit})`
+    - function `issorted(v::Vector{Transit})`
 
+  - [initialize.jl](/simulation/initialize.jl) : This file contains all the functions that have to initialize the system. For example, loading the network, the block characteristics, the timetables
+    - function `loadInfrastructure()::Network` : takes the blocks.csv file and builds the network
+    - function `loadFleet()::Fleet` : takes the timetable.csv file and loads the Fleet
+    - function `loadDelays()::Tuple{Vector{DataFrame},Int}` : Takes all the delay files in the data/delays/ directory and loads it in a vector of dataframes; each df defines a different simulation to be done
+    - function `resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)` : takes the vector of df, resets to 0 the delays imposed to the previews simulation
+    - function `imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)` : imposes the delays for the actual simulation
+    - function `initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}` : Creates the Event dict, having times as keys and events in that time as values
 
+  - [main.jl](/simulation/main.jl)
+  - [parameters.jl](/simulation/parameters.jl) : This file contains the functions to load the simulation options from /data/simulation_data/par.ini; If not existing, creates one as default
+  - [simulation.jl](/simulation/simulation.jl) : core part of the simulation; it is called in main.jl; returns false if the simulation doesn't get stuck, true otherwise
 <!-- CONTRIBUTING -->
 ## Contributing
 
