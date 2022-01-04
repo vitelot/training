@@ -30,7 +30,6 @@
     <img src="images/logo.png" alt="Logo" width="200" height="80">
   </a>
 
-
 <h3 align="center"> TRAINING: a delay tail handling simulation</h3>
 
   <p align="center">
