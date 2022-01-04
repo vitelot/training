@@ -241,12 +241,12 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/vitelot/training.svg?style=for-the-badge&logo=moleculer
 [contributors-url]: https://github.com/vitelot/training/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge&logo=startrek
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
+[forks-shield]: https://img.shields.io/github/forks/vitelot/training.svg?style=for-the-badge
+[forks-url]: https://github.com/vitelot/training/network/members
+[stars-shield]: https://img.shields.io/github/stars/vitelot/training.svg?style=for-the-badge&logo=startrek
+[stars-url]: https://github.com/vitelot/training/stargazers
+[issues-shield]: https://img.shields.io/github/issues/vitelot/training.svg?style=for-the-badge
+[issues-url]: https://github.com/vitelot/training/issues
 [license-shield]: https://img.shields.io/github/license/vitelot/training.svg?style=for-the-badge&logo=atari
 [license-url]: https://github.com/vitelot/training/blob/dev/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
