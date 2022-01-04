@@ -212,6 +212,8 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
   - [main.jl](/simulation/main.jl)
   - [parameters.jl](/simulation/parameters.jl) : This file contains the functions to load the simulation options from /data/simulation_data/par.ini; If not existing, creates one as default
   - [simulation.jl](/simulation/simulation.jl) : core part of the simulation; it is called in main.jl; returns false if the simulation doesn't get stuck, true otherwise
+
+- [`/visualization/`](/visualization/) : basic visualization of the delays in the simulation
 <!-- CONTRIBUTING -->
 ## Contributing
 
