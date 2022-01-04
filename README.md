@@ -31,7 +31,7 @@
   </a>
 
 
-<h3 align="center"> TRAINING: a delay tail handling simulation</h3>
+<h3 align="center"> RAINING: a delay tail handling simulation</h3>
 
   <p align="center">
     project_description
