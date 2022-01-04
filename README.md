@@ -182,7 +182,11 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 - [`/run/`](/run/) : containing script for running main.jl in /simulation/ (see following)
 
 - [`/simulation/`](/simulation/) : libraries and main script of the simulation
-  - [`/simulation/`](/simulation/) TO BE DONE
+  - [extern.jl](/simulation/extern.jl) : This file contains the definition of data structures,useful shortcuts,and the packages to be loaded. All the structs are commented, and we can find:
+    - [`mutable struct Block`]
+    - nested 2
+
+
   - nested
     - nested 2
     - nested 2
