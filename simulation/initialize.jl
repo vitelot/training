@@ -31,7 +31,9 @@ For example, loading the network, the block characteristics, the timetables
 
 
 function loadInfrastructure()::Network
-
+    """
+    takes the blocks.csv file and builds the network
+    """
     #creating and initializing a data struct network
     RN = Network()
 
@@ -72,7 +74,7 @@ end
 
 
 function loadFleet()::Fleet
-
+    """takes the timetable.csv file and loads the Fleet """
     file = Opt["timetable_file"]
 
     Opt["print_flow"] && println("Loading fleet information")
@@ -136,6 +138,9 @@ end
 
 
 function loadDelays()::Tuple{Vector{DataFrame},Int}
+    """Takes all the delay files in the data/delays/ directory
+    and loads it in a vector of dataframes;
+    each df defines a different simulation to be done """
     print_imposed_delay = Opt["print_imposed_delay"];
 
     n=0
@@ -164,7 +169,8 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
 end
 
 function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
-
+    """takes the vector of df,
+    resets to 0 the delays imposed to the previews simulation """
     print_imposed_delay = Opt["print_imposed_delay"];
 
     df = delays_array[simulation_id-1];
@@ -193,7 +199,7 @@ function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::In
 end
 
 function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
-
+    """imposes the delays for the actual simulation """
     print_imposed_delay = Opt["print_imposed_delay"];
 
 
@@ -296,6 +302,8 @@ end
 
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 
+    """Creates the Event dict,
+     having times as keys and events in that time as values """
     E = Dict{Int,Vector{Transit}}()
 
     #TB = generateTimetable(FL)

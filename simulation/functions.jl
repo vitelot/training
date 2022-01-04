@@ -1,3 +1,10 @@
+
+"""
+This file contains the definition of functions that are NOT needed for initializing our system on the infrastructure
+"""
+
+
+
 function dateToSeconds(d::String31)::Int
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"
@@ -56,6 +63,8 @@ end
 
 
 function runTest(RN::Network, FL::Fleet)
+    """If test mode is enabled, runs test without printing simulation results on std out
+    """
 
 #    print("\nPerforming speed test with no output. Please be patient.\r")
     if Opt["TEST"] == 2
@@ -70,12 +79,16 @@ function runTest(RN::Network, FL::Fleet)
 end
 
 function myRand(min::Float64, max::Float64)::Float64
-
+    """ranged random number generator"""
     return rand(range(min,length=20,stop=max))
 end
 
 function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
 
+    """function that calculates the status of the simulation as a string of blocks
+     and their occupancies in terms of train id;
+     has also a hashing function to try to speed up
+    """
     if isempty(S)
         println("in netstatus S is empty")
         return ""

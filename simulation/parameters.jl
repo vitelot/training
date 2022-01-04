@@ -1,4 +1,8 @@
-
+"""
+This file contains the functions to load the simulation options from 
+/data/simulation_data/par.ini
+If not existing, creates one as default
+"""
 function loadOptions(file::String="../data/simulation_data/par.ini")
     if !isfile(file)
         createIniFile(file)
