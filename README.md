@@ -249,7 +249,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [issues-url]: https://github.com/vitelot/training/issues
 [license-shield]: https://img.shields.io/github/license/vitelot/training.svg?style=for-the-badge&logo=atari
 [license-url]: https://github.com/vitelot/training/blob/dev/LICENSE
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn.svg?style=for-the-badge&logo=linkedin
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin
 [linkedin-url]: https://www.linkedin.com/in/vservedio/
 
 [julia-shield]: https://img.shields.io/badge/Julia_vers-1.6.4-green?style=plastic&logo=julia
