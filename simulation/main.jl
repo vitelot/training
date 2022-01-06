@@ -14,7 +14,13 @@ function main()
         exit()
     end
 
-    loadOptions();
+    #if passed an argument, it is the input file path
+    if isempty(ARGS)
+        file = "../data/simulation_data/par.ini"
+        loadOptions(file);
+    else
+        loadOptions(ARGS[1])
+    end
 
     Opt["print_flow"] && println("Options loaded, starting the program.")
 
@@ -38,7 +44,7 @@ function main()
         isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 
         if Opt["simulate"]
-            simulation(RN, FL)  && (println("returned 1 , restarting");) #FL = loadFleet();;RN = loadInfrastructure()
+            simulation(RN, FL)  && (println("returned 1 , restarting");)
             Opt["TEST"]>0 && runTest(RN,FL)
         else
             return (RN,FL)
