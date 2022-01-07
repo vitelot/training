@@ -29,7 +29,7 @@ jobs:
           # Supported values: x64 | x86
           #
           # Default: x64
-          arch: ''
+          arch: 'x64'
 
           # Set the display setting for printing InteractiveUtils.versioninfo() after installing.
           #
@@ -45,7 +45,7 @@ jobs:
           # never: Never print versioninfo
           #
           # Default: false
-          show-versioninfo: ''
+          show-versioninfo: 'false'
 
 
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
