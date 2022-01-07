@@ -86,7 +86,6 @@ function loadFleet()::Fleet
         #trainid,opid,kind,duetime = Tuple(df[i,:])
         trainid=string(df.trainid[i])
         duetime = dateToSeconds(df.duetime[i])
-        
         str = Transit(
                 trainid,
                 df.opid[i],
