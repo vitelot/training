@@ -54,6 +54,8 @@ end
 Transit(trainid::String, opid::String7, kind::String15, duetime::Int) =
     Transit(trainid, opid, kind, duetime, Delay(0)); # sets the default imposed delay to zero
 
+    Transit(trainid::String, opid::Any, kind::String15, duetime::Int) =
+        Transit(trainid, opid, kind, duetime, Delay(0)); # sets the default imposed delay to zero
 # mutable struct TimeTable
 #     n::Int # dimension of vector below
 #     #list::Vector{Transit}
