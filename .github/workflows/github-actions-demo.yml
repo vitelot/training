@@ -16,5 +16,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: Testing simulation
         run: |
-          julia ../../tests/simulation_test.jl
+          julia ./tests/simulation_test.jl
       - run: echo "🍏 This job's status is ${{ job.status }}."
