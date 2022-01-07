@@ -1,12 +1,8 @@
 using Test
 
-
-
-
-
 @testset "Simulation" begin
 
-    cmd=`julia ../simulation/main.jl ../tests/data/par_test.ini`
+    cmd=`julia ./simulation/main.jl ./tests/data/par_test.ini`
 
     original_stdout=stdout
     (out,_)=redirect_stdout()
