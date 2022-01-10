@@ -1,2 +1,2 @@
 cd ../simulation
-julia main.jl
+julia --project=../training_env main.jl

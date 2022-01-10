@@ -53,4 +53,8 @@ preprocessing/train_starts.ipynb
 
 map/
 data/data/
-training_env/
+
+
+training_env/*
+!training_env/Manifest.toml
+!training_env/Project.toml
