@@ -1,6 +1,6 @@
 
 """
-This file contains the definition of functions that are NOT needed for initializing our system on the infrastructure
+functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
 """
 
 
@@ -108,6 +108,15 @@ function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
     hashing && return hash(status);
 
     return status
+end
+
+function resetSimulation(FL::Fleet)
+"""
+Resets the dynamical variables of trains in case of multiple simulation runs
+"""
+    for trainid in keys(FL.train)
+        FL.train[trainid].dyn = DynTrain(0,"","");
+    end
 end
 
 import Base.sort!

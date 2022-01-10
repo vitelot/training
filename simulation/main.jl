@@ -49,9 +49,9 @@ function main()
         else
             return (RN,FL)
         end
-        nothing
-
+        number_simulations > 1 && resetSimulation(FL);
     end
+    nothing
 end
 
 main()

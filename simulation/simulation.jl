@@ -101,10 +101,15 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     nextBlockid = current_opid*"-"*nextopid
 
-                    """train.dyn.nextBlock = nextBlockid = current_opid*"-"*nextopid"""
+                    #"""train.dyn.nextBlock = nextBlockid = current_opid*"-"*nextopid"""
                     # if nextBlockid == "NB-LG" # this occurs with train SB22674 as error when using @btime and maxrnd=1.5
                     #     return(train)
                     # end
+                    if !haskey(BK, nextBlockid)
+                        println("Block $nextBlockid is inexistent");
+                        pprintln(train);
+                        exit();
+                    end
 
                     nextBlock = BK[nextBlockid]
 
@@ -191,7 +196,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
         end
 
     end
-    Event = nothing
+    Event = Dict{Int,Vector{Transit}}();
     Opt["print_flow"] && println("Simulation finished.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     return false
