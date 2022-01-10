@@ -95,7 +95,7 @@ jobs:
     #  - uses: julia-actions/julia-buildpkg@latest
 
       - name: install dependencies
-        run: julia  -e 'using Pkg;Pkg.instantiate()' #--project=../training_env
+        run: julia --project=./training_env -e 'using Pkg;Pkg.instantiate()'
 
       # - uses: julia-actions/julia-runtest@latest
 
