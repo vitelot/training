@@ -101,4 +101,4 @@ jobs:
 
       - name: Testing simulation
         run: |
-            julia ./tests/simulation_test.jl
+            julia --project=./training_env ./tests/simulation_test.jl
