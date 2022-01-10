@@ -100,5 +100,5 @@ jobs:
       # - uses: julia-actions/julia-runtest@latest
 
       - name: Testing simulation
-              run: |
-                julia ./tests/simulation_test.jl
+        run: |
+            julia ./tests/simulation_test.jl
