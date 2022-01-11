@@ -101,6 +101,10 @@ jobs:
 
       # - uses: julia-actions/julia-runtest@latest
 
+      - name: going in test dir
+        run: |
+            cd ${{ github.workspace }}/tests
+            
       - name: Testing simulation
         run: |
             julia --project=training_env ${{ github.workspace }}/tests/simulation_test.jl
