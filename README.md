@@ -48,6 +48,7 @@
 
 [![Main Programming Language][julia-shield]][julia-url]
 
+[![Simulation_test](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg?branch=github_actions)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
