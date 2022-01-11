@@ -2,9 +2,9 @@ using Test
 
 @testset "Simulation" begin
 
-    pat=${{ github.workspace }}
+    pat={{ github.workspace }}
     println("path is $pat")
-    
+
     cmd=`julia --project=./training_env ./simulation/main.jl ./tests/data/par_test.ini`
     original_stdout=stdout
     (out,_)=redirect_stdout()
