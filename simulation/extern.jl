@@ -5,7 +5,7 @@ and the packages to be loaded
 """
 
 using DataFrames, CSV, Dates, BenchmarkTools;
-using StatsBase, PrettyPrint;
+#using StatsBase, PrettyPrint;
 
 Opt = Dict{String,Any}()
 

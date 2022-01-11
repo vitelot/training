@@ -101,15 +101,11 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     nextBlockid = current_opid*"-"*nextopid
 
-                    #"""train.dyn.nextBlock = nextBlockid = current_opid*"-"*nextopid"""
-                    # if nextBlockid == "NB-LG" # this occurs with train SB22674 as error when using @btime and maxrnd=1.5
-                    #     return(train)
+                    # if !haskey(BK, nextBlockid)
+                    #     println("ERROR: Block $nextBlockid is inexistent");
+                    #     pprintln(train);
+                    #     exit();
                     # end
-                    if !haskey(BK, nextBlockid)
-                        println("Block $nextBlockid is inexistent");
-                        pprintln(train);
-                        exit();
-                    end
 
                     nextBlock = BK[nextBlockid]
 
@@ -128,13 +124,13 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         train.dyn.currentBlock = nextBlockid
 
                         nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
-                        """train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
+                        #"""train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
 
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))
-                        """train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))"""
+                        #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))"""
 
                         delay_imposed=train.schedule[n_op].imposed_delay.delay
                         tt = t + nextBlockRealTime + delay_imposed;
@@ -167,13 +163,15 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
-                        t>duetime && ( totDelay += (t-duetime); ) #
+                        if t>duetime
+                            totDelay += (t-duetime);
+                        end
                         #Opt["print_tot_delay"] && println("Delay $(t-duetime) seconds") ) #####
                     else
                         print_train_fossile && println("Train $trainid is a fossile")
                     end
                     pop!(S,trainid)
-                    train.dyn = DynTrain(0,"","") #.n_opoints_visited = 0 # reset the train for further use
+                    #train.dyn = DynTrain(0,"","") #.n_opoints_visited = 0 # reset the train for further use
                     # train.dyn.currentBlock = train.dyn.nextBlock = ""
                 end
             end
@@ -197,7 +195,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     end
     Event = Dict{Int,Vector{Transit}}();
-    Opt["print_flow"] && println("Simulation finished.")
+    Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     return false
 end
