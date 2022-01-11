@@ -186,15 +186,15 @@ function simulation(RN::Network, FL::Fleet)::Bool
                 println("Simulation is stuck with times t_finals $t_final and $t_final_starting")
                 println("t is $t ;")
                 println("status is ",status);
-                Event = nothing;
+                #Event = nothing; #don't need to do that. it will be garbage collected.
                 return true;
             end
             t_evaluated=0
             old_status = status;
         end
-
+        delete!(Event, t); # we finished all the tasks at time t and free up memory. 
     end
-    Event = Dict{Int,Vector{Transit}}();
+    #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     return false
