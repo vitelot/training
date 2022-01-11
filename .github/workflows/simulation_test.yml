@@ -101,4 +101,4 @@ jobs:
 
       - name: Testing simulation
         run: |
-            julia --project=./training_env ./tests/simulation_test.jl
+            julia --project=${{ github.workspace }}/training_env ${{ github.workspace }}/tests/simulation_test.jl
