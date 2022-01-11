@@ -2,7 +2,7 @@ using Test
 
 @testset "Simulation" begin
 
-    cmd=`julia --project=${{ github.workspace }}/training_env ${{ github.workspace }}/simulation/main.jl ${{ github.workspace }}/tests/data/par_test.ini`
+    cmd=`julia --project=./training_env ./simulation/main.jl ./tests/data/par_test.ini`
 
     original_stdout=stdout
     (out,_)=redirect_stdout()
