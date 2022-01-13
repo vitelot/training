@@ -49,7 +49,7 @@ function main()
         else
             return (RN,FL)
         end
-        number_simulations > 1 && resetSimulation(FL);
+        
     end
     nothing
 end

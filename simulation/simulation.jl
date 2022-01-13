@@ -187,15 +187,17 @@ function simulation(RN::Network, FL::Fleet)::Bool
                 println("t is $t ;")
                 println("status is ",status);
                 #Event = nothing; #don't need to do that. it will be garbage collected.
+                resetSimulation(FL); # set trains dynamical variables to zero
                 return true;
             end
             t_evaluated=0
             old_status = status;
         end
-        delete!(Event, t); # we finished all the tasks at time t and free up memory. 
+        delete!(Event, t); # we finished all the tasks at time t and free up memory.
     end
     #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
+    resetSimulation(FL); # set trains dynamical variables to zero
     return false
 end
