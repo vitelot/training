@@ -107,6 +107,8 @@ jobs:
 
       - name: julia-actions/julia-processcoverage@v1
         uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: simulation
 
       - name: codecov actions
         uses: codecov/codecov-action@v1
