@@ -296,7 +296,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin
 [linkedin-url]: https://www.linkedin.com/in/vservedio/
 
-[julia-shield]: https://img.shields.io/badge/Julia_vers-1.6.4-green?style=plastic&logo=julia
+[julia-shield]: https://img.shields.io/badge/Julia_vers-1.7.1-green?style=plastic&logo=julia
 [julia-url]: https://julialang.org/downloads/
 
 [product-screenshot]: images/screenshot.png
