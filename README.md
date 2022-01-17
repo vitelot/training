@@ -52,13 +52,18 @@
 
 [![Main Programming Language][julia-shield]][julia-url]
 
-[![build-test-branch](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg?branch=github_actions)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
+
 
 branch main :
 
 [![build-main](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
 
-[![Coverage Status](https://github.com/vitelot/training/coverage.svg?branch=main)](https://github.com/vitelot/training/?branch=main)
+[![Coverage Status](https://app.codecov.io/gh/vitelot/training/branch/main/graph/badge.svg)](https://app.codecov.io/gh/vitelot/training)
+
+actual working branch:
+
+[![build-test-branch](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg?branch=github_actions)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
+
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
