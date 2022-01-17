@@ -14,7 +14,7 @@ using Test
     # new_stdout=readline(out)
     # redirect_stdout(original_stdout);
 
-    str="Total delay at the end of simulation is 42"
+    str="Total delay at the end of simulation is 42\n"
 
     println(out)
     println(str)
