@@ -113,4 +113,5 @@ jobs:
       - name: codecov actions
         uses: codecov/codecov-action@v2
         with:
-          file: lcov.info
+          file: ./lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
