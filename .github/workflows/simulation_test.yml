@@ -105,13 +105,16 @@ jobs:
         run: |
             julia --project=training_env --code-coverage ${{ github.workspace }}/tests/simulation_test.jl
 
-      - name: julia-actions/julia-processcoverage@v1
-        uses: julia-actions/julia-processcoverage@v1
-        with:
-          directories: simulation
+      - name: send results to codecov.io
+        run: julia --project=training_env -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
-      - name: codecov actions
-        uses: codecov/codecov-action@v2
-        with:
-          file: lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+      # - name: julia-actions/julia-processcoverage@v1
+      #   uses: julia-actions/julia-processcoverage@v1
+      #   with:
+      #     directories: simulation
+      #
+      # - name: codecov actions
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     file: lcov.info
+      #     token: ${{ secrets.CODECOV_TOKEN }}
