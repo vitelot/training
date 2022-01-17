@@ -19,5 +19,5 @@ using Test
     println(out)
     println(str)
 
-    @test new_stdout==str
+    @test out==str
 end
