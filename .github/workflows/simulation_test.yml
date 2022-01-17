@@ -103,7 +103,7 @@ jobs:
 
       - name: Testing simulation
         run: |
-            julia --project=training_env --code-coverage=lcov.info ${{ github.workspace }}/tests/simulation_test.jl
+            julia --project=training_env --code-coverage ${{ github.workspace }}/tests/simulation_test.jl
 
       - name: julia-actions/julia-processcoverage@v1
         uses: julia-actions/julia-processcoverage@v1
