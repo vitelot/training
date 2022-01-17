@@ -115,8 +115,8 @@ jobs:
         run: |
             julia --project=training_env ${{ github.workspace }}/tests/simulation_test.jl
 
-      # - name: send results to codecov.io, watching at simulation folder
-      #   run: julia --project=training_env -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
+      - name: send results to codecov.io, watching at simulation folder
+        run: julia --project=training_env -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
 
       # - name: julia-actions/julia-processcoverage@v1
       #   uses: julia-actions/julia-processcoverage@v1
