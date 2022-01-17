@@ -54,6 +54,8 @@
 
 [![build-test-branch](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg?branch=github_actions)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
 
+branch main :
+
 [![build-main](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
 
 [![Coverage Status](https://github.com/vitelot/training/coverage.svg?branch=main)](https://github.com/vitelot/training/?branch=main)
