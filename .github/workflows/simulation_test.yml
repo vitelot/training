@@ -104,9 +104,9 @@ jobs:
 
       - name: Running dummy simulation and putting into run/out file
         run: |
-            julia --project=training_env --code-coverage=simulation/lcov.info --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/run/out
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/run/out
 
-#
+#--code-coverage=simulation/lcov.info
       - name: read that out file
         run: |
             cat ${{ github.workspace }}/run/out
