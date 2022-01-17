@@ -58,7 +58,7 @@ branch main :
 
 [![build-main](https://github.com/vitelot/training/actions/workflows/simulation_test.yml/badge.svg)](https://github.com/vitelot/training/actions/workflows/simulation_test.yml)
 
-[![codecov](https://app.codecov.io/gh/vitelot/training/branch/main/graph/badge.svg)](https://app.codecov.io/gh/vitelot/training)
+[![codecov](https://codecov.io/gh/vitelot/training/branch/main/graph/badge.svg?token=HHZI8L9MPJ)](https://codecov.io/gh/vitelot/training)
 
 actual working branch:
 
