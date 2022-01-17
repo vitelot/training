@@ -102,7 +102,7 @@ jobs:
       # - uses: julia-actions/julia-runtest@latest
 
 
-      - name: Testing dummy simulation and putting into run/out file
+      - name: Running dummy simulation and putting into run/out file
         run: |
             julia --project=training_env --code-coverage=simulation/lcov.info --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/run/out
 
@@ -110,9 +110,10 @@ jobs:
       - name: read that out file
         run: |
             cat ${{ github.workspace }}/run/out
-      # - name: Testing simulation
-      #   run: |
-      #       julia --project=training_env --code-coverage=simulation/lcov.info --code-coverage=user ${{ github.workspace }}/tests/simulation_test.jl
+
+      - name: Testing simulation
+        run: |
+            julia --project=training_env ${{ github.workspace }}/tests/simulation_test.jl
 
       # - name: send results to codecov.io, watching at simulation folder
       #   run: julia --project=training_env -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
