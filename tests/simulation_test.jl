@@ -26,5 +26,5 @@ include("../simulation/functions.jl")
     hashing=true
 
 
-    @test netStatus(S, BK; hashing)
+    @test netStatus(S, BK; hashing)==0xbd32f78d463d7cfb
 end
