@@ -22,8 +22,7 @@ include("../simulation/functions.jl")
 @testset "functions" begin
 
     S=Set{String}(["SB29953"])
-    BK=("FLDH1-FLDU2" => Block("FLDH1-FLDU2", 1, 0, Set{String}()), "FLDU2-FLDH1" => Block("FLDU2-FLDH1", 1, 0, Set{String}()))
-
+    BK=Dict{String,Block}("FLDH1-FLDU2" => Block("FLDH1-FLDU2", 1, 0, Set{String}()), "FLDU2-FLDH1" => Block("FLDU2-FLDH1", 1, 0, Set{String}()))
     hashing=true
 
 
