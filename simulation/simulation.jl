@@ -182,6 +182,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
             # check stuck func here // Vitus
             status = netStatus(S,BK,hashing=false);
+        
             if (old_status == status) && (!isempty(status))
                 println("Simulation is stuck with times t_finals $t_final and $t_final_starting")
                 println("t is $t ;")
