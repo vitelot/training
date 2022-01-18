@@ -17,10 +17,11 @@ end
 include("../simulation/extern.jl")
 include("../simulation/functions.jl")
 
+#netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
 
 @testset "functions" begin
 
-    S=(["SB29953"])
+    S=Set{String}(["SB29953"])
     BK=("FLDH1-FLDU2" => Block("FLDH1-FLDU2", 1, 0, Set{String}()), "FLDU2-FLDH1" => Block("FLDU2-FLDH1", 1, 0, Set{String}()))
 
     hashing=true
