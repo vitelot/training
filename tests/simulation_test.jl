@@ -14,8 +14,9 @@ using Test
     @test out==str
 end
 
-include("../simulation/functions.jl")
 include("../simulation/extern.jl")
+include("../simulation/functions.jl")
+
 
 @testset "functions" begin
 
