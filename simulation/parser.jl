@@ -18,6 +18,12 @@ function parse_commandline()
             help = "path for the .ini file"
             arg_type = String
             default = "../data/simulation_data/par.ini"
+
+        "--test"
+            help = "int for running time or btime on simulation"
+            arg_type = Int
+            range_tester=x->issubset(x,[0,1,2])
+            default = 0
         # "arg1"
         #     help = "a positional argument"
         #     required = true

@@ -5,9 +5,6 @@ include("functions.jl")
 include("simulation.jl")
 include("parser.jl")
 
-using Profile
-using InteractiveUtils
-
 
 function main()
 
@@ -16,12 +13,9 @@ function main()
         exit()
     end
 
-    parsed_args = parse_commandline()
 
 
-    file=parsed_args["ini"]
-
-    loadOptions(file);
+    loadOptions();
 
 
     #if passed an argument, it is the input file path
@@ -55,7 +49,7 @@ function main()
 
         if Opt["simulate"]
             simulation(RN, FL)  && (println("returned 1 , restarting");)
-            Opt["TEST"]>0 && runTest(RN,FL)
+            Opt["test"]>0 && runTest(RN,FL)
         else
             return (RN,FL)
         end

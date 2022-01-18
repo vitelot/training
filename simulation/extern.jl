@@ -7,6 +7,10 @@ and the packages to be loaded
 using DataFrames, CSV, Dates, BenchmarkTools;
 #using StatsBase, PrettyPrint;
 
+
+using Profile
+using InteractiveUtils
+
 Opt = Dict{String,Any}()
 
 struct OPoint # Operational Point: Betriebstelle

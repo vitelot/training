@@ -1,12 +1,19 @@
 """
-This file contains the functions to load the simulation options from 
+This file contains the functions to load the simulation options from
 /data/simulation_data/par.ini
 If not existing, creates one as default
 """
-function loadOptions(file::String="../data/simulation_data/par.ini")
+function loadOptions()
+
+    parsed_args = parse_commandline()
+
+    file=parsed_args["ini"]
+    Opt["test"]=parsed_args["test"]
+
     if !isfile(file)
         createIniFile(file)
     end
+
 
     for line in eachline(file)
         occursin(r"^#", line) && continue # ignore lines beginning with #
@@ -14,9 +21,9 @@ function loadOptions(file::String="../data/simulation_data/par.ini")
         length(df) < 2 && continue # ignore empty lines
         key = df[1] ; val = df[2]
         ####################################################################
-        if(key=="TEST") Opt[key] = parse(Int, val)
+        # if(key=="TEST") Opt[key] = parse(Int, val)
         ####################################################################
-        elseif(key=="block_file")       Opt[key] = val
+        if(key=="block_file")       Opt[key] = val
         elseif(key=="timetable_file")   Opt[key] = val
         elseif(key=="opoint_file")      Opt[key] = val
         elseif(key=="imposed_delay_file")      Opt[key] = val
@@ -46,7 +53,7 @@ function loadOptions(file::String="../data/simulation_data/par.ini")
         end
     end
 
-    if Opt["TEST"]>0
+    if parsed_args["test"]>0
 
         print("\nPerforming speed test with no output.\nPlease be patient. ")
 
@@ -77,7 +84,7 @@ function createIniFile(file::String)
 """
 #key                    value
 #############################
-TEST                    0   # if true perform a test: 1 use @time, 2 use @btime
+# TEST                    0   # if true perform a test: 1 use @time, 2 use @btime
 #############################
 block_file              ../data/simulation_data/blocks.csv
 timetable_file          ../data/simulation_data/timetable.csv
