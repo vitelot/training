@@ -8,9 +8,6 @@ using Test
 
     str="Total delay at the end of simulation is 42\n"
 
-    println(out)
-    println(str)
-
     @test out==str
 end
 
@@ -26,6 +23,8 @@ include("../simulation/functions.jl")
     hashing=true
 
     @test netStatus(S, BK; hashing)==0xbd32f78d463d7cfb
+
     @test netStatus(S, BK; hashing=false)==0xbd32f78d463d7cfb
+    
     @test netStatus(Set{String}(), BK; hashing)==""
 end
