@@ -37,7 +37,6 @@
 <h3 align="center"> TRAINING: a delay tail handling simulation</h3>
 
   <p align="center">
-    project_description
     <br />
     <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
     <br />
@@ -96,9 +95,8 @@ actual working branch:
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-bla
+Simulating one day timetable for a Railway Network of trains
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -278,8 +276,8 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
+* [](OBB for funding the project)
+* [](CSH Wien for mentoring and working place)
 * []()
 
 <p align="right">(<a href="#top">back to top</a>)</p>

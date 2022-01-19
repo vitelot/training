@@ -184,11 +184,11 @@ function simulation(RN::Network, FL::Fleet)::Bool
             status = netStatus(S,BK,hashing=false);
 
             if (old_status == status) && (!isempty(status))
-                println("here!!!!!!")
+                # println("here!!!!!!")
 
                 Opt["print_flow"] && println("Simulation is stuck with times t_finals $t_final and $t_final_starting,
                                             t is $t ; status is  $status")
-            
+
                 #Event = nothing; #don't need to do that. it will be garbage collected.
                 resetSimulation(FL); # set trains dynamical variables to zero
                 return true;
