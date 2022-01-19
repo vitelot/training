@@ -22,9 +22,9 @@ include("../simulation/functions.jl")
     BK=Dict{String,Block}("FLDH1-FLDU2" => Block("FLDH1-FLDU2", 1, 1, Set{String}(["SB29953"])), "FLDU2-FLDH1" => Block("FLDU2-FLDH1", 1, 0, Set{String}()))
     # hashing=true
 
-    @test netStatus(S, BK; hashing=true)==0xbd32f78d463d7cfb
+    @test netStatus(S, BK; hashing=true)==0x121c97cea605b461
 
-    @test netStatus(S, BK; hashing=false)==0xbd32f78d463d7cfb
+    @test netStatus(S, BK; hashing=false)=="FLDH1-FLDU2:Set([\"SB29953\"]) "
 
     @test netStatus(Set{String}(), BK)==""
 end
