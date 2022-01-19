@@ -17,7 +17,6 @@ function main()
 
     loadOptions();
 
-
     #if passed an argument, it is the input file path
     # if isempty(ARGS)
     #     file = "../data/simulation_data/par.ini"

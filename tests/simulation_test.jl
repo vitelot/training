@@ -30,5 +30,5 @@ include("../simulation/functions.jl")
 
     @test netStatus(Set{String}(), BK)==""
 
-    @test sort!(schedule)==[Transit("SB29541", "WSP", "Abfahrt", 100, Delay(0)),Transit("SB29541", "WSP", "Ankunft", 200, Delay(0))]
+    @test sort!(schedule)[1].duetime==100
 end
