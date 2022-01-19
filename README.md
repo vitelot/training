@@ -276,9 +276,9 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* [](OBB for funding the project)
-* [](CSH Wien for mentoring and working place)
-* []()
+* OBB for funding the project
+* CSH Vienna for execution and working place
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
