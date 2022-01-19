@@ -55,9 +55,13 @@ jobs:
         run: |
             julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
 
+      - name: Running dummy simulation for creating and covering ini file
+        run: |
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
+
       - name: Running dummy MULTIPLE simulation
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini 
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
 
       - name: Testing simulation
         run: |
