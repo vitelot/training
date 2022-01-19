@@ -13,4 +13,7 @@ T2,NB,Ankunft,15
 T3,NB,Ankunft,2
 T3,NB,Abfahrt,3
 T3,MD,Durchfahrt,4
-T3,WBF,Ankunft,5
+
+
+##modified for netstatus coverage
+T3,WBF,Ankunft,500
