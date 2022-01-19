@@ -53,7 +53,7 @@ jobs:
 
       - name: Running dummy simulation with the flag for using time macro
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini --test 1
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
 
       - name: Testing simulation
         run: |

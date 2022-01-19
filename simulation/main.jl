@@ -31,6 +31,7 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
+
     if isdir(Opt["imposed_delay_repo_path"])
         delays_array,number_simulations = loadDelays() #Arr{Dataframe}, each is delay imposed in one simulation
     else
