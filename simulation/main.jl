@@ -59,8 +59,10 @@ function one_sim(RN::Network, FL::Fleet)
     Opt["print_flow"] && println("Starting simulation")
 
     if Opt["simulate"]
-        simulation(RN, FL)
+
         Opt["test"]>0 && runTest(RN,FL)
+        
+        simulation(RN, FL)
     else
         return (RN,FL)
     end
