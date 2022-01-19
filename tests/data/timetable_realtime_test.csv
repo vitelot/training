@@ -14,6 +14,3 @@ T3,NB,Ankunft,04.02.2019 08:58:02
 T3,NB,Abfahrt,04.02.2019 08:58:03
 T3,MD,Durchfahrt,04.02.2019 08:58:04
 T3,WBF,Ankunft,04.02.2019 08:58:05
-
-#added for letting simulation.jl run netstatus(codecov)
-T3,WBF,Ankunft,04.02.2019 08:58:05
