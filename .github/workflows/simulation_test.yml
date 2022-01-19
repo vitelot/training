@@ -41,6 +41,9 @@ jobs:
 
       # - uses: julia-actions/julia-runtest@latest
 
+###############################################
+#SIMULATIONS
+##############################################
 
       - name: Running dummy simulation and putting into run/out file
         run: |
@@ -54,11 +57,20 @@ jobs:
         run: |
             julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini
 
+      - name: Running dummy for single sim, with delay, and not simulating
+        run: |
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --inject_delays -i ${{ github.workspace }}/tests/data/par_test2.ini
+
       - name: Running dummy MULTIPLE simulation
         run: |
             julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
 
-      - name: Running TEST over the simulatin
+
+#############################################
+#TESTS
+#############################################
+
+      - name: Running TEST over the simulation
         run: |
             julia --project=training_env --code-coverage=user ${{ github.workspace }}/tests/simulation_test.jl
 
