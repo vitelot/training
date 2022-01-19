@@ -13,20 +13,38 @@ function main()
         exit()
     end
 
+    #CLI parser
     parsed_args = parse_commandline()
 
+    #load parsed_args["ini"] file infos
     loadOptions(parsed_args);
 
+    #load the railway net
     RN = loadInfrastructure();
     FL = loadFleet();
 
-
+    #one or multiple simulations
     if parsed_args["multi_simulation"]
         multiple_sim(RN, FL)
     else
         one_sim(RN, FL)
     end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function one_sim(RN::Network, FL::Fleet)
 
