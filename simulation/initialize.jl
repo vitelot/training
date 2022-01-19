@@ -162,7 +162,7 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
 
     #print(delays_array)
     n=length(delays_array)
-    Opt["print_flow"] && println("Delays loaded. The number of simulations is: ",n)
+    Opt["print_flow"] && println("Delays loaded. The number of files in data/delays/ is: ",n)
     delay=nothing
 
     return (delays_array,n)

@@ -3,11 +3,11 @@ This file contains the functions to load the simulation options from
 /data/simulation_data/par.ini
 If not existing, creates one as default
 """
-function loadOptions()
+function loadOptions(parsed_args::Dict)
 
-    parsed_args = parse_commandline()
 
     file=parsed_args["ini"]
+
     Opt["test"]=parsed_args["test"]
 
     if !isfile(file)
@@ -53,6 +53,8 @@ function loadOptions()
         end
     end
 
+    parsed_args["inject_delays"] || (Opt["imposed_delay_repo_path"] = "None")
+
     if parsed_args["test"]>0
 
         print("\nPerforming speed test with no output.\nPlease be patient. ")
@@ -75,7 +77,13 @@ function loadOptions()
         end
         println("########################")
     end
+
+    Opt["print_flow"] && println("Options loaded, starting the program.")
+
 end
+
+
+
 
 function createIniFile(file::String)
 

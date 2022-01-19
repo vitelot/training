@@ -13,31 +13,62 @@ function main()
         exit()
     end
 
+    parsed_args = parse_commandline()
 
-
-    loadOptions();
-
-    #if passed an argument, it is the input file path
-    # if isempty(ARGS)
-    #     file = "../data/simulation_data/par.ini"
-    #     loadOptions(file);
-    # else
-    #     loadOptions(ARGS[1])
-    # end
-
-    Opt["print_flow"] && println("Options loaded, starting the program.")
+    loadOptions(parsed_args);
 
     RN = loadInfrastructure();
     FL = loadFleet();
 
 
-    if isdir(Opt["imposed_delay_repo_path"])
-        delays_array,number_simulations = loadDelays() #Arr{Dataframe}, each is delay imposed in one simulation
+    if parsed_args["multi_simulation"]
+        multiple_sim(RN, FL)
     else
-        delays_array,number_simulations=[],1
+        one_sim(RN, FL)
+    end
+end
+
+function one_sim(RN::Network, FL::Fleet)
+
+    #inserting delays from data/delays/ repo..
+    if isdir(Opt["imposed_delay_repo_path"])
+         delays_array,number_simulations = loadDelays();
+         #imposing first file delay, simulation_id=1
+         imposeDelays(FL,delays_array,1)
+     end
+
+    Opt["print_flow"] && println("##################################################################")
+    Opt["print_flow"] && println("Starting simulation")
+
+    if Opt["simulate"]
+        simulation(RN, FL)
+        Opt["test"]>0 && runTest(RN,FL)
+    else
+        return (RN,FL)
     end
 
+    nothing
+end
 
+
+
+
+
+
+
+
+
+
+
+function multiple_sim(RN::Network, FL::Fleet)
+
+    if isdir(Opt["imposed_delay_repo_path"])
+        delays_array,number_simulations = loadDelays()
+    else
+        Opt["print_notifications"] && println(stderr,"Running multiple_sim() without imposing delays file,no sense. Running simple simulation.")
+        delays_array=[]
+        number_simulations=1
+    end
 
     for simulation_id in 1:number_simulations
 
@@ -49,7 +80,6 @@ function main()
 
         if Opt["simulate"]
             simulation(RN, FL)  && (println("returned 1 , restarting");)
-            Opt["test"]>0 && runTest(RN,FL)
         else
             return (RN,FL)
         end
@@ -57,5 +87,7 @@ function main()
     end
     nothing
 end
+
+
 
 main()
