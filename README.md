@@ -31,7 +31,7 @@
   </a>
 
   <a href="https://github.com/github_username/repo_name">
-    <img src="images/csh_logo.png" alt="Logo" width="200" height="80">
+    <img src="images/csh_logo_blue.png" alt="Logo" width="200" height="80">
   </a>
 
 <h3 align="center"> TRAINING: a delay handling simulation</h3>
