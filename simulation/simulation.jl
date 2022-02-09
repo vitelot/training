@@ -134,10 +134,10 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                         delay_imposed=FL.train[trainid].delay[nextBlockid]
 
-                        if delay_imposed != 0
-                            println(nextBlockid)
-                            println("t is $t, nextBlockRealTime is $nextBlockRealTime, delay imposed is $delay_imposed")
-                        end
+                        # if delay_imposed != 0
+                        #     println(nextBlockid)
+                        #     println("t is $t, nextBlockRealTime is $nextBlockRealTime, delay imposed is $delay_imposed")
+                        # end
 
                         tt = t + nextBlockRealTime + delay_imposed;
 

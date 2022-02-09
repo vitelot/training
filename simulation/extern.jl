@@ -80,7 +80,7 @@ mutable struct Train
     id::String
     schedule::Vector{Transit} # schedule[duetime] = info on stops
     dyn::DynTrain
-    delay::Dict{String, Int}
+    delay::Dict{String, Int} # Train[block] = imposed delay for train inblock
 end
 
 mutable struct Fleet

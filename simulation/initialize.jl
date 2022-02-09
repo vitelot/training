@@ -83,10 +83,10 @@ function loadFleet()::Fleet
     df = DataFrame(CSV.File(file, comment="#"))
 
     block=String
-    
+
     for train in unique(df.trainid)
 
-        df2=filter(row -> (row.trainid == train), df)
+        df2=filter(row -> (row.trainid == train), df) #provo a usare subset
         nrows=nrow(df2)
 
         for i in 1:nrows
@@ -106,9 +106,6 @@ function loadFleet()::Fleet
             if i < nrows
                 next_bts=df2.opid[i+1]
                 block=bts*"-"*next_bts
-            else
-                println(i)
-                println(block)
             end
 
 
@@ -249,71 +246,6 @@ function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::I
     df = nothing;
 
 end
-
-#=function assignImposedDelay(FL::Fleet)
-    file = Opt["imposed_delay_file"]
-    print_imposed_delay = Opt["print_imposed_delay"];
-
-    if !isfile(file) # do nothing if file does not exist
-        print_imposed_delay && println("No imposed delay file was found.")
-        return nothing;
-    end
-
-    df = DataFrame(CSV.File(file, comment="#"))
-    c=0;
-    for i = 1:nrow(df)
-        (train, op, kind, delay) = df[i,:];
-        v = FL.train[train].schedule;
-        idx = findfirst(x->x.opid==op && x.kind==kind, v);
-        if print_imposed_delay
-            if isnothing(idx)
-                println("Imposing delay: train $train, op $op, kind $kind, not found.");
-                continue;
-            else
-                println("Imposing $delay seconds delay to train $train, $kind at $op.")
-            end
-        end
-        FL.train[train].schedule[idx].imposed_delay.delay = delay;
-        c += 1;
-    end
-
-    Opt["print_flow"] && println("$c Delays imposed");
-    df = nothing;
-end
-=#
-
-# function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
-#
-#     E = Dict{Int,Vector{Transit}}()
-#
-#     TB = generateTimetable(FL)
-#
-#     Opt["print_flow"] && println("Initializing the event table")
-#
-#     S = Set{String}() # trains circulating
-#
-#     D = TB.timemap
-#     t_initial = minimum(keys(D))
-#     t_final = maximum(keys(D))
-#
-#     for t = t_initial:t_final
-#         if haskey(D, t)
-#             for transit in D[t] # there may be more trains at time t
-#
-#                 trainid = transit.trainid
-#
-#                 if trainid ∉ S # add new train in the current day events
-#                     get!(E,t,Transit[])
-#                     push!(E[t], transit)
-#                     push!(S, trainid)
-#                     #println("New train $trainid starting at $opid")
-#                 end
-#             end
-#         end
-#     end
-#     TB = nothing;
-#     E
-# end
 
 
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
