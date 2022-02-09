@@ -21,7 +21,7 @@ include("../simulation/functions.jl")
     S=Set{String}(["SB29953"])
     BK=Dict{String,Block}("FLDH1-FLDU2" => Block("FLDH1-FLDU2", 1, 1, Set{String}(["SB29953"])), "FLDU2-FLDH1" => Block("FLDU2-FLDH1", 1, 0, Set{String}()))
 
-    schedule=[Transit("SB29541", "WSP", "Ankunft", 200, Delay(0)), Transit("SB29541", "WSP", "Abfahrt", 100, Delay(0))]
+    schedule=[Transit("SB29541", "WSP", "Ankunft", 200), Transit("SB29541", "WSP", "Abfahrt", 100)]
     # hashing=true
 
     @test netStatus(S, BK; hashing=true)==0x121c97cea605b461
