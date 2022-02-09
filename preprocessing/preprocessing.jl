@@ -2,22 +2,47 @@ using DataFrames, CSV
 
 ############################################################################################################
 #function that reads the timetable and returns the events of beginning of trains if ["Abfahrt","Beginn"] are there
-function get_train_begin(timetable_path::AbstractString,train_id::AbstractString)::Array{Any}
+function get_trains_begin(timetable_path::AbstractString,path_out::AbstractString)
+
+    outfile = "trains_beginning.ini"
+    #printing out the file
+
+
+
     df = DataFrame(CSV.File(timetable_path*"timetable.csv"))
 
-    df=df[isequal.(df.trainid,train_id),:]
 
-    if !issubset(["Begin"], df.kind) && !issubset(["Abfahrt"], df.kind)
-        return [0,0,0,0]
+
+    if !isfile(path_out*outfile)
+
+        f = open(path_out*outfile, "w")
+        println(f,"trainid,block,first_time,second_time")
+        #getting begins array of beginnings of trains
+
+        train_list=unique(df.trainid)
+
+        for train in train_list
+
+            df2=df[isequal.(df.trainid,train),:]
+             if nrow(df2) >= 2
+                if !issubset(["Begin"], df2.kind) && !issubset(["Abfahrt"], df2.kind)
+                    println(f,df2[1,:].trainid,",",df2[1,:].opid*"-"*df2[2,:].opid,",",df2[1,:].duetime,",",df2[2,:].duetime)
+                    continue
+                end
+
+                first_idx=findfirst(in(["Abfahrt","Beginn"]), df2.kind)
+
+                println(f,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+            end
+
+        end
+
+
+        close(f)
+        println("trains_beginning.ini created.")
+
+    else println("Trains beginning file already present, using it.")
     end
-
-    df=df[findfirst(in(["Abfahrt","Beginn"]), df.kind), :]
-
-    arr=[df.trainid,df.opid,df.kind,df.duetime]
-
-
-    df= nothing
-    return arr
 end
 
 
@@ -98,6 +123,8 @@ function main()
     end
 
     ############################################################################################################
+    ##MOVING THE UNZIPPED FILES FROM DATA.ZIP TO THE CORRECT DIRS
+    ##############################################################################
     path_ini="../data/data/"
 
     path_end="../data/simulation_data/"
@@ -117,47 +144,21 @@ function main()
       end
     end
     ############################################################################################################
-
+    ## CREATE THE FILE FOR THE BEGINNING BLOCK FOR THAT TIMETABLE
+    ############################################################################################################
     #getting the timetable df
     timetable_path="../data/simulation_data/"
-    df = DataFrame(CSV.File(timetable_path*"timetable.csv"))
+    #df = DataFrame(CSV.File(timetable_path*"timetable.csv"))
 
     path_out="../data/simulation_data/"
     outfile = "trains_beginning.ini"
 
-
-    #if file not present, create trains_beginning.ini
-    if !isfile(path_out*outfile)
-        #getting begins array of beginnings of trains
-        begins=[]
-        train_list=unique(df.trainid)
-        for train in train_list
-            push!(begins, get_train_begin(timetable_path,train))
-        end
+    get_trains_begin(timetable_path,path_out)
 
 
-        #filter begins from zeros
-        b=[0,0,0,0]
-        filter!(x->x≠b,begins)
 
-        #printing out the file
-
-        f = open(path_out*outfile, "w")
-        println(f,"trainid,opid,kind,duetime")
-        for i in 1:length(begins)
-
-            println(f,begins[i][1],",",begins[i][2],",",begins[i][3],",",begins[i][4])
-
-        end
-        close(f)
-        println("trains_beginning.ini created.")
-
-    else println("Trains beginning file already present, using it.")
-    end
-
-
-    println("Got train beginnings.")
-
+    ############################################################################################################
+    ## LOADING THE FILE trainIni.in for the trains to be delayed
     ############################################################################################################
 
     Interval = Dict{String,Any}()
@@ -176,7 +177,6 @@ function main()
     start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
 
     #defining the train list and delay list
-    #bad_trains=String["SB22674","SB24686"]#String["SB22674","SB24686","R2246","R2265","R2248","RJ750","SB21714"]
 
     delays=Interval["step_beginning"]:Interval["step_length"]:Interval["step_end"]
 
@@ -203,8 +203,8 @@ function main()
                 outfile = delays_path*"imposed_delay_simulation_$count.csv"
                 f = open(outfile, "w")
 
-                println(f,"trainid,opid,kind,duetime,delay")
-                println(f,train,",",start_dict[train].opid,",",start_dict[train].kind,",",start_dict[train].duetime,",",delay)
+                println(f,"trainid,block,delay")
+                println(f,train,",",start_dict[train].block,",",delay)
 
                 close(f)
 

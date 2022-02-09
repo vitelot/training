@@ -13,6 +13,7 @@ using InteractiveUtils
 
 Opt = Dict{String,Any}()
 
+#struct not used for now
 struct OPoint # Operational Point: Betriebstelle
     id::String # id name
     idx::Int # numerical index
@@ -58,14 +59,7 @@ end
 # Transit(trainid::String, opid::String7, kind::String15, duetime::Int) =
 #     Transit(trainid, opid, kind, duetime); # sets the default imposed delay to zero
 
-    # Transit(trainid::String, opid::Any, kind::String15, duetime::Int) =
-    #     Transit(trainid, opid, kind, duetime); # sets the default imposed delay to zero
 
-# mutable struct TimeTable
-#     n::Int # dimension of vector below
-#     #list::Vector{Transit}
-#     timemap::Dict{Int,Vector{Transit}}
-# end
 
 mutable struct DynTrain
     #id::String

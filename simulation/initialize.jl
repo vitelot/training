@@ -161,10 +161,6 @@ function custom_cmp(x::String)
     return str1,parse(Int, num)
 end
 
-
-
-
-
 function loadDelays()::Tuple{Vector{DataFrame},Int}
     """Takes all the delay files in the data/delays/ directory
     and loads it in a vector of dataframes;
@@ -227,9 +223,7 @@ function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::I
         resetDelays(FL,delays_array,simulation_id);
     end
 
-
     df = delays_array[simulation_id];
-
 
     c=0;
     for i = 1:nrow(df)
