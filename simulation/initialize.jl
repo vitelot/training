@@ -82,31 +82,58 @@ function loadFleet()::Fleet
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
 
-    for i = 1:nrow(df)
-        #trainid,opid,kind,duetime = Tuple(df[i,:])
-        trainid=string(df.trainid[i])
-        duetime = dateToSeconds(df.duetime[i])
-        str = Transit(
-                trainid,
-                df.opid[i],
-                df.kind[i],
-                duetime
-        )
-        if !haskey(FL.train, trainid)
+    block=String
+    
+    for train in unique(df.trainid)
 
-            get!(FL.train, trainid,
-                    Train(trainid, [str],
-                        DynTrain(0,"","")))
-            # get!(FL.train, trainid,
-            #         Train(trainid, [str],
-            #             DynTrain(0,"","",0,0)))
-        else
-            push!(FL.train[trainid].schedule, str)
+        df2=filter(row -> (row.trainid == train), df)
+        nrows=nrow(df2)
+
+        for i in 1:nrows
+
+
+            bts=df2.opid[i]
+
+            trainid=string(df2.trainid[i])
+            duetime = dateToSeconds(df2.duetime[i])
+            str = Transit(
+                    trainid,
+                    df2.opid[i],
+                    df2.kind[i],
+                    duetime
+            )
+
+            if i < nrows
+                next_bts=df2.opid[i+1]
+                block=bts*"-"*next_bts
+            else
+                println(i)
+                println(block)
+            end
+
+
+            if !haskey(FL.train, trainid)
+
+                get!(FL.train, trainid,
+                        Train(trainid, [str],
+                            DynTrain(0,"",""),Dict(block=>0)))
+                # get!(FL.train, trainid,
+                #         Train(trainid, [str],
+                #             DynTrain(0,"","",0,0)))
+            else
+                push!(FL.train[trainid].schedule, str)
+                # println(i,nrows)
+                FL.train[trainid].delay[block]=0
+            end
+
         end
 
     end
+
+
     FL.n = length(FL.train)
     df = nothing
+    df2= nothing
 
 
     for trainid in keys(FL.train)
@@ -115,7 +142,11 @@ function loadFleet()::Fleet
 
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
-end
+
+    end
+
+
+
 
 
 
@@ -175,25 +206,17 @@ function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::In
 
     df = delays_array[simulation_id-1];
 
-    c=0;
-    for i = 1:nrow(df)
-        (train, op, kind,duetime, delay) = df[i,:];
 
-        v = FL.train[train].schedule;
-        idx = findfirst(x->x.opid==op && x.kind==kind, v);
+    for i = 1:nrow(df)
+        (train, block, delay) = df[i,:];
+
+        FL.train[train].delay[block]=0
         if print_imposed_delay
-            if isnothing(idx)
-                println("Reset delay: train $train, op $op, kind $kind, not found.");
-                continue;
-            else
-                println("Reset $delay to train $train, $kind at $op.")
-            end
+            println("Reset $delay to train $train, at block $block.")
         end
-        FL.train[train].schedule[idx].imposed_delay.delay = 0;
-        c += 1;
     end
 
-    Opt["print_flow"] && println("$c Delays reset");
+    Opt["print_flow"] && println("$(nrow(df)) Delays reset");
     df = nothing;
 
 end
@@ -213,23 +236,16 @@ function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::I
 
     c=0;
     for i = 1:nrow(df)
-        (train, op, kind,duetime, delay) = df[i,:];
-        v = FL.train[train].schedule;
-        idx = findfirst(x->x.opid==op && x.kind==kind, v);
+        (train, block, delay) = df[i,:];
+
+        FL.train[train].delay[block]=delay
 
         if print_imposed_delay
-            if isnothing(idx)
-                println("Imposing delay: train $train, op $op, kind $kind, not found.");
-                continue;
-            else
-                println("Imposing $delay seconds delay to train $train, $kind at $op at $duetime, in seconds $(dateToSeconds(duetime)).")
-            end
+            println("Imposed $delay to train $train, at block $block.")
         end
-        FL.train[train].schedule[idx].imposed_delay.delay = delay;
-        c += 1;
     end
 
-    Opt["print_flow"] && println("$c Delays imposed");
+    Opt["print_flow"] && println("$(nrow(df)) Delays imposed");
     df = nothing;
 
 end

@@ -132,7 +132,13 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))
                         #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))"""
 
-                        delay_imposed=train.schedule[n_op].imposed_delay.delay
+                        delay_imposed=FL.train[trainid].delay[nextBlockid]
+
+                        if delay_imposed != 0
+                            println(nextBlockid)
+                            println("t is $t, nextBlockRealTime is $nextBlockRealTime, delay imposed is $delay_imposed")
+                        end
+
                         tt = t + nextBlockRealTime + delay_imposed;
 
                         print_train_status && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid]; Opt[imposed_delay_repo_path] is $(Opt["imposed_delay_repo_path"]) "))

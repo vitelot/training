@@ -11,7 +11,7 @@ function parse_commandline()
             default = "../data/simulation_data/par.ini"
 
         "--test"
-            help = "int for running time or btime on simulation"
+            help = "int for running time or btime on simulation, default 0"
             arg_type = Int
             range_tester=x->issubset(x,[0,1,2])
             default = 0
