@@ -1,2 +1,2 @@
-trainid,opid,kind,duetime,delay
-T3,NB,Ankunft,04.02.2019 08:58:02,2
+trainid,block,delay
+T3,NB-NB,2
