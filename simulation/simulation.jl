@@ -34,14 +34,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
-    # println("Event Dict is : ", Event[63684945420])
-    #
-    # Event2 = initEvent(FL) # initialize the events with the departure of new trains
-    #
-    # println("Event Dict 2 is : ", Event2[63684945420])
-    #
-    # println("Are the event dict the same  : ", isequal(Event,Event2))
-
     totDelay = 0 #####
 
 
@@ -85,7 +77,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
                 print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
 
 
-
                 if trainid ∉ S # new train in the current day
                     push!(S,trainid)
                     print_new_train && println("New train $trainid starting at $current_opid at time $t")
@@ -95,6 +86,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
                 train = FL.train[trainid]
                 train.dyn.n_opoints_visited += 1
                 n_op = train.dyn.n_opoints_visited # number of opoints passed
+
                 if n_op < length(train.schedule)
                     nextopid = train.schedule[n_op+1].opid
 
@@ -111,17 +103,23 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     currentBlock = BK[train.dyn.currentBlock]
 
+
                     if nextBlock.nt < nextBlock.tracks # if there are less trains than the number of available tracks
 
-                        nextBlock.nt += 1
-                        push!(nextBlock.train, trainid)
 
+                        #updating current block, popping
                         if currentBlock.id != ""
                             currentBlock.nt -= 1
                             pop!(currentBlock.train, trainid)
+
                         end
 
+                        #updating next block, adding
+                        nextBlock.nt += 1
+                        push!(nextBlock.train, trainid)
+
                         train.dyn.currentBlock = nextBlockid
+
 
                         nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
                         #"""train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
@@ -154,16 +152,17 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     end
 
-
-
-                    # isdir(Opt["imposed_delay_repo_path"]) && ((t_final > t_final_starting+3000) &&
-                    #     (println("Simulation is stuck with times t_finals $t_final and $t_final_starting and the number of events exceeds 300 seconds for 1 day simulation, returning 1. ");
-                    #     Event = nothing;return true))
+                #train ended his schedule
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
+
+                        #updating the values in the corresponding block
                         BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
+
+
+
                         if t>duetime
                             totDelay += (t-duetime);
                         end
@@ -185,7 +184,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
             status = netStatus(S,BK,hashing=false);
 
             if (old_status == status) && (!isempty(status))
-                # println("here!!!!!!")
 
                 Opt["print_flow"] && println("Simulation is stuck with times t_finals $t_final and $t_final_starting,
                                             t is $t ; status is  $status")
