@@ -20,6 +20,10 @@ function parse_commandline()
             help = "a flag for running multiple simulations"
             action = :store_true
 
+        "--catch_conflict_flag"
+            help = "a flag for running routines for checking the structure of the railway"
+            action = :store_true
+
         "--inject_delays"
             help = "a flag for making the program search for delays to inject in /data/delays/ repo;
                     every file corresponds to a different simulation;

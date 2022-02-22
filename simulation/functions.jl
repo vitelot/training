@@ -110,12 +110,26 @@ function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
     return status
 end
 
-function resetSimulation(FL::Fleet)
+function resetSimulation(FL::Fleet)#,RN::Network
 """
 Resets the dynamical variables of trains in case of multiple simulation runs
 """
+    println("resetting Fleet")
     for trainid in keys(FL.train)
         FL.train[trainid].dyn = DynTrain(0,"","");
+    end
+end
+
+#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory
+function resetDynblock(RN::Network)#,
+"""
+Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
+"""
+    println("resetting Blocks")
+
+    for block in keys(RN.blocks)
+        ntracks=RN.blocks[block].tracks
+        RN.blocks[block] = Block(block,ntracks,0,Set{String}())
     end
 end
 

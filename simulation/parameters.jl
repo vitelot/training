@@ -9,7 +9,7 @@ function loadOptions(parsed_args::Dict)
     file=parsed_args["ini"]
 
     Opt["test"]=parsed_args["test"]
-
+    Opt["catch_conflict_flag"]=parsed_args["catch_conflict_flag"]
     if !isfile(file)
         createIniFile(file)
     end
