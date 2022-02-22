@@ -5,13 +5,166 @@ include("functions.jl")
 include("simulation.jl")
 include("parser.jl")
 
+# macro catch_conflict(RN,FL,parsed_args)
+#
+#     ex = :($RN)
+#     return ex
+#
+#     ex=quote
+#
+#         while true
+#             try
+#                 local rn = $RN
+#                 local fl = $FL
+#                 println(rn)
+#                 println("ENTERED IN THE META")
+#                 #one or multiple simulations
+#                 if ($(esc(parsed_args))["multi_simulation"])
+#                     multiple_sim($(esc(RN)), $(esc(FL)))
+#                 else
+#                     one_sim(rn, fl)
+#                 end
+#                 break
+#             catch err
+#
+#                 if isa(err, KeyError)
+#
+#
+#
+#                     println("KeyError occurring : $(err.key)")
+#
+#                     name=err.key
+#                     b = Block(
+#                             name,
+#                             # i,
+#                             1,
+#                             0,
+#                             Set{String}()
+#                     )
+#
+#                     $(esc(RN)).nb += 1
+#
+#                     $(esc(RN)).blocks[name]=b
+#
+#                     println("Added to RN.blocks the block:",$(esc(RN)).blocks[err.key])
+#
+#                     resetSimulation($(esc(FL)),$(esc(RN)));
+#                     println("Dynamical values of RN are reset for restarting evaluating")
+#
+#
+#                 else
+#                     println("error is $(err),type is $(typeof(err))")
+#                     println("error is $(err.trainid),block is $(err.block)")
+#                     train=(err.trainid)
+#                     block=err.block
+#                     println(block,$(esc(RN)).blocks[block].tracks)
+#
+#                     ntracks=$(esc(RN)).blocks[block].tracks
+#                     # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
+#                     $(esc(RN)).blocks[block].tracks=ntracks+1
+#                     $(esc(RN)).blocks[block].nt=0
+#                     $(esc(RN)).blocks[block].train=Set{String}()
+#
+#                     println($(esc(RN)).blocks[block])
+#
+#                     if $(esc(RN)).blocks["BU-BUN"].tracks > 3
+#                         break
+#                     end
+#
+#
+#
+#                     resetSimulation($(esc(FL)),$(esc(RN)));
+#                 end
+#
+#             end
+#         end
+#     end
+#
+#
+# end
+
+
+macro catch_conflict(RN,FL,parsed_args)
+
+
+    ex=quote
+
+        while true
+            try
+                println("ENTERED IN THE META")
+                #one or multiple simulations
+                if ($(parsed_args)["multi_simulation"])
+                    # multiple_sim($(esc(RN)), $(esc(FL)))
+                else
+                    one_sim($RN, $FL)
+                end
+                #insert here function for saving the blocks list
+                break
+            catch err
+
+                if isa(err, KeyError)
+
+
+
+                    println("KeyError occurring : $(err.key)")
+
+                    name=err.key
+                    b = Block(
+                            name,
+                            # i,
+                            1,
+                            0,
+                            Set{String}()
+                    )
+
+                    $(RN).nb += 1
+
+                    $(RN).blocks[name]=b
+
+                    println("Added to RN.blocks the block:",$(RN).blocks[err.key])
+
+                    resetSimulation($FL);
+                    resetDynblock($RN);
+
+
+
+                else
+
+                    train=(err.trainid)
+                    block=err.block
+                    println($(RN).blocks[block])
+
+                    ntracks=$(RN).blocks[block].tracks
+                    # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
+                    $(RN).blocks[block].tracks=ntracks+1
+                    $(RN).blocks[block].nt=0
+                    $(RN).blocks[block].train=Set{String}()
+
+                    println($(RN).blocks[block])
+
+                    if $(RN).blocks["BU-BUN"].tracks > 3
+                        break
+                    end
+
+
+
+                    resetSimulation($FL);
+                    resetDynblock($RN);
+                end
+
+            end
+        end
+    end
+
+
+    @show ex
+    return esc(ex)
+end
+
+
 
 function main()
 
-    # if VERSION < v"1.6"
-    #     println("Please upgrade Julia to at least version 1.6. Exiting.")
-    #     exit()
-    # end
 
     #CLI parser
     parsed_args = parse_commandline()
@@ -23,12 +176,23 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-    #one or multiple simulations
-    if parsed_args["multi_simulation"]
-        multiple_sim(RN, FL)
+
+
+    if parsed_args["catch_conflict_flag"]==false
+
+        #one or multiple simulations
+        if parsed_args["multi_simulation"]
+            multiple_sim(RN, FL)
+        else
+            one_sim(RN, FL)
+        end
+
     else
-        one_sim(RN, FL)
+        @catch_conflict(RN,FL,parsed_args)
+
     end
+
+
 end
 
 
@@ -61,7 +225,7 @@ function one_sim(RN::Network, FL::Fleet)
     if Opt["simulate"]
 
         Opt["test"]>0 && runTest(RN,FL)
-        
+
         simulation(RN, FL)
     else
         return (RN,FL)

@@ -86,3 +86,16 @@ struct RailwayNetwork
     network::Network # the network where trains move
     # trains
 end
+
+
+
+
+########################################
+##EXCEPTIONS DEFINING
+##################################
+struct exception_blockConflict <: Exception
+        trainid::String
+        block::String
+    end
+
+Base.showerror(io::IO, e::exception_blockConflict) = print(io, "Train $(e.trainid) has conflict in block $(e.block) ")
