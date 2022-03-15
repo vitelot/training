@@ -35,7 +35,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     BK = RN.blocks # Dict{blockid,structure}
 
-    @info BK["BU-BUN"]
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
@@ -46,6 +45,10 @@ function simulation(RN::Network, FL::Fleet)::Bool
     t_final=t_final_starting = maximum(keys(Event))
 
     print_elapsed_time && println("t final starting is $t_final_starting")
+
+    # @info t_final_starting
+    #
+    # @info BK
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
 
@@ -146,6 +149,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     else
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
+
                         catch_conflicts_flag && throw(exception_blockConflict(trainid,nextBlockid))
 
                         # throw("You're not looking too good. Best check yourself.")
@@ -200,6 +204,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                 #Event = nothing; #don't need to do that. it will be garbage collected.
                 resetSimulation(FL); # set trains dynamical variables to zero
+                resetDynblock(RN);
                 return true;
             end
             t_evaluated=0
@@ -211,5 +216,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     resetSimulation(FL); # set trains dynamical variables to zero
+    resetDynblock(RN);
     return false
 end
