@@ -5,25 +5,24 @@ include("functions.jl")
 include("simulation.jl")
 include("parser.jl")
 
+
+
+
 # macro catch_conflict(RN,FL,parsed_args)
 #
-#     ex = :($RN)
-#     return ex
 #
 #     ex=quote
 #
 #         while true
 #             try
-#                 local rn = $RN
-#                 local fl = $FL
-#                 println(rn)
 #                 println("ENTERED IN THE META")
 #                 #one or multiple simulations
-#                 if ($(esc(parsed_args))["multi_simulation"])
-#                     multiple_sim($(esc(RN)), $(esc(FL)))
+#                 if ($(parsed_args)["multi_simulation"])
+#                     # multiple_sim($(esc(RN)), $(esc(FL)))
 #                 else
-#                     one_sim(rn, fl)
+#                     one_sim($RN, $FL)
 #                 end
+#                 #insert here function for saving the blocks list
 #                 break
 #             catch err
 #
@@ -42,38 +41,39 @@ include("parser.jl")
 #                             Set{String}()
 #                     )
 #
-#                     $(esc(RN)).nb += 1
+#                     $(RN).nb += 1
 #
-#                     $(esc(RN)).blocks[name]=b
+#                     $(RN).blocks[name]=b
 #
-#                     println("Added to RN.blocks the block:",$(esc(RN)).blocks[err.key])
+#                     println("Added to RN.blocks the block:",$(RN).blocks[err.key])
 #
-#                     resetSimulation($(esc(FL)),$(esc(RN)));
-#                     println("Dynamical values of RN are reset for restarting evaluating")
+#                     resetSimulation($FL);
+#                     resetDynblock($RN);
+#
 #
 #
 #                 else
-#                     println("error is $(err),type is $(typeof(err))")
-#                     println("error is $(err.trainid),block is $(err.block)")
+#
 #                     train=(err.trainid)
 #                     block=err.block
-#                     println(block,$(esc(RN)).blocks[block].tracks)
+#                     println($(RN).blocks[block])
 #
-#                     ntracks=$(esc(RN)).blocks[block].tracks
+#                     ntracks=$(RN).blocks[block].tracks
 #                     # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
-#                     $(esc(RN)).blocks[block].tracks=ntracks+1
-#                     $(esc(RN)).blocks[block].nt=0
-#                     $(esc(RN)).blocks[block].train=Set{String}()
+#                     $(RN).blocks[block].tracks=ntracks+1
+#                     $(RN).blocks[block].nt=0
+#                     $(RN).blocks[block].train=Set{String}()
 #
-#                     println($(esc(RN)).blocks[block])
+#                     println($(RN).blocks[block])
 #
-#                     if $(esc(RN)).blocks["BU-BUN"].tracks > 3
+#                     if $(RN).blocks["BU-BUN"].tracks > 3
 #                         break
 #                     end
 #
 #
 #
-#                     resetSimulation($(esc(FL)),$(esc(RN)));
+#                     resetSimulation($FL);
+#                     resetDynblock($RN);
 #                 end
 #
 #             end
@@ -81,87 +81,74 @@ include("parser.jl")
 #     end
 #
 #
+#     @show ex
+#     return esc(ex)
 # end
 
+function catch_conflict(RN,FL,parsed_args)
 
-macro catch_conflict(RN,FL,parsed_args)
-
-
-    ex=quote
-
-        while true
-            try
-                println("ENTERED IN THE META")
-                #one or multiple simulations
-                if ($(parsed_args)["multi_simulation"])
-                    # multiple_sim($(esc(RN)), $(esc(FL)))
-                else
-                    one_sim($RN, $FL)
-                end
-                #insert here function for saving the blocks list
-                break
-            catch err
-
-                if isa(err, KeyError)
-
-
-
-                    println("KeyError occurring : $(err.key)")
-
-                    name=err.key
-                    b = Block(
-                            name,
-                            # i,
-                            1,
-                            0,
-                            Set{String}()
-                    )
-
-                    $(RN).nb += 1
-
-                    $(RN).blocks[name]=b
-
-                    println("Added to RN.blocks the block:",$(RN).blocks[err.key])
-
-                    resetSimulation($FL);
-                    resetDynblock($RN);
-
-
-
-                else
-
-                    train=(err.trainid)
-                    block=err.block
-                    println($(RN).blocks[block])
-
-                    ntracks=$(RN).blocks[block].tracks
-                    # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
-                    $(RN).blocks[block].tracks=ntracks+1
-                    $(RN).blocks[block].nt=0
-                    $(RN).blocks[block].train=Set{String}()
-
-                    println($(RN).blocks[block])
-
-                    if $(RN).blocks["BU-BUN"].tracks > 3
-                        break
-                    end
-
-
-
-                    resetSimulation($FL);
-                    resetDynblock($RN);
-                end
-
+    while true
+        try
+            println("ENTERED IN THE META")
+            #one or multiple simulations
+            if (parsed_args["multi_simulation"])
+                # multiple_sim($(esc(RN)), $(esc(FL)))
+            else
+                one_sim(RN, FL)
             end
+            #insert here function for saving the blocks list
+            _,date,__=split(Opt["timetable_file"],"-")
+            out_file_name="../data/simulation_data/blocks_catch_$date.csv"
+            print_railway(RN,out_file_name)
+            break
+        catch err
+
+            if isa(err, KeyError)
+
+                println("KeyError occurring : $(err.key)")
+
+                name=err.key
+                b = Block(
+                        name,
+                        # i,
+                        1,
+                        0,
+                        Set{String}()
+                )
+
+                RN.nb += 1
+
+                RN.blocks[name]=b
+
+                println("Added to RN.blocks the block:",RN.blocks[err.key])
+
+                resetSimulation(FL);
+                resetDynblock(RN);
+
+            else
+
+                train=(err.trainid)
+                block=err.block
+                println(RN.blocks[block])
+
+                ntracks=RN.blocks[block].tracks
+                # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
+                RN.blocks[block].tracks=ntracks+1
+                RN.blocks[block].nt=0
+                RN.blocks[block].train=Set{String}()
+
+                println(RN.blocks[block])
+
+                resetSimulation(FL);
+                resetDynblock(RN);
+            end
+
+
+
         end
     end
 
-
-    @show ex
-    return esc(ex)
 end
-
-
 
 function main()
 
@@ -188,7 +175,7 @@ function main()
         end
 
     else
-        @catch_conflict(RN,FL,parsed_args)
+        catch_conflict(RN,FL,parsed_args)
 
     end
 

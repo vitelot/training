@@ -120,7 +120,7 @@ Resets the dynamical variables of trains in case of multiple simulation runs
     end
 end
 
-#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory
+#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
 function resetDynblock(RN::Network)#,
 """
 Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
@@ -132,6 +132,37 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
         RN.blocks[block] = Block(block,ntracks,0,Set{String}())
     end
 end
+
+
+
+
+
+#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
+function print_railway(RN::Network,out_file_name::String)#,
+"""
+printing blocks to file
+"""
+    out_file = open(out_file_name, "w")
+
+    println(out_file,"id,tracks")
+
+
+    block2track=OrderedDict()
+    for block in keys(RN.blocks)
+        ntracks=RN.blocks[block].tracks
+        if RN.blocks[block].id==""
+            continue
+        end
+        block2track[block]=ntracks
+    end
+
+    sort!(block2track, byvalue=true,rev=true)
+    for block in keys(block2track)
+        println(out_file,block,",",block2track[block])
+    end
+    close(out_file)
+end
+
 
 import Base.sort!
 sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
