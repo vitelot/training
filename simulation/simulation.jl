@@ -64,7 +64,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
                     print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind)")
-                    if kind == "Abfahrt"
+                    if kind == "Abfahrt"||"Beginn"
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
                         push!(Event[duetime], transit)
