@@ -9,16 +9,17 @@ It extracts a random value from the power law distribution
 end
 
 
-fuction main()
-"""It takes the trains from the timetable, assign to them a probability based on a CSV,
-    extracts the number n of exo. delays that has to be inserted, extract the BSTs,
-    build the csv with exo. delays to be assigned
+function main()
+"""
+It takes the trains from the timetable, assign to them a probability based on a CSV,
+extracts the number n of exo. delays that has to be inserted, extract the BSTs,
+build the csv with exo. delays to be assigned
 """
     dft=DataFrame(CSV.File("tipica.csv"))           #Or Mon, Tue, ... Or timetable
     dtrains=unique(dft.trainid)
 
     dfp=DataFrame(CSV.File("probabilities.csv"))
-    dfp=filter(:trainid => x-> x ∈dtrains,df)
+    dfp=filter(:trainid => x-> x ∈dtrains,dfp)
 
 
     d=LogNormal(4.26,0.46)  #Total number of exogeneous delays we inject
@@ -33,10 +34,13 @@ fuction main()
 
     BT=Dict{String,String}()
     for t in dtrains
-        df=filter(:trianid => ==(t),dft)
-        # Define a fast way of assigning the right BSTs
+        df=filter(:trainid => ==(t),dft)
+        BT[t]=rand(df.opid)
     end
 
-    # Then write the file
-    nothing
+    bst=[BT[i] for i in dtrains]
+    delay=[pwl() for i in 1:n]
+    df=DataFrame([dtrains,bst,delay], [:trainid, :opid,:delay])
+
+    CSV.write("exo_delays", df, header=false)
 end
