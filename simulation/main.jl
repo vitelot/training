@@ -89,7 +89,7 @@ function catch_conflict(RN,FL,parsed_args)
 
     while true
         try
-            println("ENTERED IN THE META")
+            
             #one or multiple simulations
             if (parsed_args["multi_simulation"])
                 # multiple_sim($(esc(RN)), $(esc(FL)))

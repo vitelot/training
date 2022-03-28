@@ -22,7 +22,7 @@ function parse_commandline()
 
         "--catch_conflict_flag"
             help = "a flag for running routines for checking the structure of the railway"
-            action = :store_true
+            action = :store_false
 
         "--inject_delays"
             help = "a flag for making the program search for delays to inject in /data/delays/ repo;
