@@ -1,16 +1,16 @@
 using CSV, DataFrames, Distributions, StatsBase
 
 
-function pwl()
+function SamplePL(α=2.55)
 """
 It extracts a random value from the power law distribution
 """
-    d=60*rand(Float64)^(1/(1-2.5))   #60s is the mimimum delay value in the power-law distribution , 2.16 is the exponent
+    d=60*rand(Float64)^(1/(1-α))   #60s is the mimimum delay value in the power-law distribution , 2.16 is the exponent
     return round(Int64, d)
 end
 
 
-function main()
+function GenerateExoDelays()
 """
 It takes the trains from the timetable, assign to them a probability based on a CSV,
 extracts the number n of exo. delays that has to be inserted, extract the BSTs,
@@ -29,7 +29,7 @@ build the csv with exo. delays to be assigned
     sample_rows = sample(1:nrow(dfp), StatsBase.Weights(dfp.prob), n)  #It samples n rows based on their probabilities
     dfp = dfp[sample_rows, :]
 
-    dfp[!,:delay] = [pwl() for i in 1:n]        # This adds the column of n random delays
+    dfp[!,:delay] = [SamplePL() for i in 1:n]        # This adds the column of n random delays
 
     dfp=select!(dfp, Not(:prob))
 
