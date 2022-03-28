@@ -89,16 +89,17 @@ function catch_conflict(RN,FL,parsed_args)
 
     while true
         try
-            
+
             #one or multiple simulations
             if (parsed_args["multi_simulation"])
                 # multiple_sim($(esc(RN)), $(esc(FL)))
             else
                 one_sim(RN, FL)
             end
+
             #insert here function for saving the blocks list
-            _,date,__=split(Opt["timetable_file"],"-")
-            out_file_name="../data/simulation_data/blocks_catch_$date.csv"
+            _,date=split(Opt["timetable_file"],"-")
+            out_file_name="../data/simulation_data/blocks_catch-$date.csv"
             print_railway(RN,out_file_name)
             break
         catch err
