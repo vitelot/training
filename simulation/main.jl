@@ -166,7 +166,7 @@ function main()
 
 
 
-    if parsed_args["catch_conflict_flag"]==true
+    if parsed_args["catch_conflict_flag"]==false
 
         #one or multiple simulations
         if parsed_args["multi_simulation"]
