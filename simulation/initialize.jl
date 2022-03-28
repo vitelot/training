@@ -44,6 +44,7 @@ function loadInfrastructure()::Network
 
     for i = 1:nrow(df)
         name = df.id[i]
+        
         b = Block(
                 name,
                 # i,

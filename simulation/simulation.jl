@@ -3,6 +3,8 @@ simulation engine
 """
 function simulation(RN::Network, FL::Fleet)::Bool
 
+
+
     # get the required options
     maxrnd = Opt["maxrnd"]
     minrnd = Opt["minrnd"]
@@ -14,6 +16,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
     print_elapsed_time = Opt["print_elapsed_time"]
     print_tot_delay = Opt["print_tot_delay"]
 
+    catch_conflicts_flag=Opt["catch_conflict_flag"]
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another
@@ -30,7 +33,8 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     S  = Set{String}() # running trains
 
-    BK = RN.blocks # Dict{String,Block}
+    BK = RN.blocks # Dict{blockid,structure}
+
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
@@ -42,7 +46,9 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     print_elapsed_time && println("t final starting is $t_final_starting")
 
-
+    # @info t_final_starting
+    #
+    # @info BK
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
 
@@ -143,6 +149,14 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     else
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
+
+                        catch_conflicts_flag && throw(exception_blockConflict(trainid,nextBlockid))
+
+                        # throw("You're not looking too good. Best check yourself.")
+                        # throw(exception_blockConflict(trainid))
+
+
+
                         tt = t+1
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[n_op])
@@ -190,6 +204,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                 #Event = nothing; #don't need to do that. it will be garbage collected.
                 resetSimulation(FL); # set trains dynamical variables to zero
+                resetDynblock(RN);
                 return true;
             end
             t_evaluated=0
@@ -201,5 +216,6 @@ function simulation(RN::Network, FL::Fleet)::Bool
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     resetSimulation(FL); # set trains dynamical variables to zero
+    resetDynblock(RN);
     return false
 end

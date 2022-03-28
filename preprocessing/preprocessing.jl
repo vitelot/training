@@ -2,14 +2,14 @@ using DataFrames, CSV
 
 ############################################################################################################
 #function that reads the timetable and returns the events of beginning of trains if ["Abfahrt","Beginn"] are there
-function get_trains_begin(timetable_path::AbstractString,path_out::AbstractString)
+function get_trains_begin(timetable_name::AbstractString,timetable_path::AbstractString,path_out::AbstractString)
 
     outfile = "trains_beginning.ini"
     #printing out the file
+    outfile_unique_trains="unique_trains_running.txt"
 
 
-
-    df = DataFrame(CSV.File(timetable_path*"timetable.csv"))
+    df = DataFrame(CSV.File(timetable_path*timetable_name))
 
 
 
@@ -21,23 +21,43 @@ function get_trains_begin(timetable_path::AbstractString,path_out::AbstractStrin
 
         train_list=unique(df.trainid)
 
+        f_unique=open(outfile_unique_trains, "w")
+
         for train in train_list
 
+            println(f_unique,train)
+
             df2=df[isequal.(df.trainid,train),:]
+
              if nrow(df2) >= 2
-                if !issubset(["Begin"], df2.kind) && !issubset(["Abfahrt"], df2.kind)
-                    println(f,df2[1,:].trainid,",",df2[1,:].opid*"-"*df2[2,:].opid,",",df2[1,:].duetime,",",df2[2,:].duetime)
-                    continue
+
+
+                # if !issubset(["Begin"], df2.kind) && !issubset(["Abfahrt"], df2.kind)
+                #     println(f,df2[1,:].trainid,",",df2[1,:].opid*"-"*df2[2,:].opid,",",df2[1,:].duetime,",",df2[2,:].duetime)
+                #     continue
+                # end
+                #
+                # first_idx=findfirst(in(["Abfahrt","Beginn"]), df2.kind)
+                first_idx=1
+
+                nrows=nrow(df2[first_idx:end,:])
+                # println(nrows,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+
+                if nrows <2
+                    # println(df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
+                    println(f,df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
+                else
+                    # println(df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+                    println(f,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
                 end
 
-                first_idx=findfirst(in(["Abfahrt","Beginn"]), df2.kind)
-
-                println(f,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+            else
+                println("df $df2 has less than 2 rows")
             end
 
         end
 
-
+        close(f_unique)
         close(f)
         println("trains_beginning.ini created.")
 
@@ -152,8 +172,8 @@ function main()
 
     path_out="../data/simulation_data/"
     outfile = "trains_beginning.ini"
-
-    get_trains_begin(timetable_path,path_out)
+    timetable_name="timetable-25.03.19-filtered.csv"
+    get_trains_begin(timetable_name,timetable_path,path_out)
 
 
 
@@ -180,6 +200,7 @@ function main()
 
     delays=Interval["step_beginning"]:Interval["step_length"]:Interval["step_end"]
 
+    # println(delays,Trains)
 
     #removing previous defined delay files
     delays_path="../data/delays/"
@@ -197,15 +218,20 @@ function main()
 
     count=1
     train_keys=collect(keys(start_dict))
+    # println(train_keys)
     for train in Trains
         for delay in delays
+
             if train in train_keys
+                # println(train,delay)
                 outfile = delays_path*"imposed_delay_simulation_$count.csv"
+                # println(outfile)
                 f = open(outfile, "w")
 
                 println(f,"trainid,block,delay")
                 println(f,train,",",start_dict[train].block,",",delay)
 
+                
                 close(f)
 
                 count+=1
