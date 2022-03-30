@@ -39,22 +39,26 @@ end
 
 
 
-function SampleExoDelays()
+function SampleExoDelays(
+    fileNdelay    = "NumberOfDelays.csv",
+    fileTimetable = "timetable.csv",
+    fileDelayList = "DelayList.csv",
+    outfile       = "exo_delays_file.csv")
 """
 It samples directly from the data. It samples the number n of delays to be injected.
 It samples n row from the CSV containing the train id, the block and the delay (in seconds)
 """
-    dfn=DataFrame(CSV.File("NumberOfDelays.csv"))
-    n=rand(dfn.number)                              # Total number of exogeneous delays we inject
+    df=DataFrame(CSV.File(fileNdelay))
+    n=rand(df.number)                              # Total number of exogeneous delays we inject
 
-    dft=DataFrame(CSV.File("tipicaok.csv"))         # Or Mon, Tue, ... Or timetable
-    dtrains=unique(dft.trainid)
+    df=DataFrame(CSV.File(fileTimetable, select=[:trainid]))         # Or Mon, Tue, ... Or timetable
+    dtrains=unique(df.trainid)
 
-    dfs=DataFrame(CSV.File("sample.csv"))
-    dfs=filter(:trainid => x-> x ∈dtrains,dfs)      # Filter the trains present in the timetable in use
+    df=DataFrame(CSV.File(fileDelayList))
+    filter!(:trainid => x-> x ∈ dtrains, df)      # Filter the trains present in the timetable in use
 
-    sample_rows = sample(1:nrow(dfs),n)             # It samples n rows
-    dfs = dfs[sample_rows, :]
+    sample_row_idxs = sample(1:nrow(df),n)             # It samples n rows
+    df = df[sample_row_idxs, :]
 
-    CSV.write("exo_delays_file.csv", dfs, header=false)
+    CSV.write(outfile, df, header=false)
 end
