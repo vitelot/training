@@ -30,6 +30,10 @@ function parse_commandline()
                     if is couples with one_simulation flag, takes the first ordered delay file"
             action = :store_true
 
+        "--multi_stations_flag"
+            help = "a flag for making the stations have a preferential direction"
+            action = :store_true
+
             # "--opt1"
             #     help = "an option with an argument"
             # "--opt2", "-o"

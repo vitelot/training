@@ -1,9 +1,64 @@
+function check_nextblock_occupancy(current_id::String,nt::Int,tracks::Int)::Bool
+    return (nt<tracks)
+end
+
+
+function update_block(current_id::String,nt::Int,trainid::String,current_block_trains::Set{String},update::Int)::Int
+    nt+=update
+    return nt
+end
+
+#multiuple dispatch functions for multiple-sided stations
+function check_nextblock_occupancy(current_id::String,nt::Dict,tracks::Dict)::Bool
+
+
+
+    if current_id==""
+        return true
+    else
+        @show "in occupancy next block not null"
+
+        @show current_id
+        @show nt
+        @show tracks
+
+        key=split(current_id,"-")[1]
+
+        return (nt[key]<tracks[key])
+
+    end
+
+
+
+    return false#(ntrains<ntracks)
+end
+
+function update_block(current_id::String,nt::Dict,trainid::String,current_block_trains::Set{String},update::Int)::Union{Int, Dict}
+
+    if current_id==""
+        return 0
+    else
+        @show "in dict update block"
+        @show trainid
+        @show current_id
+        @show nt
+        @show update
+
+        key=split(current_id,"-")[1]
+        nt[key]+=update
+        return nt
+    end
+
+
+
+    #nt+=update
+
+end
+
 """
 simulation engine
 """
 function simulation(RN::Network, FL::Fleet)::Bool
-
-
 
     # get the required options
     maxrnd = Opt["maxrnd"]
@@ -110,18 +165,22 @@ function simulation(RN::Network, FL::Fleet)::Bool
                     currentBlock = BK[train.dyn.currentBlock]
 
 
-                    if nextBlock.nt < nextBlock.tracks # if there are less trains than the number of available tracks
+                    if check_nextblock_occupancy(currentBlock.id,nextBlock.nt,nextBlock.tracks) # if there are less trains than the number of available tracks
 
 
                         #updating current block, popping
                         if currentBlock.id != ""
-                            currentBlock.nt -= 1
-                            pop!(currentBlock.train, trainid)
+                            @show "in simulation"
+                            @show currentBlock
 
+                            currentBlock.nt=update_block(currentBlock.id,currentBlock.nt,trainid,currentBlock.train, -1)
+                            pop!(currentBlock.train, trainid)
                         end
 
                         #updating next block, adding
-                        nextBlock.nt += 1
+
+                        nextBlock.nt=update_block(currentBlock.id,nextBlock.nt,trainid,currentBlock.train, 1)
+
                         push!(nextBlock.train, trainid)
 
                         train.dyn.currentBlock = nextBlockid
@@ -172,7 +231,8 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
 
                         #updating the values in the corresponding block
-                        BK[train.dyn.currentBlock].nt -= 1
+                        BK[train.dyn.currentBlock].nt=update_block(BK[train.dyn.currentBlock].id,BK[train.dyn.currentBlock].nt,trainid,BK[train.dyn.currentBlock].train,-1)
+                        #BK[train.dyn.currentBlock].nt -= 1
                         pop!(BK[train.dyn.currentBlock].train, trainid)
 
 

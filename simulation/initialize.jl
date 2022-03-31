@@ -42,20 +42,102 @@ function loadInfrastructure()::Network
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
-    for i = 1:nrow(df)
-        name = df.id[i]
+    df_stations=filter(row -> (split(row.id,"-")[1] == split(row.id,"-")[2]), df)
+    transform!(df_stations, :id => ByRow(x -> split(x,"-")[1]) => :bts)
+
+    df_blocks=antijoin(df, df_stations, on = :id)
+    transform!(df_blocks, :id => ByRow(x -> split(x,"-")[2]) => :ending_bts)
+    transform!(df_blocks, :id => ByRow(x -> split(x,"-")[1]) => :starting_bts)
+
+
+    if Opt["multi_stations_flag"]
+
+        #handling the blocks first
+        for i = 1:nrow(df_blocks)
+            name = df_blocks.id[i]
+
+            b = Block(
+                    name,
+                    # i,
+                    df_blocks.tracks[i],
+                    0,
+                    Set{String}()
+            )
+            RN.nb += 1
+            RN.blocks[name]=b
+
+        end
+
+        #handling stations
+        for i = 1:nrow(df_stations)
+
+            name = df_stations.id[i]
+            bts=df_stations.bts[i]
+            platforms=df_stations.tracks[i]
+            if (platforms==1)
+                println("$bts has 1 platform,update to 2")
+                platforms+=1
+            end
+
+            #cycle over blocks ending in that station
+            df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
+            bts2platforms=Dict()
+            bts2trainszeros=Dict()
+            for j = 1:nrow(df_blocksInStation)
+
+                tracks=df_blocksInStation.tracks[j]
+                start_bts=df_blocksInStation.starting_bts[j]
+                bts2platforms[start_bts]=tracks
+                bts2trainszeros[start_bts]=0
+                platforms-=tracks
+
+            end
+
+            if platforms > 0
+                bts2platforms["common"]=platforms
+            else
+                bts2platforms["common"]=0
+            end
+
+            b = Block(
+                    name,
+                    # i,
+                    bts2platforms,
+                    bts2trainszeros,
+                    Set{String}()
+            )
+
+
+
+            RN.nb += 1
+            RN.blocks[name]=b
+            # push!(RN.nodes[from].child, to)
+            # push!(RN.nodes[to].parent, from)
+        end
+
         
-        b = Block(
-                name,
-                # i,
-                df.tracks[i],
-                0,
-                Set{String}()
-        )
-        RN.nb += 1
-        RN.blocks[name]=b
-        # push!(RN.nodes[from].child, to)
-        # push!(RN.nodes[to].parent, from)
+
+    else
+        for i = 1:nrow(df)
+            name = df.id[i]
+
+            name_split = split(name, '-')
+            if name_split[1]==name_split[2]
+                # println(name)
+            end
+
+            b = Block(
+                    name,
+                    # i,
+                    df.tracks[i],
+                    0,
+                    Set{String}()
+            )
+            RN.nb += 1
+            RN.blocks[name]=b
+            # push!(RN.nodes[from].child, to)
+            # push!(RN.nodes[to].parent, from)
+        end
     end
     df = nothing # explicitly free the memory
 

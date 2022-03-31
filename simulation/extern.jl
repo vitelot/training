@@ -30,8 +30,8 @@ mutable struct Block
     # minT::Int #minimum time of block travelling in seconds
     # dueT::Int #due time of travelling in seconds
     #isStation::Bool #tells if a block is in a station and possibly involves passengers
-    tracks::Int # number of parallel tracks (multiple trains allowed)
-    nt::Int # number of trains on the block (size of next set)
+    tracks::Union{Int, Dict} # number of parallel tracks (multiple trains allowed)
+    nt::Union{Int, Dict} # number of trains on the block (size of next set)
     train::Set{String} # which train is on it
 end
 
