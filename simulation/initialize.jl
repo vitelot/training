@@ -83,6 +83,7 @@ function loadInfrastructure()::Network
             df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
             bts2platforms=Dict()
             bts2trainszeros=Dict()
+            trainInBlock2direction=Dict()
             for j = 1:nrow(df_blocksInStation)
 
                 tracks=df_blocksInStation.tracks[j]
@@ -104,7 +105,7 @@ function loadInfrastructure()::Network
                     # i,
                     bts2platforms,
                     bts2trainszeros,
-                    Set{String}()
+                    Dict()
             )
 
 
@@ -115,7 +116,7 @@ function loadInfrastructure()::Network
             # push!(RN.nodes[to].parent, from)
         end
 
-        
+
 
     else
         for i = 1:nrow(df)

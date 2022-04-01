@@ -3,7 +3,17 @@ function check_nextblock_occupancy(current_id::String,nt::Int,tracks::Int)::Bool
 end
 
 
-function update_block(current_id::String,nt::Int,trainid::String,current_block_trains::Set{String},update::Int)::Int
+function update_block(current_id::String,nt::Int,trainid::String,current_block_trains::Set{String},nextBlock_train::Set{String},update::Int)::Tuple{Int, Set{String}}
+    nt+=update
+    if update >0
+        push!(nextBlock_train, trainid)
+    else
+        pop!(nextBlock_train, trainid)
+    end
+    return nt,nextBlock_train
+end
+
+function update_current_block(current_id::String,nt::Int,trainid::String,current_block_trains::Set{String},update::Int)::Int
     nt+=update
     return nt
 end
@@ -45,13 +55,34 @@ function update_block(current_id::String,nt::Dict,trainid::String,current_block_
         @show update
 
         key=split(current_id,"-")[1]
+
+
         nt[key]+=update
         return nt
     end
 
 
+end
 
-    #nt+=update
+
+function update_current_block(current_id::String,nt::Dict,trainid::String,current_block_trains::Set{String},update::Int)::Union{Int, Dict}
+
+    if current_id==""
+        return 0
+    else
+        @show "current block update , in dict update block"
+        @show trainid
+        @show current_id
+        @show current_block_trains
+        @show nt
+        @show update
+
+        key=split(current_id,"-")[1]
+        println(trainid in nt)
+        nt[key]+=update
+        return nt
+    end
+
 
 end
 
@@ -173,15 +204,15 @@ function simulation(RN::Network, FL::Fleet)::Bool
                             @show "in simulation"
                             @show currentBlock
 
-                            currentBlock.nt=update_block(currentBlock.id,currentBlock.nt,trainid,currentBlock.train, -1)
+                            currentBlock.nt=update_current_block(currentBlock.id,currentBlock.nt,trainid,currentBlock.train, -1)
                             pop!(currentBlock.train, trainid)
                         end
 
                         #updating next block, adding
 
-                        nextBlock.nt=update_block(currentBlock.id,nextBlock.nt,trainid,currentBlock.train, 1)
+                        nextBlock.nt,nextBlock.train=update_block(currentBlock.id,nextBlock.nt,trainid,currentBlock.train,nextBlock.train, 1)
 
-                        push!(nextBlock.train, trainid)
+
 
                         train.dyn.currentBlock = nextBlockid
 
@@ -230,9 +261,10 @@ function simulation(RN::Network, FL::Fleet)::Bool
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
 
-                        #updating the values in the corresponding block
-                        BK[train.dyn.currentBlock].nt=update_block(BK[train.dyn.currentBlock].id,BK[train.dyn.currentBlock].nt,trainid,BK[train.dyn.currentBlock].train,-1)
+                        #updating the values in the corresponding block, train ended
+                        BK[train.dyn.currentBlock].nt=update_current_block(BK[train.dyn.currentBlock].id,BK[train.dyn.currentBlock].nt,trainid,BK[train.dyn.currentBlock].train,-1)
                         #BK[train.dyn.currentBlock].nt -= 1
+
                         pop!(BK[train.dyn.currentBlock].train, trainid)
 
 
