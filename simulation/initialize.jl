@@ -186,8 +186,14 @@ function loadFleet()::Fleet
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
 
+    unique_trains=unique(df.trainid)
+
     #take direction from the file
-    train2dir=CSV.File(trains_info_file) |> Dict
+    if isfile(trains_info_file)
+        train2dir=CSV.File(trains_info_file) |> Dict
+    else
+        train2dir=Dict(zip(unique_trains, zeros(length(unique_trains))))
+    end
 
     block=String
 
@@ -195,7 +201,8 @@ function loadFleet()::Fleet
     track=5
 
 
-    for train in unique(df.trainid)
+
+    for train in unique_trains
 
         df2=filter(row -> (row.trainid == train), df) #provo a usare subset
         nrows=nrow(df2)
@@ -211,6 +218,7 @@ function loadFleet()::Fleet
         else
             unpopped=train
         end
+
 
         direction=train2dir[unpopped]
 
