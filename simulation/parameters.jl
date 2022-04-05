@@ -30,6 +30,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="opoint_file")      Opt[key] = val
         elseif(key=="imposed_delay_file")      Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
+        elseif(key=="trains_info_file")      Opt[key] = val
 
         ####################################################################
         elseif(key=="simulate") Opt[key] = parse(Bool, val)
@@ -99,6 +100,7 @@ function createIniFile(file::String)
 block_file              ../data/simulation_data/blocks.csv
 timetable_file          ../data/simulation_data/timetable.csv
 opoint_file             ../data/simulation_data/betriebstellen.csv
+trains_info_file        ../data/simulation_data/trains_info-25.03.19.csv
 imposed_delay_repo_path ../data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL

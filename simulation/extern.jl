@@ -41,6 +41,7 @@ mutable struct Network
     nb::Int # nr of blocks
     blocks::Dict{String,Block} #all the blocks
 end
+
 function Network() # default initialization
     Network(0,Dict{String,OPoint}(),0,Dict{String,Block}())
 end
@@ -66,12 +67,16 @@ mutable struct DynTrain
     n_opoints_visited::Int # tells which was last visited op (points to the schedule)
     currentBlock::String
     nextBlock::String
+
     #nextBlockDueTime::Int
     #nextBlockRealTime::Int
 end
 
 mutable struct Train
     id::String
+
+    track::Int # track id in whih the train runs
+    direction::Int# direction wrt the origin of the track
     schedule::Vector{Transit} # schedule[duetime] = info on stops
     dyn::DynTrain
     delay::Dict{String, Int} # Train[block] = imposed delay for train inblock

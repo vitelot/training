@@ -37,8 +37,11 @@ function loadInfrastructure()::Network
     #creating and initializing a data struct network
     RN = Network()
 
+    #list of the tracks, for now just 5
+    tracks=[5]
+    #two directions wrt a track
+    directions=[-1,1]
 
-    #function loadBlocks!(RN::Network)
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
@@ -50,7 +53,7 @@ function loadInfrastructure()::Network
     transform!(df_blocks, :id => ByRow(x -> split(x,"-")[1]) => :starting_bts)
 
 
-    if Opt["multi_stations_flag"]
+    if Opt["multi_stations_flag"] #the stations are used with the directionality of the tracks
 
         #handling the blocks first
         for i = 1:nrow(df_blocks)
@@ -74,38 +77,54 @@ function loadInfrastructure()::Network
             name = df_stations.id[i]
             bts=df_stations.bts[i]
             platforms=df_stations.tracks[i]
+
+            #impossible station with only one plat
             if (platforms==1)
-                println("$bts has 1 platform,update to 2")
+                # println("$bts has 1 platform,update to 2")
                 platforms+=1
             end
 
-            #cycle over blocks ending in that station
-            df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
-            bts2platforms=Dict()
-            bts2trainszeros=Dict()
-            trainInBlock2direction=Dict()
-            for j = 1:nrow(df_blocksInStation)
+            #number of directions taken into account
+            n_dir=length(directions)
 
-                tracks=df_blocksInStation.tracks[j]
-                start_bts=df_blocksInStation.starting_bts[j]
-                bts2platforms[start_bts]=tracks
-                bts2trainszeros[start_bts]=0
-                platforms-=tracks
+            #integer number of plats per direction
+            n_plat=div(platforms,n_dir)
 
+            #remaining plat in common
+            common=platforms-n_dir*n_plat
+
+            # #cycle over blocks ending in that station
+            # df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
+            dir2platforms=Dict()
+            dir2trainscount=Dict()
+            # trainInBlock2direction=Dict()
+            # for j = 1:nrow(df_blocksInStation)
+            #
+            #     tracks=df_blocksInStation.tracks[j]
+            #     start_bts=df_blocksInStation.starting_bts[j]
+            #
+            #     platforms-=tracks
+            #
+            # end
+
+            #dictionaries for occupancy for every direction
+            for direction in directions
+                dir2platforms[direction]=n_plat
+                dir2trainscount[direction]=0
             end
 
-            if platforms > 0
-                bts2platforms["common"]=platforms
+            if common > 0
+                dir2platforms["common"]=common
             else
-                bts2platforms["common"]=0
+                dir2platforms["common"]=0
             end
 
             b = Block(
                     name,
                     # i,
-                    bts2platforms,
-                    bts2trainszeros,
-                    Dict()
+                    dir2platforms,
+                    dir2trainscount,
+                    Set{String}()
             )
 
 
@@ -118,7 +137,7 @@ function loadInfrastructure()::Network
 
 
 
-    else
+    else#normal blocks
         for i = 1:nrow(df)
             name = df.id[i]
 
@@ -160,28 +179,51 @@ end
 function loadFleet()::Fleet
     """takes the timetable.csv file and loads the Fleet """
     file = Opt["timetable_file"]
+    trains_info_file=Opt["trains_info_file"]
 
     Opt["print_flow"] && println("Loading fleet information")
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
 
+    #take direction from the file
+    train2dir=CSV.File(trains_info_file) |> Dict
+
     block=String
+
+    #right now the train track is only n.5
+    track=5
+
 
     for train in unique(df.trainid)
 
         df2=filter(row -> (row.trainid == train), df) #provo a usare subset
         nrows=nrow(df2)
 
+        #restore original name from poppers
+        if occursin("_pop", train)
+
+            r=collect(findfirst("_pop", train))
+
+            unpopped = train[1:r[1]-1]
+
+            # println("$train, removing: $unpopped")
+        else
+            unpopped=train
+        end
+
+        direction=train2dir[unpopped]
+
+
         for i in 1:nrows
 
 
             bts=df2.opid[i]
 
-            trainid=string(df2.trainid[i])
+            # trainid=string(df2.trainid[i])
             duetime = dateToSeconds(df2.duetime[i])
             str = Transit(
-                    trainid,
+                    train,
                     df2.opid[i],
                     df2.kind[i],
                     duetime
@@ -193,18 +235,18 @@ function loadFleet()::Fleet
             end
 
 
-            if !haskey(FL.train, trainid)
+            if !haskey(FL.train, train)
 
-                get!(FL.train, trainid,
-                        Train(trainid, [str],
+                get!(FL.train, train,
+                        Train(train,track,direction, [str],
                             DynTrain(0,"",""),Dict(block=>0)))
                 # get!(FL.train, trainid,
                 #         Train(trainid, [str],
                 #             DynTrain(0,"","",0,0)))
             else
-                push!(FL.train[trainid].schedule, str)
+                push!(FL.train[train].schedule, str)
                 # println(i,nrows)
-                FL.train[trainid].delay[block]=0
+                FL.train[train].delay[block]=0
             end
 
         end
@@ -217,8 +259,8 @@ function loadFleet()::Fleet
     df2= nothing
 
 
-    for trainid in keys(FL.train)
-        !issorted(FL.train[trainid].schedule) && sort!(FL.train[trainid].schedule)#(println("here!");exit())#()
+    for train in keys(FL.train)
+        !issorted(FL.train[train].schedule) && sort!(FL.train[train].schedule)#(println("here!");exit())#()
     end
 
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")

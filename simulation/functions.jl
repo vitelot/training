@@ -97,8 +97,13 @@ function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
     status = "";
     for blk_id in sort(collect(keys(BK))) # we might need a sort here because the order of keys may change
         blk = BK[blk_id];
-        if blk.nt > 0
+        if isa(blk.nt, Int)
+            if blk.nt > 0
+                status *= "$(blk_id):$(blk.train) ";
+            end
+        else
             status *= "$(blk_id):$(blk.train) ";
+
         end
     end
 
@@ -169,3 +174,55 @@ sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541
 
 import Base.issorted
 issorted(v::Vector{Transit}) = issorted(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
+
+
+function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)::Bool
+    return (nt<tracks_in_platform)
+end
+
+#multiple dispatch functions for multiple-sided stations
+function check_nextblock_occupancy(train::Train,nt::Dict,tracks_in_platform::Dict)::Bool
+
+    track=train.track
+    direction=train.direction
+
+    #check occupancy in that direction
+    return (nt[direction]<tracks_in_platform[direction])
+
+
+end
+
+
+#update next block if old simulation or new one updating a block, not station
+function update_block(train::Train,next_nt::Int,
+    nextBlock_train::Set{String},update::Int)::Tuple{Int, Set{String}}
+
+    trainid=train.id
+    next_nt+=update
+    if update >0
+        push!(nextBlock_train, trainid)
+    else
+        pop!(nextBlock_train, trainid)
+    end
+    return next_nt,nextBlock_train
+end
+
+#MULTIPLE DISPATCH
+function update_block(train::Train,next_nt::Dict,
+    nextBlock_train::Set{String},update::Int)::Tuple{Dict,Set{String}}
+
+    trainid=train.id
+    direction=train.direction
+
+    next_nt[direction]+=update
+
+    if update >0
+        push!(nextBlock_train, trainid)
+    else
+        pop!(nextBlock_train, trainid)
+    end
+
+    return next_nt,nextBlock_train
+
+
+end
