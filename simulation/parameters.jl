@@ -51,6 +51,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="print_imposed_delay")  Opt[key] = parse(Bool, val)
         elseif(key=="print_tot_delay")      Opt[key] = parse(Bool, val)
         elseif(key=="print_notifications")      Opt[key] = parse(Bool, val)
+        elseif(key=="print_timetable")      Opt[key] = parse(Bool, val)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end
@@ -121,6 +122,7 @@ print_elapsed_time      0   # display elapsed simulated seconds
 print_imposed_delay     1   # display trains with imposed delay
 print_tot_delay         1   # print the total delay at the end of simulation
 print_notifications     1   # the simulation number in stderr
+print_timetable         1   # print a timetable similar to input in file
 #############################
 
 """

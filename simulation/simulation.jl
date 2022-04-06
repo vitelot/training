@@ -13,7 +13,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
     print_train_fossile = Opt["print_train_fossile"]
     print_elapsed_time = Opt["print_elapsed_time"]
     print_tot_delay = Opt["print_tot_delay"]
-
+    print_timetable=Opt["print_timetable"]
     catch_conflicts_flag=Opt["catch_conflict_flag"]
     ##variabili
 
@@ -27,7 +27,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
     old_status = status = ""; # trains going around, used to get stuck status
 
 
-
+    print_timetable && (out_file = open("../run/timetable_simulation.csv", "w");println(out_file,"trainid,opid,t_scheduled,t_real"))
 
     S  = Set{String}() # running trains
 
@@ -124,7 +124,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                         nextBlock.nt,nextBlock.train=update_block(train,nextBlock.nt,nextBlock.train, 1)
 
-
+                        print_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
 
                         train.dyn.currentBlock = nextBlockid
 
@@ -218,6 +218,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
         delete!(Event, t); # we finished all the tasks at time t and free up memory.
     end
     #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
+    print_timetable && close(out_file)
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     resetSimulation(FL); # set trains dynamical variables to zero

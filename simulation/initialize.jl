@@ -193,6 +193,7 @@ function loadFleet()::Fleet
         train2dir=CSV.File(trains_info_file) |> Dict
     elseif Opt["multi_stations_flag"]
         println("multi platforms activated but no info un usage, add file and restart")
+        exit()
     else
         train2dir=Dict(zip(unique_trains, zeros(length(unique_trains))))
     end
