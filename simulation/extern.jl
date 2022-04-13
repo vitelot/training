@@ -32,7 +32,7 @@ mutable struct Block
     #isStation::Bool #tells if a block is in a station and possibly involves passengers
     tracks::Union{Int, Dict} # number of parallel tracks (multiple trains allowed)
     nt::Union{Int, Dict} # number of trains on the block (size of next set)
-    train::Union{Set{String},Dict} # which train is on it, for platforms: which train is in which of the directions
+    train::Set{String} # which train is on it, for platforms: which train is in which of the directions
 end
 
 mutable struct Network
@@ -94,10 +94,10 @@ end
 
 
 
-mutable struct Platform_occupancy
-    n_trains::Int
-    trains_in_platform::Set{String} # which train is on it
-end
+# mutable struct Platform_occupancy
+#     n_trains::Int
+#     trains_in_platform::Set{String} # which train is on it
+# end
 
 ########################################
 ##EXCEPTIONS DEFINING

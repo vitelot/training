@@ -113,6 +113,7 @@ function loadInfrastructure()::Network
                 dir2trainscount[direction]=0
             end
 
+            #update of simulation: usa also common plats.
             if common > 0
                 dir2platforms["common"]=common
             else

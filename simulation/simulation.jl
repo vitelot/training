@@ -33,6 +33,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
     BK = RN.blocks # Dict{blockid,structure}
 
+    # @show BK["LG H1-LG H1"]
 
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
@@ -42,11 +43,10 @@ function simulation(RN::Network, FL::Fleet)::Bool
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
 
+
     print_elapsed_time && println("t final starting is $t_final_starting")
 
-    # @info t_final_starting
-    #
-    # @info BK
+    # @show 1,BK["LG H1-LG H1"]
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
 
@@ -56,6 +56,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
             t_evaluated+=1
             print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
 
+            # @show 2,BK["LG H1-LG H1"]
 
             for transit in Event[t]
 
@@ -77,6 +78,7 @@ function simulation(RN::Network, FL::Fleet)::Bool
                     end
                 end
 
+                # @show 3,BK["LG H1-LG H1"]
 
                 print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
 
@@ -95,8 +97,11 @@ function simulation(RN::Network, FL::Fleet)::Bool
                     nextopid = train.schedule[n_op+1].opid
 
 
+
                     nextBlockid = current_opid*"-"*nextopid
 
+                    # @show 4,BK["LG H1-LG H1"]
+                    # @show nextBlockid,trainid
                     # if !haskey(BK, nextBlockid)
                     #     println("ERROR: Block $nextBlockid is inexistent");
                     #     pprintln(train);
@@ -107,14 +112,22 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                     currentBlock = BK[train.dyn.currentBlock]
 
+                    # if nextBlockid=="LG H1-LG H1"
+                    #
+                    #     @show nextBlock
+                    #     @show currentBlock
+                    #     @show train
+                    # end
+
+
+
 
                     if check_nextblock_occupancy(train,nextBlock.nt,nextBlock.tracks) # if there are less trains than the number of available tracks
 
 
                         #updating current block, popping
                         if currentBlock.id != ""
-                            # @show "in simulation"
-                            # @show currentBlock
+
 
                             currentBlock.nt,currentBlock.train=update_block(train,currentBlock.nt,currentBlock.train,-1)
                             # pop!(currentBlock.train, trainid)
@@ -122,7 +135,17 @@ function simulation(RN::Network, FL::Fleet)::Bool
 
                         #updating next block, adding
 
+                        # @show 5,BK["LG H1-LG H1"], nextBlock.id
+                        #
+                        # @show BK["MD-MD"]
+
                         nextBlock.nt,nextBlock.train=update_block(train,nextBlock.nt,nextBlock.train, 1)
+
+                        # @show 6,BK["LG H1-LG H1"]
+                        # @show 66,BK["BU-BU"]
+                        # @show 666,BK["MD-MD"]
+                        #
+                        # @show BK["BU-BU"]
 
                         print_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
 
@@ -148,8 +171,12 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         push!(Event[tt], train.schedule[n_op+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
 
+                        # @show 7,BK["LG H1-LG H1"]
 
                     else
+
+                        # @show 8,BK["LG H1-LG H1"]
+
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
 
                         catch_conflicts_flag && throw(exception_blockConflict(trainid,nextBlockid))

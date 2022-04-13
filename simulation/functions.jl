@@ -132,13 +132,26 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
 """
     #println("resetting Blocks")
     if Opt["multi_stations_flag"]
+
+        directions=[-1,1]
+
+
+
         for block in keys(RN.blocks)
             ntracks=RN.blocks[block].tracks
 
             if typeof(ntracks)==Int
                 RN.blocks[block] = Block(block,ntracks,0,Set{String}())
             else
-                RN.blocks[block] = Block(block,ntracks,Dict(),Set{String}())
+
+                dir2trainscount=Dict()
+
+                for direction in directions
+                    dir2trainscount[direction]=0
+                end
+
+                RN.blocks[block] = Block(block,ntracks,dir2trainscount,Set{String}())
+                
             end
         end
     else
@@ -196,6 +209,9 @@ function check_nextblock_occupancy(train::Train,nt::Dict,tracks_in_platform::Dic
 
     track=train.track
     direction=train.direction
+
+    # @show nt
+    # @show tracks_in_platform
 
     #check occupancy in that direction
     return (nt[direction]<tracks_in_platform[direction])
