@@ -131,10 +131,21 @@ function resetDynblock(RN::Network)#,
 Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
 """
     #println("resetting Blocks")
+    if Opt["multi_stations_flag"]
+        for block in keys(RN.blocks)
+            ntracks=RN.blocks[block].tracks
 
-    for block in keys(RN.blocks)
-        ntracks=RN.blocks[block].tracks
-        RN.blocks[block] = Block(block,ntracks,0,Set{String}())
+            if typeof(ntracks)==Int
+                RN.blocks[block] = Block(block,ntracks,0,Set{String}())
+            else
+                RN.blocks[block] = Block(block,ntracks,Dict(),Set{String}())
+            end
+        end
+    else
+        for block in keys(RN.blocks)
+            ntracks=RN.blocks[block].tracks
+            RN.blocks[block] = Block(block,ntracks,0,Set{String}())
+        end
     end
 end
 
