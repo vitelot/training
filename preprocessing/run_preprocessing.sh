@@ -1,1 +1,1 @@
-julia preprocessing.jl
+julia --project=../training_env preprocessing.jl
