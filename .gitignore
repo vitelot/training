@@ -34,7 +34,7 @@ data/data_password
 p?pp?
 par.ini
 run/*.gz
-
+hidden_data/
 
 /visualization/austria
 /visualization/vis/*
