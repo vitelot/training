@@ -86,7 +86,7 @@ include("parser.jl")
 # end
 
 function catch_conflict(RN,FL,parsed_args)
-
+    timetable_file = Opt["timetable_file"];
     while true
         try
 
@@ -98,8 +98,12 @@ function catch_conflict(RN,FL,parsed_args)
             end
 
             #insert here function for saving the blocks list
-            _,date=split(Opt["timetable_file"],"-")
-            out_file_name="../data/simulation_data/blocks_catch-$date.csv"
+            if occursin("-", timetable_file)
+                _,date=split(timetable_file,"-")
+                out_file_name="../data/simulation_data/blocks_catch-$date.csv"
+            else
+                out_file_name = "../data/simulation_data/blocks_catch.csv";
+            end
             print_railway(RN,out_file_name)
             break
         catch err

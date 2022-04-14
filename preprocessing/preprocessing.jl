@@ -177,7 +177,14 @@ function main()
 
     source_path=parsed_args["source_data_path"]
 
-    out_file = open("timetable-$date.csv", "w")
+    if (!isdir(source_path))
+        println("No data folder $source_path is available.");
+        println("Doing nothing and exiting. Good luck.");
+        exit();
+    end
+
+    out_file_name = "timetable-$date.csv"
+    out_file = open(out_file_name, "w")
 
     println(out_file,"trainid,opid,kind,duetime")
 
@@ -216,6 +223,7 @@ function main()
     separator=","
 
 
+    println("Saving timetable file \"$out_file_name\"")
 
     for train in unique(df.train_id)
 
@@ -309,6 +317,30 @@ function main()
 
     end
     close(out_file)
+
+    ############################################################################################################
+    ##MOVING THE UNZIPPED FILES FROM DATA.ZIP TO THE CORRECT DIRS
+    ##############################################################################
+    path_ini=source_path; # "../data/hidden_data/"
+
+    path_end="../data/simulation_data/"
+
+    isdir(path_end) || mkdir(path_end)
+
+    # move the created file in the working dir
+    mv("./$out_file_name", "$(path_end)timetable.csv", force=true)
+    println("Moving \"$out_file_name\" into \"$(path_end)timetable.csv\"")
+
+    file = "blocks.csv";
+    if isfile(path_ini*file)
+        cp(path_ini*file, path_end*file, force=true)
+    else
+        println("There is no block data available in the $path_ini folder")
+      # for file in filter(x -> endswith(x, ".csv"), readdir(path_ini))
+      #     mv(path_ini*file,path_end*file,force=true)
+      # end
+    end
+
 end
 
 #if train_popnr has less than 2 row, what to do
