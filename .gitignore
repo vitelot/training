@@ -50,7 +50,7 @@ data/simulation_data
 postprocessing
 preprocessing/trainIni.in
 preprocessing/train_starts.ipynb
-run/
+# run/
 map/
 data/data/
 
