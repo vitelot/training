@@ -33,8 +33,8 @@ data/OeBB
 data/data_password
 p?pp?
 par.ini
-run/*.gz
 hidden_data/
+scripts/help.txt
 
 /visualization/austria
 /visualization/vis/*
