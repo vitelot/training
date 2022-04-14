@@ -13,7 +13,7 @@ function parse_commandline()
         "--source_data_path"
             help = "source of the pad zuglauf..."
             arg_type = String
-            default = "../../dati_vito/"
+            default = "../../hidden_data/"
 
 
 

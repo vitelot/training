@@ -1,0 +1,10 @@
+#! /bin/sh
+
+file="help.txt"
+
+if [ ! -e $file ]
+then
+  julia --project=../trening_env ../simulation/main.jl -h > $file
+fi
+
+cat $file
