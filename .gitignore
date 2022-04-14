@@ -50,10 +50,11 @@ data/simulation_data
 postprocessing
 preprocessing/trainIni.in
 preprocessing/train_starts.ipynb
-# run/
 map/
 data/data/
 
+run/*
+!run/*.sh
 
 training_env/*
 !training_env/Manifest.toml
