@@ -151,7 +151,7 @@ function inputfile_from_date(date::String,source_path::String,file_base="PAD-Zug
     splitting=split(date,".")
     month=parse(Int,splitting[2])
     year=parse(Int,splitting[3])
-    trim=div(month,4)+1
+    trim=div(month,3)+1
 
     file=source_path*file_base*"$year-0$trim.csv"
 
@@ -195,7 +195,7 @@ function main()
 
     println(out_file,"trainid,opid,kind,duetime")
 
-
+#@show file
 
     time_threshold=600 #tempo per valutare se e' un popping
     pause_before_popping=5 #seconds a train stays in the last block mefore killing it and repopping
