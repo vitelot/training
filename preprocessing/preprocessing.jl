@@ -173,9 +173,9 @@ function main()
     #CLI parser
     parsed_args = parse_commandline()
 
-    date=parsed_args["date"]
-
-    source_path=parsed_args["source_data_path"]
+    date        = parsed_args["date"]
+    in_file     = parsed_args["file"]
+    source_path = parsed_args["source_data_path"]
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -183,13 +183,19 @@ function main()
         exit();
     end
 
-    out_file_name = "timetable-$date.csv"
+    if in_file == ""
+        out_file_name = "timetable-$date.csv"
+        file=inputfile_from_date(date,source_path)
+    else
+        out_file_name = "timetable_$in_file"
+        file = source_path * in_file; #inputfile_from_date(date,source_path)
+    end
+
     out_file = open(out_file_name, "w")
 
     println(out_file,"trainid,opid,kind,duetime")
 
 
-    file=inputfile_from_date(date,source_path)
 
     time_threshold=600 #tempo per valutare se e' un popping
     pause_before_popping=5 #seconds a train stays in the last block mefore killing it and repopping
@@ -217,8 +223,9 @@ function main()
     filter!(row -> row.CODE ∈ accepted_traj_code, df)
 
     #get the df_date
-    filter!(row -> (row.date == date ), df)
-
+    if in_file == ""
+        filter!(row -> (row.date == date ), df)
+    end
 
     separator=","
 
@@ -281,7 +288,7 @@ function main()
             #if time is big
             if (block_time > time_threshold)
 
-                #not existing block
+
                 if (bts!=next_bts)
 
 

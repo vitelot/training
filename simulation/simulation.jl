@@ -4,8 +4,6 @@ simulation engine
 function simulation(RN::Network, FL::Fleet)::Bool
 
     # get the required options
-    maxrnd = Opt["maxrnd"]
-    minrnd = Opt["minrnd"]
     print_train_status = Opt["print_train_status"]
     print_new_train = Opt["print_new_train"]
     print_train_wait = Opt["print_train_wait"]
@@ -27,7 +25,9 @@ function simulation(RN::Network, FL::Fleet)::Bool
     old_status = status = ""; # trains going around, used to get stuck status
 
 
-    print_timetable && (out_file = open("../run/timetable_simulation.csv", "w");println(out_file,"trainid,opid,t_scheduled,t_real"))
+    print_timetable &&
+        (out_file = open("../data/simulation_data/timetable_simulation.csv", "w");
+         println(out_file,"trainid,opid,t_scheduled,t_real");)
 
     S  = Set{String}() # running trains
 
@@ -158,8 +158,8 @@ function simulation(RN::Network, FL::Fleet)::Bool
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
-                        nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))
-                        #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime * myRand(minrnd,maxrnd))"""
+                        nextBlockRealTime = nextBlockDueTime
+                        #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime)"""
 
                         delay_imposed=FL.train[trainid].delay[nextBlockid]
 
