@@ -61,8 +61,7 @@ end
 
 
 function main()
-
-
+    
     #CLI parser
     parsed_args = parse_commandline()
 
@@ -73,20 +72,15 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-
-
-    if parsed_args["catch_conflict_flag"]==false
-
+    if parsed_args["catch_conflict_flag"]
+        catch_conflict(RN,FL,parsed_args)
+    else
         #one or multiple simulations
         if parsed_args["multi_simulation"]
             multiple_sim(RN, FL)
         else
             one_sim(RN, FL)
         end
-
-    else
-        catch_conflict(RN,FL,parsed_args)
-
     end
 
 end
