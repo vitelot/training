@@ -1,0 +1,24 @@
+usage: main.jl [-i INI] [--test TEST] [--multi_simulation]
+               [--catch_conflict_flag] [--inject_delays]
+               [--multi_stations_flag] [-h]
+
+optional arguments:
+  -i, --ini INI         path for the .ini file (default:
+                        "../data/simulation_data/par.ini")
+  --test TEST           int for running time or btime on simulation,
+                        default 0 (type: Int64, default: 0)
+  --multi_simulation    a flag for running multiple simulations
+  --catch_conflict_flag
+                        a flag for running routines for checking the
+                        structure of the railway
+  --inject_delays       a flag for making the program search for
+                        delays to inject in /data/delays/ repo;
+                        every file corresponds to a different
+                        simulation;                    if is couples
+                        with one_simulation flag, takes the first
+                        ordered delay file
+  --multi_stations_flag
+                        a flag for making the stations have a
+                        preferential direction
+  -h, --help            show this help message and exit
+

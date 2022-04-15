@@ -34,7 +34,7 @@ data/data_password
 p?pp?
 par.ini
 hidden_data/
-scripts/help.txt
+# scripts/help.txt
 
 /visualization/austria
 /visualization/vis/*
@@ -52,9 +52,6 @@ preprocessing/trainIni.in
 preprocessing/train_starts.ipynb
 map/
 data/data/
-
-run/*
-!run/*.sh
 
 training_env/*
 !training_env/Manifest.toml
