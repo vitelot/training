@@ -328,6 +328,7 @@ function main()
     isdir(path_end) || mkdir(path_end)
 
     # move the created file in the working dir
+    cp("./$out_file_name", "$(path_end)$out_file_name", force=true)
     mv("./$out_file_name", "$(path_end)timetable.csv", force=true)
     println("Moving \"$out_file_name\" into \"$(path_end)timetable.csv\"")
 
