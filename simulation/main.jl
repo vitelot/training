@@ -6,202 +6,6 @@ include("simulation.jl")
 include("parser.jl")
 
 
-
-
-# macro catch_conflict(RN,FL,parsed_args)
-#
-#
-#     ex=quote
-#
-#         while true
-#             try
-#                 println("ENTERED IN THE META")
-#                 #one or multiple simulations
-#                 if ($(parsed_args)["multi_simulation"])
-#                     # multiple_sim($(esc(RN)), $(esc(FL)))
-#                 else
-#                     one_sim($RN, $FL)
-#                 end
-#                 #insert here function for saving the blocks list
-#                 break
-#             catch err
-#
-#                 if isa(err, KeyError)
-#
-#
-#
-#                     println("KeyError occurring : $(err.key)")
-#
-#                     name=err.key
-#                     b = Block(
-#                             name,
-#                             # i,
-#                             1,
-#                             0,
-#                             Set{String}()
-#                     )
-#
-#                     $(RN).nb += 1
-#
-#                     $(RN).blocks[name]=b
-#
-#                     println("Added to RN.blocks the block:",$(RN).blocks[err.key])
-#
-#                     resetSimulation($FL);
-#                     resetDynblock($RN);
-#
-#
-#
-#                 else
-#
-#                     train=(err.trainid)
-#                     block=err.block
-#                     println($(RN).blocks[block])
-#
-#                     ntracks=$(RN).blocks[block].tracks
-#                     # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
-#                     $(RN).blocks[block].tracks=ntracks+1
-#                     $(RN).blocks[block].nt=0
-#                     $(RN).blocks[block].train=Set{String}()
-#
-#                     println($(RN).blocks[block])
-#
-#                     if $(RN).blocks["BU-BUN"].tracks > 3
-#                         break
-#                     end
-#
-#
-#
-#                     resetSimulation($FL);
-#                     resetDynblock($RN);
-#                 end
-#
-#             end
-#         end
-#     end
-#
-#
-#     @show ex
-#     return esc(ex)
-# end
-
-function catch_conflict(RN,FL,parsed_args)
-    timetable_file = Opt["timetable_file"];
-    while true
-        try
-
-            #one or multiple simulations
-            if (parsed_args["multi_simulation"])
-                # multiple_sim($(esc(RN)), $(esc(FL)))
-            else
-                one_sim(RN, FL)
-            end
-
-            #insert here function for saving the blocks list
-            if occursin("-", timetable_file)
-                _,date=split(timetable_file,"-")
-                out_file_name="../data/simulation_data/blocks_catch-$date.csv"
-            else
-                out_file_name = "../data/simulation_data/blocks_catch.csv";
-            end
-            print_railway(RN,out_file_name)
-            break
-        catch err
-
-            if isa(err, KeyError)
-
-                println("KeyError occurring : $(err.key)")
-
-                name=err.key
-                b = Block(
-                        name,
-                        # i,
-                        1,
-                        0,
-                        Set{String}()
-                )
-
-                RN.nb += 1
-
-                RN.blocks[name]=b
-
-                println("Added to RN.blocks the block:",RN.blocks[err.key])
-
-                resetSimulation(FL);
-                resetDynblock(RN);
-
-            else
-
-                train=(err.trainid)
-                block=err.block
-                println(RN.blocks[block])
-
-                ntracks=RN.blocks[block].tracks
-                # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
-                RN.blocks[block].tracks=ntracks+1
-                RN.blocks[block].nt=0
-                RN.blocks[block].train=Set{String}()
-
-                println(RN.blocks[block])
-
-                resetSimulation(FL);
-                resetDynblock(RN);
-            end
-
-
-
-        end
-    end
-
-end
-
-function main()
-
-
-    #CLI parser
-    parsed_args = parse_commandline()
-
-    #load parsed_args["ini"] file infos
-    loadOptions(parsed_args);
-
-    #load the railway net
-    RN = loadInfrastructure();
-    FL = loadFleet();
-
-
-
-    if parsed_args["catch_conflict_flag"]==false
-
-        #one or multiple simulations
-        if parsed_args["multi_simulation"]
-            multiple_sim(RN, FL)
-        else
-            one_sim(RN, FL)
-        end
-
-    else
-        catch_conflict(RN,FL,parsed_args)
-
-    end
-
-
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function one_sim(RN::Network, FL::Fleet)
 
     #inserting delays from data/delays/ repo..
@@ -225,15 +29,6 @@ function one_sim(RN::Network, FL::Fleet)
 
     nothing
 end
-
-
-
-
-
-
-
-
-
 
 
 function multiple_sim(RN::Network, FL::Fleet)
@@ -265,5 +60,35 @@ function multiple_sim(RN::Network, FL::Fleet)
 end
 
 
+function main()
+
+
+    #CLI parser
+    parsed_args = parse_commandline()
+
+    #load parsed_args["ini"] file infos
+    loadOptions(parsed_args);
+
+    #load the railway net
+    RN = loadInfrastructure();
+    FL = loadFleet();
+
+
+
+    if parsed_args["catch_conflict_flag"]==false
+
+        #one or multiple simulations
+        if parsed_args["multi_simulation"]
+            multiple_sim(RN, FL)
+        else
+            one_sim(RN, FL)
+        end
+
+    else
+        catch_conflict(RN,FL,parsed_args)
+
+    end
+
+end
 
 main()

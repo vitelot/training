@@ -22,46 +22,6 @@ assuming that it is already the number of seconds elapsed from the epoch
     return d
 end
 
-# function printDebug(lvl::Int, s...)
-#     if lvl == 0
-#         return;
-#     elseif lvl == 1
-#         println(s...); return;
-#     elseif lvl <= 2
-#         println(s...); return;
-#     else
-#         return;
-#     end
-# end
-
-# function generateTimetable(fl::Fleet)::TimeTable
-#
-#     Opt["print_flow"] && println("Generating the timetable")
-#     print_train_list = Opt["print_train_list"]
-#
-#     TB = TimeTable(0, Dict{Int,Vector{Transit}}())
-#
-#     for trainid in keys(fl.train)
-#         print_train_list && println("\tTrain $trainid")
-#
-#         for s in fl.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
-#             TB.n += 1
-#             duetime = s.duetime
-#             get!(TB.timemap, duetime, Transit[])
-#             push!(TB.timemap[duetime], s)
-#
-#         end
-#     end
-#     # passed by reference: TB.timemap[21162][1]===FL.train["REX7104"].schedule[21162] -> true
-#
-#     Opt["print_flow"] && println("Timetable generated with $(TB.n) events")
-#     TB
-# end
-
-
-
-
-
 function runTest(RN::Network, FL::Fleet)
     """If test mode is enabled, runs test without printing simulation results on std out
     """
@@ -151,7 +111,7 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
                 end
 
                 RN.blocks[block] = Block(block,ntracks,dir2trainscount,Set{String}())
-                
+
             end
         end
     else
@@ -162,6 +122,75 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
     end
 end
 
+function catch_conflict(RN,FL,parsed_args)
+    timetable_file = Opt["timetable_file"];
+    while true
+        try
+
+            #one or multiple simulations
+            if (parsed_args["multi_simulation"])
+                # multiple_sim($(esc(RN)), $(esc(FL)))
+            else
+                one_sim(RN, FL)
+            end
+
+            #insert here function for saving the blocks list
+            if occursin("-", timetable_file)
+                _,date=split(timetable_file,"-")
+                out_file_name="../data/simulation_data/blocks_catch-$date.csv"
+            else
+                out_file_name = "../data/simulation_data/blocks_catch.csv";
+            end
+            print_railway(RN,out_file_name)
+            break
+        catch err
+
+            if isa(err, KeyError)
+
+                println("KeyError occurring : $(err.key)")
+
+                name=err.key
+                b = Block(
+                        name,
+                        # i,
+                        1,
+                        0,
+                        Set{String}()
+                )
+
+                RN.nb += 1
+
+                RN.blocks[name]=b
+
+                println("Added to RN.blocks the block:",RN.blocks[err.key])
+
+                resetSimulation(FL);
+                resetDynblock(RN);
+
+            else
+
+                train=(err.trainid)
+                block=err.block
+                println(RN.blocks[block])
+
+                ntracks=RN.blocks[block].tracks
+                # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
+                RN.blocks[block].tracks=ntracks+1
+                RN.blocks[block].nt=0
+                RN.blocks[block].train=Set{String}()
+
+                println(RN.blocks[block])
+
+                resetSimulation(FL);
+                resetDynblock(RN);
+            end
+
+
+
+        end
+    end
+
+end
 
 
 
