@@ -45,9 +45,9 @@ jobs:
 #SIMULATIONS
 ##############################################
 
-      - name: Running dummy simulation and putting into run/out file
+      - name: Running dummy simulation and putting into scripts/out file
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/run/out
+            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/scripts/out
 
       - name: Running dummy simulation with the flag for using time macro
         run: |
