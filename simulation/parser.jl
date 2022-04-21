@@ -11,7 +11,7 @@ function parse_commandline()
             default = "../data/simulation_data/par.ini"
 
         "--test", "-t"
-            help = "int for running time or btime on simulation, default 0"
+            help = "Int for running time or btime on simulation, default 0"
             arg_type = Int
             range_tester=x->issubset(x,[0,1,2])
             default = 0
@@ -25,9 +25,11 @@ function parse_commandline()
             action = :store_true
 
         "--inject_delays"
-            help = "a flag for making the program search for delays to inject in /data/delays/ repo;
-                    every file corresponds to a different simulation;
-                    if is couples with one_simulation flag, takes the first ordered delay file"
+            help = "The program searches for delays to inject in the simulation.
+                    The corresponding files with the lists of trians to delay must be placed
+                    in the folder specified in par.ini under imposed_delay_repo_path, which usually
+                    is the /data/delays/ folder;
+                    If the --multi_simulation flag is not specified, the first ordered delay file is used."
             action = :store_true
 
         "--multi_stations_flag"

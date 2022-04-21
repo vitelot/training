@@ -28,7 +28,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="block_file")       Opt[key] = val
         elseif(key=="timetable_file")   Opt[key] = val
         elseif(key=="opoint_file")      Opt[key] = val
-        elseif(key=="imposed_delay_file")      Opt[key] = val
+        #elseif(key=="imposed_delay_file")      Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
         elseif(key=="trains_info_file")      Opt[key] = val
         ####################################################################
