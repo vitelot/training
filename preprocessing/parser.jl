@@ -20,6 +20,11 @@ function parse_commandline()
             arg_type = String
             default = "../data/hidden_data/"
 
+        "--exo_delays"
+            help = "Number of file with exo delays to be created."
+            arg_type = Int
+            default = 0
+
     end
 
     return parse_args(s)

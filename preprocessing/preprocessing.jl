@@ -1,5 +1,6 @@
 using DataFrames, CSV, Dates
 include("parser.jl")
+include("exo_delays.jl")
 
 function dateToSeconds(d::String31)::Int
 """
@@ -151,7 +152,7 @@ function inputfile_from_date(date::String,source_path::String,file_base="PAD-Zug
     splitting=split(date,".")
     month=parse(Int,splitting[2])
     year=parse(Int,splitting[3])
-    trim=div(month,3)+1
+    trim=div(month-1,3)+1
 
     file=source_path*file_base*"$year-0$trim.csv"
 
@@ -176,6 +177,7 @@ function main()
     date        = parsed_args["date"]
     in_file     = parsed_args["file"]
     source_path = parsed_args["source_data_path"]
+    nr_exo_delays = parsed_args["exo_delays"];
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -347,6 +349,15 @@ function main()
       # for file in filter(x -> endswith(x, ".csv"), readdir(path_ini))
       #     mv(path_ini*file,path_end*file,force=true)
       # end
+    end
+
+    if nr_exo_delays>0
+        SampleExoDelays(
+            "../data/hidden_data/NumberOfDelays.csv",
+            "../data/simulation_data/timetable.csv",
+            "../data/hidden_data/DelayList.csv",
+            "../data/delays/imposed_exo_delay.csv",
+            nr_exo_delays)
     end
 
 end
