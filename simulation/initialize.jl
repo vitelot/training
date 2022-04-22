@@ -40,7 +40,8 @@ function loadInfrastructure()::Network
     #list of the tracks, for now just 5
     tracks=[5]
     #two directions wrt a track
-    directions=[-1,1]
+    directions=[-1,1];
+    COMMON_DIRECTION = 0;
 
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
@@ -96,7 +97,7 @@ function loadInfrastructure()::Network
 
             # #cycle over blocks ending in that station
             # df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
-            dir2platforms=Dict{Union{Int,String},Int}()
+            dir2platforms=Dict{Int,Int}()
             dir2trainscount=Dict{Int,Int}()
             # trainInBlock2direction=Dict()
             # for j = 1:nrow(df_blocksInStation)
@@ -116,9 +117,9 @@ function loadInfrastructure()::Network
 
             #update of simulation: usa also common plats.
             if common > 0
-                dir2platforms["common"]=common
+                dir2platforms[COMMON_DIRECTION]=common
             else
-                dir2platforms["common"]=0
+                dir2platforms[COMMON_DIRECTION]=0
             end
 
             b = Block(
