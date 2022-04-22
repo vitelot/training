@@ -3,17 +3,16 @@ This file contains the definition of data structures,
 useful shortcuts,
 and the packages to be loaded
 """
+using DataFrames, CSV, Dates, BenchmarkTools; # DataStructures,
+# using StatsBase, PrettyPrint;
+# using Profile
+# using InteractiveUtils
 
+###################################
+###       Global variables      ###
 ProgramVersion = v"0.3.1";
-
-using DataFrames,DataStructures, CSV, Dates, BenchmarkTools;
-#using StatsBase, PrettyPrint;
-
-
-using Profile
-using InteractiveUtils
-
 Opt = Dict{String,Any}()
+###################################
 
 #struct not used for now
 struct OPoint # Operational Point: Betriebstelle
