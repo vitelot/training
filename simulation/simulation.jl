@@ -4,15 +4,15 @@ simulation engine
 function simulation(RN::Network, FL::Fleet)::Bool
 
     # get the required options
-    print_train_status = Opt["print_train_status"]
-    print_new_train = Opt["print_new_train"]
-    print_train_wait = Opt["print_train_wait"]
-    print_train_end = Opt["print_train_end"]
-    print_train_fossile = Opt["print_train_fossile"]
-    print_elapsed_time = Opt["print_elapsed_time"]
-    print_tot_delay = Opt["print_tot_delay"]
-    print_timetable=Opt["print_timetable"]
-    catch_conflicts_flag=Opt["catch_conflict_flag"]
+    print_train_status      = Opt["print_train_status"]
+    print_new_train         = Opt["print_new_train"]
+    print_train_wait        = Opt["print_train_wait"]
+    print_train_end         = Opt["print_train_end"]
+    print_train_fossile     = Opt["print_train_fossile"]
+    print_elapsed_time      = Opt["print_elapsed_time"]
+    print_tot_delay         = Opt["print_tot_delay"]
+    print_timetable         = Opt["print_timetable"]
+    catch_conflicts_flag    = Opt["catch_conflict_flag"]
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another

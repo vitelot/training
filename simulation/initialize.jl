@@ -96,8 +96,8 @@ function loadInfrastructure()::Network
 
             # #cycle over blocks ending in that station
             # df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
-            dir2platforms=Dict()
-            dir2trainscount=Dict()
+            dir2platforms=Dict{Union{Int,String},Int}()
+            dir2trainscount=Dict{Int,Int}()
             # trainInBlock2direction=Dict()
             # for j = 1:nrow(df_blocksInStation)
             #

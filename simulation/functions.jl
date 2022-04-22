@@ -94,8 +94,10 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
     if Opt["multi_stations_flag"]
 
         directions=[-1,1]
-
-
+        dir2trainscount=Dict{Int,Int}()
+        for direction in directions
+            dir2trainscount[direction]=0
+        end
 
         for block in keys(RN.blocks)
             ntracks=RN.blocks[block].tracks
@@ -104,13 +106,13 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
                 RN.blocks[block] = Block(block,ntracks,0,Set{String}())
             else
 
-                dir2trainscount=Dict()
+                # dir2trainscount=Dict{Int,Int}()
+                #
+                # for direction in directions
+                #     dir2trainscount[direction]=0
+                # end
 
-                for direction in directions
-                    dir2trainscount[direction]=0
-                end
-
-                RN.blocks[block] = Block(block,ntracks,dir2trainscount,Set{String}())
+                RN.blocks[block] = Block(block,ntracks,copy(dir2trainscount),Set{String}())
 
             end
         end
@@ -205,7 +207,7 @@ printing blocks to file
     println(out_file,"id,tracks")
 
 
-    block2track=OrderedDict()
+    block2track=OrderedDict{String,Union{Int, Dict}}()
     for block in keys(RN.blocks)
         ntracks=RN.blocks[block].tracks
         if RN.blocks[block].id==""
