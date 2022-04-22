@@ -3,8 +3,6 @@
 functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
 """
 
-
-
 function dateToSeconds(d::String31)::Int
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"

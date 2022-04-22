@@ -36,7 +36,7 @@ function multiple_sim(RN::Network, FL::Fleet)
     if isdir(Opt["imposed_delay_repo_path"])
         delays_array,number_simulations = loadDelays()
     else
-        Opt["print_notifications"] && println(stderr,"Running multiple_sim() without imposing delays file,no sense. Running simple simulation.")
+        Opt["print_notifications"] && println(stderr,"Running multiple_sim() without imposing delay files makes no sense. Running a simple simulation.")
         delays_array=[]
         number_simulations=1
     end
@@ -61,7 +61,7 @@ end
 
 
 function main()
-    
+
     #CLI parser
     parsed_args = parse_commandline()
 
