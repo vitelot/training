@@ -5,12 +5,11 @@ If not existing, creates one as default
 """
 function loadOptions(parsed_args::Dict)
 
+    file                        = parsed_args["ini"]
 
-    file=parsed_args["ini"]
-
-    Opt["test"]=parsed_args["test"]
-    Opt["catch_conflict_flag"]=parsed_args["catch_conflict_flag"]
-    Opt["multi_stations_flag"]=parsed_args["multi_stations_flag"]
+    Opt["test"]                 = parsed_args["test"]
+    Opt["catch_conflict_flag"]  = parsed_args["catch_conflict_flag"]
+    Opt["multi_stations_flag"]  = parsed_args["multi_stations_flag"]
 
     if !isfile(file)
         createIniFile(file)
@@ -95,20 +94,18 @@ end
 
 function createIniFile(file::String)
 
-    v = ProgramVersion;
-
     INI = open(file, "w")
         print(INI,
 """
 #key                    value
 #############################
-Version                 $v # Program's version
+Version                 $ProgramVersion # Program's version
 #############################
 timetable_file          ../data/simulation_data/timetable.csv # contains the timetable to simulate
 block_file              ../data/simulation_data/blocks.csv    # contains the nr of tracks for each block
 opoint_file             Unused # it would contain info on the operational points
 trains_info_file        None   # contains info on all the trains (direction, line, etc.)
-imposed_delay_repo_path None   # contains files with delay assignements, e.g., ../data/delays/
+imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 #############################
