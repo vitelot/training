@@ -23,16 +23,16 @@ function loadOptions(parsed_args::Dict)
         length(df) < 2 && continue # ignore empty lines
         key = df[1] ; val = df[2]
         ####################################################################
-        if(key=="Version") Opt[key] = parse(Float64, val)
+        if(key=="Version")                  Opt[key] = val
         ####################################################################
-        elseif(key=="block_file")       Opt[key] = val
-        elseif(key=="timetable_file")   Opt[key] = val
-        elseif(key=="opoint_file")      Opt[key] = val
+        elseif(key=="block_file")           Opt[key] = val
+        elseif(key=="timetable_file")       Opt[key] = val
+        elseif(key=="opoint_file")          Opt[key] = val
         #elseif(key=="imposed_delay_file")      Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
-        elseif(key=="trains_info_file")      Opt[key] = val
+        elseif(key=="trains_info_file")     Opt[key] = val
         ####################################################################
-        elseif(key=="simulate") Opt[key] = parse(Bool, val)
+        elseif(key=="simulate")             Opt[key] = parse(Bool, val)
         ####################################################################
         elseif(key=="print_options")        Opt[key] = parse(Bool, val)
         elseif(key=="print_flow")           Opt[key] = parse(Bool, val)
@@ -50,6 +50,15 @@ function loadOptions(parsed_args::Dict)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end
+    end
+
+    if VersionNumber(Opt["Version"]) != ProgramVersion
+        println("""
+                The par.ini file corresponds to an older version of the program.
+                Delete it and rerun the simulation to create a new one.
+                Version found: $(Opt["Version"]) --- Current version: $ProgramVersion
+                """);
+        exit(1);
     end
 
     parsed_args["inject_delays"] || (Opt["imposed_delay_repo_path"] = "None";)
@@ -86,12 +95,14 @@ end
 
 function createIniFile(file::String)
 
+    v = ProgramVersion;
+
     INI = open(file, "w")
         print(INI,
 """
 #key                    value
 #############################
-Version                 0.3 # Program's version (not checked at the moment)
+Version                 $v # Program's version
 #############################
 timetable_file          ../data/simulation_data/timetable.csv # contains the timetable to simulate
 block_file              ../data/simulation_data/blocks.csv    # contains the nr of tracks for each block

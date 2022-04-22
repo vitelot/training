@@ -4,6 +4,8 @@ useful shortcuts,
 and the packages to be loaded
 """
 
+ProgramVersion = v"0.3.1";
+
 using DataFrames,DataStructures, CSV, Dates, BenchmarkTools;
 #using StatsBase, PrettyPrint;
 
