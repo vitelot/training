@@ -49,11 +49,9 @@ function multiple_sim(RN::Network, FL::Fleet)
 
         isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 
-        if Opt["simulate"]
-            simulation(RN, FL)  && (println("returned 1 , restarting");)
-        else
-            return (RN,FL)
-        end
+
+        simulation(RN, FL, simulation_id)  && (println("returned 1 , restarting");)
+        
 
     end
     nothing
