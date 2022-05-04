@@ -1,9 +1,11 @@
+@info "Loading libraries"
 include("extern.jl")
 include("initialize.jl")
 include("parameters.jl")
 include("functions.jl")
 include("simulation.jl")
 include("parser.jl")
+@info "Compiling."
 
 
 function one_sim(RN::Network, FL::Fleet)
@@ -51,7 +53,7 @@ function multiple_sim(RN::Network, FL::Fleet)
 
 
         simulation(RN, FL, simulation_id)  && (println("returned 1 , restarting");)
-        
+
 
     end
     nothing
@@ -59,6 +61,7 @@ end
 
 
 function main()
+    @info "Starting main()"
 
     #CLI parser
     parsed_args = parse_commandline()

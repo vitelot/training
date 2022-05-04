@@ -1,6 +1,8 @@
+@info "Loading libraries"
 using DataFrames, CSV, Dates
 include("parser.jl")
 include("exo_delays.jl")
+@info "Compiling."
 
 function dateToSeconds(d::String31)::Int
 """
@@ -120,18 +122,18 @@ function loadTrains(file::String="./trainIni.in")
         createTrainIni(file)
     end
 
-    Interval = Dict{String,Any}()
-    Trains=[]
+    Interval = Dict{String,Int}()
+    Trains=String[]
     for line in eachline(file)
         occursin(r"^#", line) && continue # ignore lines beginning with #
         df = split(line, r"\s+")
         length(df) < 1 && continue # ignore empty lines
         key = df[1]
         ####################################################################
-        if(key=="step_beginning") Interval[key]=parse(Int64, df[2])
-        ####################################################################
-        elseif(key=="step_end") Interval[key]=parse(Int64, df[2])
+        if(key=="step_beginning")  Interval[key]=parse(Int64, df[2])
+        elseif(key=="step_end")    Interval[key]=parse(Int64, df[2])
         elseif(key=="step_length") Interval[key]=parse(Int64, df[2])
+        ####################################################################
         else push!(Trains,key)
         end
     end
@@ -163,14 +165,19 @@ end
 
 
 function main()
+@info "Starting main()"
 
     if VERSION < v"1.6"
         println("Please upgrade Julia to at least version 1.6. Exiting.")
         exit()
     end
 
-
-
+    TIME_THRESHOLD            = 600; #seconds. tempo per valutare se e' un popping
+    PAUSE_BEFORE_POPPING      = 5;   #seconds a train stays in the last block mefore killing it and repopping
+    ACCEPTED_TRAJ_CODE        = ["Z","E"];
+    FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
+    SEPARATOR                 = ","; # separates fields in the output csv file
+    POPPING_IN_WAIT_IN_STATION= 60;  # stays this time in seconds in popping station
     #CLI parser
     parsed_args = parse_commandline()
 
@@ -197,16 +204,10 @@ function main()
 
     println(out_file,"trainid,opid,kind,duetime")
 
-#@show file
-
-    time_threshold=600 #tempo per valutare se e' un popping
-    pause_before_popping=5 #seconds a train stays in the last block mefore killing it and repopping
-
 # special_train_list=["SSB","SR","SNJ","SD","SREX","SRJ","BUS"]
-    accepted_traj_code=["Z","E"]
-
 
     #load the df
+@info "Loading data"
     df=CSV.read(file,DataFrame, delim=',', decimal=',')
 
     rename!(df,:"BST Code Anlieferung" => :bts_code)
@@ -222,22 +223,20 @@ function main()
     select!(df, ([:date,:train_id,:bts_code,:CODE,:scheduled_time,:real_time,:kind]))
 
     #take only real running trains
-    filter!(row -> row.CODE ∈ accepted_traj_code, df)
+    filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
 
     #get the df_date
     if in_file == ""
         filter!(row -> (row.date == date ), df)
     end
 
-    separator=","
+    # convert date format in seconds alltogether
+    df.scheduled_time = dateToSeconds.(df.scheduled_time);
 
 
-    println("Saving timetable file \"$out_file_name\"")
-
+@info "Cycling through trains"
     for train in unique(df.train_id)
-
-
-
+        # print("$train\r");
         df_train=filter(row -> (row.train_id == train), df)
         sort!(df_train, [order(:scheduled_time, rev=false)])
 
@@ -261,34 +260,44 @@ function main()
 
         for i in 1:nrows-1
 
-            bts=df_train[i, :].bts_code
-            next_bts=df_train[i+1, :].bts_code
-            block=bts*"-"*next_bts
-    #             println(train_id,block)
-            bts_time=df_train[i, :].scheduled_time
-            next_bts_time=df_train[i+1, :].scheduled_time
+            bts      = df_train[i, :].bts_code
+            next_bts = df_train[i+1, :].bts_code
 
-            bts_kind=df_train[i, :].kind
-            next_bts_kind=df_train[i+1, :].kind
+            block  = bts*"-"*next_bts
 
+            bts_time      = df_train[i, :].scheduled_time
+            next_bts_time = df_train[i+1, :].scheduled_time
+
+            bts_kind      = df_train[i, :].kind
+            next_bts_kind = df_train[i+1, :].kind
+
+            if bts_kind == "Durchfahrt"
+                args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
+                if next_bts_time > bts_time+FAST_STATION_TRANSIT_TIME
+                    println(out_file,join(args, SEPARATOR))
+                else
+                    printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds:\n", bold=true);
+                    printstyled("$args\n", bold=true);
+                end
+            end
 
             #if first raw , write it
             if i==1
                 if bts != next_bts
-                    args=(train_id,bts,"Beginn",dateToSeconds(bts_time)-pause_before_popping)
-                    println(out_file,join(args, separator))
+                    args=(train_id,bts, "Beginn", bts_time-PAUSE_BEFORE_POPPING)
+                    println(out_file,join(args, SEPARATOR))
                 end
 
-                args=(train_id,bts,bts_kind,dateToSeconds(bts_time))
-                println(out_file,join(args, separator))
+                args=(train_id, bts, bts_kind, bts_time)
+                println(out_file,join(args, SEPARATOR))
 
 
             end
 
-            block_time=dateToSeconds(next_bts_time)-dateToSeconds(bts_time)
+            block_time = next_bts_time-bts_time
 
             #if time is big
-            if (block_time > time_threshold)
+            if (block_time > TIME_THRESHOLD)
 
 
                 if (bts!=next_bts)
@@ -299,33 +308,39 @@ function main()
                     train_id=train*"_pop$npops"
 
                     #popping train
-                    args=(train_id,next_bts,"Abfahrt",dateToSeconds(next_bts_time))
-                    println(out_file,join(args, separator))
+                    args=(train_id,next_bts, "Ankunft", next_bts_time-POPPING_IN_WAIT_IN_STATION)
+                    println(out_file,join(args, SEPARATOR))
+                    #popping train
+                    args=(train_id,next_bts, "Abfahrt", next_bts_time)
+                    println(out_file,join(args, SEPARATOR))
 
 
-#                     args=(train_id,next_bts,"Abfahrt",dateToSeconds(next_bts_time)+pause_before_popping)
-#                     println(out_file,join(args, separator))
+#                     args=(train_id,next_bts,"Abfahrt",dateToSeconds(next_bts_time)+PAUSE_BEFORE_POPPING)
+#                     println(out_file,join(args, SEPARATOR))
 
                 #big time, but block exists,still save it
                 else
 
 #                     println("time exceeding,but in real block, writing it")
 
-                    args=(train_id,next_bts,next_bts_kind,dateToSeconds(next_bts_time))
-                    println(out_file,join(args, separator))
+                    args=(train_id,next_bts,next_bts_kind, next_bts_time)
+                    println(out_file,join(args, SEPARATOR))
                 end
 
             else
                 #save it
 #                 println("time exceeding,but in real block, writing it")
-                args=(train_id,next_bts,next_bts_kind,dateToSeconds(next_bts_time))
-                println(out_file,join(args, separator))
+                args=(train_id,next_bts,next_bts_kind, next_bts_time)
+                println(out_file,join(args, SEPARATOR))
             end
 
         end
 
     end
+    println();
+
     close(out_file)
+    println("Saving timetable file \"$out_file_name\"")
 
     ############################################################################################################
     ##MOVING THE UNZIPPED FILES FROM DATA.ZIP TO THE CORRECT DIRS
@@ -359,7 +374,7 @@ function main()
             "../data/delays/imposed_exo_delay.csv",
             nr_exo_delays)
     end
-
+@info "Ending main()"
 end
 
 #if train_popnr has less than 2 row, what to do
@@ -367,10 +382,10 @@ end
 #             if nrows < 2
 #                 println("$train has too few rows,adding one in $(df3[1, :].opid)")
 #                 args=(train_id,df3[1, :].opid,df3[1, :].kind,dateToSeconds(df3[1, :].duetime))
-#                 println(out_file,join(args, separator))
+#                 println(out_file,join(args, SEPARATOR))
 #
-#                 args=(train_id,df3[1, :].opid,"Ende",dateToSeconds(df3[1, :].duetime)+pause_before_popping)
-#                 println(out_file,join(args, separator))
+#                 args=(train_id,df3[1, :].opid,"Ende",dateToSeconds(df3[1, :].duetime)+PAUSE_BEFORE_POPPING)
+#                 println(out_file,join(args, SEPARATOR))
 #     #             println(df3)
 #                 continue
 #             end
@@ -418,8 +433,8 @@ end
     ## LOADING THE FILE trainIni.in for the trains to be delayed
     ############################################################################################################
 
-#     Interval = Dict{String,Any}()
-#     Trains=[]
+#     Interval = Dict{String,Int}()
+#     Trains=String[]
 #
 #     Interval,Trains=loadTrains()
 #
