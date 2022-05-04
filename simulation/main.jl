@@ -47,7 +47,7 @@ function multiple_sim(RN::Network, FL::Fleet)
 
         Opt["print_flow"] && println("##################################################################")
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
-        Opt["print_notifications"] && println(stderr,"Starting simulation number $simulation_id.")
+        Opt["print_notifications"] && (@info "Starting simulation number $simulation_id.")
 
         isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 

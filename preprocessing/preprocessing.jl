@@ -2,167 +2,8 @@
 using DataFrames, CSV, Dates
 include("parser.jl")
 include("exo_delays.jl")
+include("functions.jl")
 @info "Compiling."
-
-function dateToSeconds(d::String31)::Int
-"""
-Given a string in the format "yyyy-mm-dd HH:MM:SS"
-returns the number of seconds elapsed from the epoch
-"""
-    dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-    return Int(floor(datetime2unix(dt)))
-    #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
-end
-function dateToSeconds(d::Int)::Int
-"""
-If the input is an Int do nothing
-assuming that it is already the number of seconds elapsed from the epoch
-"""
-    return d
-end
-############################################################################################################
-#function that reads the timetable and returns the events of beginning of trains if ["Abfahrt","Beginn"] are there
-function get_trains_begin(timetable_name::AbstractString,timetable_path::AbstractString,path_out::AbstractString)
-
-    outfile = "trains_beginning.ini"
-    #printing out the file
-    outfile_unique_trains="unique_trains_running.txt"
-
-
-    df = DataFrame(CSV.File(timetable_path*timetable_name))
-
-
-
-    if !isfile(path_out*outfile)
-
-        f = open(path_out*outfile, "w")
-        println(f,"trainid,block,first_time,second_time")
-        #getting begins array of beginnings of trains
-
-        train_list=unique(df.trainid)
-
-        f_unique=open(outfile_unique_trains, "w")
-
-        for train in train_list
-
-            println(f_unique,train)
-
-            df2=df[isequal.(df.trainid,train),:]
-
-             if nrow(df2) >= 2
-
-
-                # if !issubset(["Begin"], df2.kind) && !issubset(["Abfahrt"], df2.kind)
-                #     println(f,df2[1,:].trainid,",",df2[1,:].opid*"-"*df2[2,:].opid,",",df2[1,:].duetime,",",df2[2,:].duetime)
-                #     continue
-                # end
-                #
-                # first_idx=findfirst(in(["Abfahrt","Beginn"]), df2.kind)
-                first_idx=1
-
-                nrows=nrow(df2[first_idx:end,:])
-                # println(nrows,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
-
-                if nrows <2
-                    # println(df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
-                    println(f,df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
-                else
-                    # println(df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
-                    println(f,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
-                end
-
-            else
-                println("df $df2 has less than 2 rows")
-            end
-
-        end
-
-        close(f_unique)
-        close(f)
-        println("trains_beginning.ini created.")
-
-    else println("Trains beginning file already present, using it.")
-    end
-end
-
-
-############################################################################################################
-# Creates the initial delay file if not present
-
-function createTrainIni(file::String)
-
-    INI = open(file, "w")
-        print(INI,
-"""
-#key                    value
-#############################
-#Range for the delay injected
-#############################
-step_beginning         0
-step_end               3000
-step_length            300
-#############################
-#List of trains to be delayed
-#############################
-SB24686
-"""
-)
-    close(INI)
-    println("Initial train file \"$file\" was missing and a default one was created.\nPlease edit it and rerun.")
-    exit()
-
-end
-
-
-############################################################################################################
-#Parses files of delay injection
-
-function loadTrains(file::String="./trainIni.in")
-    if !isfile(file)
-        createTrainIni(file)
-    end
-
-    Interval = Dict{String,Int}()
-    Trains=String[]
-    for line in eachline(file)
-        occursin(r"^#", line) && continue # ignore lines beginning with #
-        df = split(line, r"\s+")
-        length(df) < 1 && continue # ignore empty lines
-        key = df[1]
-        ####################################################################
-        if(key=="step_beginning")  Interval[key]=parse(Int64, df[2])
-        elseif(key=="step_end")    Interval[key]=parse(Int64, df[2])
-        elseif(key=="step_length") Interval[key]=parse(Int64, df[2])
-        ####################################################################
-        else push!(Trains,key)
-        end
-    end
-
-    println("File of train delay injection parsed.")
-
-    return Interval,Trains
-end
-
-############################################################################################################
-function read_non_hidden_files(repo)::Vector{String}
-    return filter(!startswith(".") ∘ basename, readdir(repo))
-end
-
-
-
-function inputfile_from_date(date::String,source_path::String,file_base="PAD-Zuglaufdaten_20")::String
-    splitting=split(date,".")
-    month=parse(Int,splitting[2])
-    year=parse(Int,splitting[3])
-    trim=div(month-1,3)+1
-
-    file=source_path*file_base*"$year-0$trim.csv"
-
-    return file
-end
-
-
-
 
 function main()
 @info "Starting main()"
@@ -178,13 +19,15 @@ function main()
     FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
     SEPARATOR                 = ","; # separates fields in the output csv file
     POPPING_IN_WAIT_IN_STATION= 60;  # stays this time in seconds in popping station
+
     #CLI parser
     parsed_args = parse_commandline()
 
-    date        = parsed_args["date"]
-    in_file     = parsed_args["file"]
-    source_path = parsed_args["source_data_path"]
+    date          = parsed_args["date"]
+    in_file       = parsed_args["file"]
+    source_path   = parsed_args["source_data_path"]
     nr_exo_delays = parsed_args["exo_delays"];
+    use_real_time = parsed_args["use_real_time"];
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -230,13 +73,18 @@ function main()
         filter!(row -> (row.date == date ), df)
     end
 
+    if use_real_time
+        df.scheduled_time = df.real_time;
+        println("*** Using real time instead of scheduled ***")
+    end
+
     # convert date format in seconds alltogether
     df.scheduled_time = dateToSeconds.(df.scheduled_time);
 
 
 @info "Cycling through trains"
     for train in unique(df.train_id)
-        # print("$train\r");
+        # println("$train");
         df_train=filter(row -> (row.train_id == train), df)
         sort!(df_train, [order(:scheduled_time, rev=false)])
 
@@ -254,6 +102,7 @@ function main()
 
         dropmissing!(df_train, :scheduled_time)
 
+        nrows=nrow(df_train)
         train_id=train
         npops=0
 
@@ -271,14 +120,20 @@ function main()
             bts_kind      = df_train[i, :].kind
             next_bts_kind = df_train[i+1, :].kind
 
+            # if train transits in station only
             if bts_kind == "Durchfahrt"
-                args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
-                if next_bts_time > bts_time+FAST_STATION_TRANSIT_TIME
-                    println(out_file,join(args, SEPARATOR))
+                time_diff = next_bts_time-bts_time;
+                if time_diff <= FAST_STATION_TRANSIT_TIME
+                    # next bst is too close
+                    args = (train_id, bts, "Durchfahrt_out", bts_time+time_diff-2)
                 else
-                    printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds:\n", bold=true);
-                    printstyled("$args\n", bold=true);
+                    # assume a short transit time
+                    args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
                 end
+
+                println(out_file,join(args, SEPARATOR))
+                # printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds: $(next_bts_time-bts_time) sec.\n", bold=true);
+                # printstyled("$args\n", bold=true);
             end
 
             #if first raw , write it
@@ -358,6 +213,7 @@ function main()
 
     file = "blocks.csv";
     if isfile(path_ini*file)
+        println("Copying \"$(path_ini*file)\" into \"$(path_end)timetable.csv\"")
         cp(path_ini*file, path_end*file, force=true)
     else
         println("There is no block data available in the $path_ini folder")

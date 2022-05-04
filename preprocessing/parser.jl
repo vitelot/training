@@ -21,9 +21,13 @@ function parse_commandline()
             default = "../data/hidden_data/"
 
         "--exo_delays"
-            help = "Number of file with exo delays to be created."
+            help = "Number of files with exo delays to be created."
             arg_type = Int
             default = 0
+
+        "--use_real_time"
+            help = "Use the real time column of the timetable instead of the scheduled time"
+            action = :store_true
 
     end
 
