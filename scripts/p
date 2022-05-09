@@ -1,0 +1,13 @@
+#! /bin/sh
+
+echo "#####################################"
+echo "######## PREPROCESSING ##############"
+echo "#####################################\n"
+
+cd ../preprocessing
+
+echo "julia --project=../training_env preprocessing.jl $@"
+julia --project=../training_env preprocessing.jl $@
+
+
+# https://www.shellscript.sh/

@@ -1,0 +1,4 @@
+./p --split_transits -d 04.06.19
+./r --catch_conflict_flag --multi_stations_flag
+./p --exo_delays 10 --split_transits -d 04.06.19
+./r --inject_delays --multi_stations_flag --multi_simulation
