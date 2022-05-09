@@ -215,7 +215,7 @@ function main()
 
     file = "blocks.csv";
     if isfile(path_ini*file)
-        println("Copying \"$(path_ini*file)\" into \"$(path_end)timetable.csv\"")
+        println("Copying \"$(path_ini*file)\" into \"$(path_end)block.csv\"")
         cp(path_ini*file, path_end*file, force=true)
     else
         println("There is no block data available in the $path_ini folder")
