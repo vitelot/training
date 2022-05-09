@@ -40,23 +40,28 @@ function loadInfrastructure()::Network
     #list of the tracks, for now just 5
     tracks=[5]
     #two directions wrt a track
-    directions=[-1,1];
+    DIRECTIONS=[-1,1];
     COMMON_DIRECTION = 0;
 
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
+    # keep the stations, i.e., the blocks with same bst
     df_stations=filter(row -> (split(row.id,"-")[1] == split(row.id,"-")[2]), df)
+    # add the column :bts with bst names
     transform!(df_stations, :id => ByRow(x -> split(x,"-")[1]) => :bts)
 
+    # select blocks that aren't stations
     df_blocks=antijoin(df, df_stations, on = :id)
-    transform!(df_blocks, :id => ByRow(x -> split(x,"-")[2]) => :ending_bts)
-    transform!(df_blocks, :id => ByRow(x -> split(x,"-")[1]) => :starting_bts)
+
+    # add columns with starting and endig bst
+    # transform!(df_blocks, :id => ByRow(x -> split(x,"-")[2]) => :ending_bts)
+    # transform!(df_blocks, :id => ByRow(x -> split(x,"-")[1]) => :starting_bts)
 
 
     if Opt["multi_stations_flag"] #the stations are used with the directionality of the tracks
 
-        #handling the blocks first
+        #handling the non-station blocks first
         for i = 1:nrow(df_blocks)
             name = df_blocks.id[i]
 
@@ -75,9 +80,9 @@ function loadInfrastructure()::Network
         #handling stations
         for i = 1:nrow(df_stations)
 
-            name = df_stations.id[i]
-            bts=df_stations.bts[i]
-            platforms=df_stations.tracks[i]
+            name      = df_stations.id[i]
+            bts       = df_stations.bts[i]
+            platforms = df_stations.tracks[i]
 
             #impossible station with only one plat
             if (platforms==1)
@@ -87,7 +92,7 @@ function loadInfrastructure()::Network
             end
 
             #number of directions taken into account
-            n_dir=length(directions)
+            n_dir=length(DIRECTIONS)
 
             #integer number of plats per direction
             n_plat=div(platforms,n_dir)
@@ -110,7 +115,7 @@ function loadInfrastructure()::Network
             # end
 
             #dictionaries for occupancy for every direction
-            for direction in directions
+            for direction in DIRECTIONS
                 dir2platforms[direction]=n_plat
                 dir2trainscount[direction]=0
             end
