@@ -28,6 +28,7 @@ function main()
     source_path   = parsed_args["source_data_path"]
     nr_exo_delays = parsed_args["exo_delays"];
     use_real_time = parsed_args["use_real_time"];
+    split_transit = parsed_args["split_transits"];
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -53,13 +54,12 @@ function main()
 @info "Loading data"
     df=CSV.read(file,DataFrame, delim=',', decimal=',')
 
-    rename!(df,:"BST Code Anlieferung" => :bts_code)
-    rename!(df,:Betriebstag => :date)
-
-    rename!(df,:Istzeit => :real_time)
-    rename!(df,:"Messpunkt Bez" => :kind)
-    rename!(df,:"Sollzeit R" => :scheduled_time)
-    rename!(df,:"Zuglaufmodus Code" => :CODE)
+    rename!(df, :"BST Code Anlieferung" => :bts_code)
+    rename!(df, :Betriebstag            => :date)
+    rename!(df, :Istzeit                => :real_time)
+    rename!(df, :"Messpunkt Bez"        => :kind)
+    rename!(df, :"Sollzeit R"           => :scheduled_time)
+    rename!(df, :"Zuglaufmodus Code"    => :CODE)
     df.train_id = string.(df.Zuggattung, "_",  df.Zugnr)
 
 
@@ -121,7 +121,7 @@ function main()
             next_bts_kind = df_train[i+1, :].kind
 
             # if train transits in station only
-            if bts_kind == "Durchfahrt"
+            if split_transit && bts_kind == "Durchfahrt"
                 time_diff = next_bts_time-bts_time;
                 if time_diff <= FAST_STATION_TRANSIT_TIME
                     # next bst is too close
@@ -163,8 +163,10 @@ function main()
                     train_id=train*"_pop$npops"
 
                     #popping train
-                    args=(train_id,next_bts, "Ankunft", next_bts_time-POPPING_IN_WAIT_IN_STATION)
-                    println(out_file,join(args, SEPARATOR))
+                    if split_transit
+                        args=(train_id,next_bts, "Ankunft", next_bts_time-POPPING_IN_WAIT_IN_STATION)
+                        println(out_file,join(args, SEPARATOR))
+                    end
                     #popping train
                     args=(train_id,next_bts, "Abfahrt", next_bts_time)
                     println(out_file,join(args, SEPARATOR))

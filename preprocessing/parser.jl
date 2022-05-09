@@ -6,17 +6,17 @@ function parse_commandline()
     @add_arg_table s begin
 
         "--date", "-d"
-            help = "date we want to extrapolate the timetable"
+            help = "Date from which we want to extract the timetable."
             arg_type = String
             default = "25.03.19"
 
         "--file", "-f"
-            help = "file with the timetable to process"
+            help = "File with the timetable to process."
             arg_type = String
             default = ""
 
         "--source_data_path"
-            help = "source of the pad zuglauf..."
+            help = "Source of the pad zuglauf..."
             arg_type = String
             default = "../data/hidden_data/"
 
@@ -26,7 +26,11 @@ function parse_commandline()
             default = 0
 
         "--use_real_time"
-            help = "Use the real time column of the timetable instead of the scheduled time"
+            help = "Use the real time column of the timetable instead of the scheduled time."
+            action = :store_true
+
+        "--split_transits"
+            help = "Splits a Durchfahrt into two events by adding a durchfahrt_out few seconds later."
             action = :store_true
 
     end
