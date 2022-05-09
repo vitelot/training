@@ -87,7 +87,7 @@ function loadInfrastructure()::Network
             #impossible station with only one plat
             if (platforms==1)
                 # println("$bts has 1 platform,update to 2")
-                println("WARNING: station $name has only one platform.")
+                printstyled("WARNING: station $name has only one platform.\n", bold=true)
                 # platforms+=1
             end
 

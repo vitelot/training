@@ -4,7 +4,7 @@ useful shortcuts,
 and the packages to be loaded
 """
 
-using DataFrames, CSV, Dates, BenchmarkTools, DataStructures;
+using DataFrames, CSV, Dates, BenchmarkTools; #, DataStructures;
 # using StatsBase, PrettyPrint;
 # using Profile
 # using InteractiveUtils
@@ -107,6 +107,8 @@ end
 struct exception_blockConflict <: Exception
         trainid::String
         block::String
+        direction::Int
     end
 
-Base.showerror(io::IO, e::exception_blockConflict) = print(io, "Train $(e.trainid) has conflict in block $(e.block) ")
+Base.showerror(io::IO, e::exception_blockConflict) =
+    print(io, "Train $(e.trainid) has conflict in block $(e.block) ")

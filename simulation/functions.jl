@@ -123,6 +123,9 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
 end
 
 function catch_conflict(RN,FL,parsed_args)
+
+    DIRECTIONS=[-1,1];
+
     timetable_file = Opt["timetable_file"];
     while true
         try
@@ -130,56 +133,110 @@ function catch_conflict(RN,FL,parsed_args)
             #one or multiple simulations
             if (parsed_args["multi_simulation"])
                 # multiple_sim($(esc(RN)), $(esc(FL)))
+                nothing;
             else
                 one_sim(RN, FL)
             end
 
-            #insert here function for saving the blocks list
-            if occursin("-", timetable_file)
-                _,date=split(timetable_file,"-")
-                out_file_name="../data/simulation_data/blocks_catch-$date.csv"
-            else
-                out_file_name = "../data/simulation_data/blocks_catch.csv";
-            end
-            print_railway(RN,out_file_name)
             break
         catch err
 
-            if isa(err, KeyError)
+            if isa(err, KeyError) # if the error comes from non existing blocks:
 
                 println("KeyError occurring : $(err.key)")
-
                 name=err.key
-                b = Block(
-                        name,
-                        # i,
-                        1,
-                        0,
-                        Set{String}()
-                )
 
-                RN.nb += 1
+                if Opt["multi_stations_flag"]
+                    if isStation(name)
 
-                RN.blocks[name]=b
+                        dir2platforms   = Dict{Int,Int}()
+                        dir2trainscount = Dict{Int,Int}()
 
-                println("Added to RN.blocks the block:",RN.blocks[err.key])
+                        # create one platform per direction
+                        for direction in DIRECTIONS
+                            dir2platforms[direction]   = 1
+                            dir2trainscount[direction] = 0
+                        end
+
+                        b = Block(
+                                name,
+                                # i,
+                                dir2platforms,
+                                dir2trainscount,
+                                Set{String}()
+                        )
+
+                        RN.nb += 1
+
+                        RN.blocks[name]=b
+
+                        println("Added to RN.blocks the station block:",RN.blocks[err.key])
+                    else
+                        b = Block(
+                                name,
+                                # i,
+                                1,
+                                0,
+                                Set{String}()
+                        )
+
+                        RN.nb += 1
+
+                        RN.blocks[name]=b
+
+                        println("Added to RN.blocks the normal block:",RN.blocks[err.key])
+                    end
+
+                else # no multiple tracks
+                    b = Block(
+                            name,
+                            # i,
+                            1,
+                            0,
+                            Set{String}()
+                    )
+
+                    RN.nb += 1
+
+                    RN.blocks[name]=b
+
+                    println("Added to RN.blocks the block:",RN.blocks[err.key])
+                end
 
                 resetSimulation(FL);
                 resetDynblock(RN);
 
-            else
+            else # if the error comes from try&catch:
 
                 train=(err.trainid)
                 block=err.block
-                println(RN.blocks[block])
 
-                ntracks=RN.blocks[block].tracks
-                # $(esc(RN)).blocks[block]=Block(block,ntracks+1,0,Set{String}())
-                RN.blocks[block].tracks=ntracks+1
-                RN.blocks[block].nt=0
-                RN.blocks[block].train=Set{String}()
+                println("Before: ", RN.blocks[block])
 
-                println(RN.blocks[block])
+                if Opt["multi_stations_flag"]
+                    if isStation(block)
+
+                        dir = err.direction
+                        RN.blocks[block].tracks[dir] += 1
+
+                        # for d in DIRECTIONS
+                        #     RN.blocks[block].tracks[d] += 1
+                        #     RN.blocks[block].nt[d] = 0
+                        # end
+                    else
+                        RN.blocks[block].tracks += 1
+                        RN.blocks[block].nt = 0
+                        RN.blocks[block].train=Set{String}()
+                    end
+                else          # no multi-stations
+
+                    RN.blocks[block].tracks += 1 #ntracks+1
+                    RN.blocks[block].nt = 0
+                    RN.blocks[block].train=Set{String}()
+                end
+
+                println("After:  ",RN.blocks[block])
+
 
                 resetSimulation(FL);
                 resetDynblock(RN);
@@ -189,36 +246,51 @@ function catch_conflict(RN,FL,parsed_args)
 
         end
     end
+
+    #insert here function for saving the blocks list
+    if occursin("-", timetable_file)
+        _,date=split(timetable_file,"-")
+        out_file_name="../data/simulation_data/blocks_catch-$date.csv"
+    else
+        out_file_name = "../data/simulation_data/blocks_catch.csv";
+    end
+    print_infra(RN,out_file_name)
 
 end
 
 
-
-
 #passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
-function print_railway(RN::Network,out_file_name::String)#,
+function print_infra(RN::Network,out_file_name::String)#,
 """
 printing blocks to file
 """
-    out_file = open(out_file_name, "w")
+    open(out_file_name, "w") do OUT
 
-    println(out_file,"id,tracks")
+        println(OUT, "id,tracks")
 
+        block2track=Dict{String,Int}()
 
-    block2track=OrderedDict{String,Union{Int, Dict}}()
-    for block in keys(RN.blocks)
-        ntracks=RN.blocks[block].tracks
-        if RN.blocks[block].id==""
-            continue
+        for block in keys(RN.blocks)
+
+            RN.blocks[block].id == "" && continue;
+
+            ntracks=RN.blocks[block].tracks
+            if typeof(ntracks) == Dict{Int,Int}
+                n = sum(values(ntracks))
+            else
+                n = ntracks
+            end
+
+            block2track[block] = n
         end
-        block2track[block]=ntracks
-    end
 
-    sort!(block2track, byvalue=true,rev=true)
-    for block in keys(block2track)
-        println(out_file,block,",",block2track[block])
+        K = sort(collect(block2track), by= x-> x[2], rev=true)
+        # println(OUT, K)
+        for b in K
+            println(OUT, b[1],",",b[2])
+        end
+
     end
-    close(out_file)
 end
 
 
@@ -234,18 +306,13 @@ function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)
 end
 
 #multiple dispatch functions for multiple-sided stations
-function check_nextblock_occupancy(train::Train,nt::Dict,tracks_in_platform::Dict)::Bool
+function check_nextblock_occupancy(train::Train,nt::Dict{Int,Int},tracks_in_platform::Dict{Int,Int})::Bool
 
     track=train.track
     direction=train.direction
 
-    # @show nt
-    # @show tracks_in_platform
-
     #check occupancy in that direction
     return (nt[direction]<tracks_in_platform[direction])
-
-
 end
 
 
@@ -264,7 +331,7 @@ function update_block(train::Train,next_nt::Int,
 end
 
 #MULTIPLE DISPATCH
-function update_block(train::Train,next_nt::Dict,
+function update_block(train::Train,next_nt::Dict{Int,Int},
     nextBlock_train::Set{String},update::Int)::Tuple{Dict,Set{String}}
 
     trainid=train.id
@@ -281,4 +348,9 @@ function update_block(train::Train,next_nt::Dict,
     return next_nt,nextBlock_train
 
 
+end
+
+function isStation(bst_name::String)
+     a = split(bst_name, "-");
+     return a[1] == a[2]
 end

@@ -41,20 +41,15 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     BK = RN.blocks # Dict{blockid,structure}
 
-    # @show BK["LG H1-LG H1"]
-
     Event = initEvent(FL) # initialize the events with the departure of new trains
 
     totDelay = 0 #####
-
 
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
 
 
     print_elapsed_time && println("t final starting is $t_final_starting")
-
-    # @show 1,BK["LG H1-LG H1"]
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
 
@@ -63,8 +58,6 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
             t_evaluated+=1
             print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
-
-            # @show 2,BK["LG H1-LG H1"]
 
             for transit in Event[t]
 
@@ -86,8 +79,6 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     end
                 end
 
-                # @show 3,BK["LG H1-LG H1"]
-
                 print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
 
 
@@ -104,38 +95,16 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 if n_op < length(train.schedule)
                     nextopid = train.schedule[n_op+1].opid
 
-
-
                     nextBlockid = current_opid*"-"*nextopid
-
-                    # @show 4,BK["LG H1-LG H1"]
-                    # @show nextBlockid,trainid
-                    # if !haskey(BK, nextBlockid)
-                    #     println("ERROR: Block $nextBlockid is inexistent");
-                    #     pprintln(train);
-                    #     exit();
-                    # end
 
                     nextBlock = BK[nextBlockid]
 
                     currentBlock = BK[train.dyn.currentBlock]
 
-                    # if nextBlockid=="LG H1-LG H1"
-                    #
-                    #     @show nextBlock
-                    #     @show currentBlock
-                    #     @show train
-                    # end
-
-
-
-
                     if check_nextblock_occupancy(train,nextBlock.nt,nextBlock.tracks) # if there are less trains than the number of available tracks
-
 
                         #updating current block, popping
                         if currentBlock.id != ""
-
 
                             currentBlock.nt,currentBlock.train=update_block(train,currentBlock.nt,currentBlock.train,-1)
                             # pop!(currentBlock.train, trainid)
@@ -143,22 +112,11 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                         #updating next block, adding
 
-                        # @show 5,BK["LG H1-LG H1"], nextBlock.id
-                        #
-                        # @show BK["MD-MD"]
-
                         nextBlock.nt,nextBlock.train=update_block(train,nextBlock.nt,nextBlock.train, 1)
-
-                        # @show 6,BK["LG H1-LG H1"]
-                        # @show 66,BK["BU-BU"]
-                        # @show 666,BK["MD-MD"]
-                        #
-                        # @show BK["BU-BU"]
 
                         print_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
 
                         train.dyn.currentBlock = nextBlockid
-
 
                         nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
                         #"""train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
@@ -179,20 +137,13 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         push!(Event[tt], train.schedule[n_op+1])
                         t_final = max(tt, t_final) # cures the problem with the last train overnight
 
-                        # @show 7,BK["LG H1-LG H1"]
-
                     else
-
-                        # @show 8,BK["LG H1-LG H1"]
 
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
 
-                        catch_conflicts_flag && throw(exception_blockConflict(trainid,nextBlockid))
-
-                        # throw("You're not looking too good. Best check yourself.")
-                        # throw(exception_blockConflict(trainid))
-
-
+                        if catch_conflicts_flag
+                            throw(exception_blockConflict(trainid,nextBlockid,train.direction))
+                        end
 
                         tt = t+1
                         get!(Event, tt, Transit[])
