@@ -18,6 +18,72 @@ function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)
     return (nt<tracks_in_platform)
 end
 
+function initBlock(name::AbstractString, ntracks::Int)
+    #list of the tracks, for now just 5
+    tracks=[5]
+    #two directions wrt a track
+    DIRECTIONS=[-1,1];
+    COMMON_DIRECTION = 0;
+
+    if isStation(name)
+        if (ntracks==1)
+            # println("$bts has 1 platform,update to 2")
+            printstyled("WARNING: station $name has only one platform.\n", bold=true)
+            # ntracks+=1
+        end
+
+        if Opt["multi_stations_flag"] # directionality
+            #number of directions taken into account
+            n_dir = length(DIRECTIONS)
+
+            #integer number of plats per direction
+            n_plat = div(ntracks,n_dir)
+
+            #remaining plat in common
+            common = ntracks%n_dir
+
+            dir2platforms   = Dict{Int,Int}()
+            dir2trainscount = Dict{Int,Int}()
+
+            #dictionaries for occupancy for every direction
+            for direction in DIRECTIONS
+                dir2platforms[direction]=n_plat
+                dir2trainscount[direction]=0
+            end
+
+            #update of simulation: use also common plats.
+            dir2platforms[COMMON_DIRECTION]=common
+
+            b = Block(
+                    name,
+                    true,
+                    dir2platforms,
+                    dir2trainscount,
+                    Set{String}()
+            )
+
+
+        else # station but directionality not required
+            b = Block(
+                    name,
+                    true,
+                    ntracks,
+                    0,
+                    Set{String}()
+            )
+        end
+    else # directionality not required
+        b = Block(
+                name,
+                false,
+                ntracks,
+                0,
+                Set{String}()
+        )
+    end
+    return b;
+end
+
 #multiple dispatch functions for multiple-sided stations
 function check_nextblock_occupancy(train::Train,nt::Dict{Int,Int},tracks_in_platform::Dict{Int,Int})::Bool
 
@@ -79,10 +145,10 @@ printing blocks to file
             RN.blocks[block].id == "" && continue;
 
             ntracks=RN.blocks[block].tracks
-            if typeof(ntracks) == Dict{Int,Int}
-                n = sum(values(ntracks))
-            else
+            if typeof(ntracks) == Int
                 n = ntracks
+            else
+                n = sum(values(ntracks))
             end
 
             block2track[block] = n
@@ -102,38 +168,26 @@ function resetDynblock(RN::Network)#,
 """
 Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
 """
-    #println("resetting Blocks")
-    if Opt["multi_stations_flag"]
 
-        directions=[-1,1]
-        dir2trainscount=Dict{Int,Int}()
-        for direction in directions
-            dir2trainscount[direction]=0
-        end
+    DIRECTIONS = [-1,1]
+    dir2trainscount = Dict{Int,Int}()
 
-        for block in keys(RN.blocks)
-            ntracks=RN.blocks[block].tracks
-
-            if typeof(ntracks)==Int
-                RN.blocks[block] = Block(block,ntracks,0,Set{String}())
-            else
-
-                # dir2trainscount=Dict{Int,Int}()
-                #
-                # for direction in directions
-                #     dir2trainscount[direction]=0
-                # end
-
-                RN.blocks[block] = Block(block,ntracks,copy(dir2trainscount),Set{String}())
-
-            end
-        end
-    else
-        for block in keys(RN.blocks)
-            ntracks=RN.blocks[block].tracks
-            RN.blocks[block] = Block(block,ntracks,0,Set{String}())
-        end
+    for direction in DIRECTIONS
+        dir2trainscount[direction] = 0
     end
+
+    #println("resetting Blocks")
+    for b in values(RN.blocks)
+        ntracks=b.tracks
+
+        if typeof(ntracks)==Int
+            b.nt = 0;
+        else
+            b.nt = copy(dir2trainscount);
+        end
+        b.train = Set{String}();
+    end
+
 end
 
 function catch_conflict(RN,FL,parsed_args)
@@ -143,15 +197,7 @@ function catch_conflict(RN,FL,parsed_args)
     timetable_file = Opt["timetable_file"];
     while true
         try
-
-            #one or multiple simulations
-            if (parsed_args["multi_simulation"])
-                # multiple_sim($(esc(RN)), $(esc(FL)))
-                nothing;
-            else
-                one_sim(RN, FL)
-            end
-
+            one_sim(RN, FL)
             break
         catch err
 
@@ -160,62 +206,14 @@ function catch_conflict(RN,FL,parsed_args)
                 println("KeyError occurring : $(err.key)")
                 name=err.key
 
-                if Opt["multi_stations_flag"]
-                    if isStation(name)
-
-                        dir2platforms   = Dict{Int,Int}()
-                        dir2trainscount = Dict{Int,Int}()
-
-                        # create one platform per direction
-                        for direction in DIRECTIONS
-                            dir2platforms[direction]   = 1
-                            dir2trainscount[direction] = 0
-                        end
-
-                        b = Block(
-                                name,
-                                # i,
-                                dir2platforms,
-                                dir2trainscount,
-                                Set{String}()
-                        )
-
-                        RN.nb += 1
-
-                        RN.blocks[name]=b
-
-                        println("Added to RN.blocks the station block:",RN.blocks[err.key])
-                    else
-                        b = Block(
-                                name,
-                                # i,
-                                1,
-                                0,
-                                Set{String}()
-                        )
-
-                        RN.nb += 1
-
-                        RN.blocks[name]=b
-
-                        println("Added to RN.blocks the normal block:",RN.blocks[err.key])
-                    end
-
-                else # no multiple tracks
-                    b = Block(
-                            name,
-                            # i,
-                            1,
-                            0,
-                            Set{String}()
-                    )
-
-                    RN.nb += 1
-
-                    RN.blocks[name]=b
-
-                    println("Added to RN.blocks the block:",RN.blocks[err.key])
+                if isStation(name)
+                    b = initBlock(name,length(DIRECTIONS))
+                else
+                    b = initBlock(name,1)
                 end
+
+                RN.nb += 1
+                RN.blocks[name]=b
 
                 resetSimulation(FL);
                 resetDynblock(RN);
@@ -224,40 +222,23 @@ function catch_conflict(RN,FL,parsed_args)
 
                 train=(err.trainid)
                 block=err.block
+                b = RN.blocks[block];
 
-                println("Before: ", RN.blocks[block])
+                println("Tracks before at $block: ", b.tracks)
 
-                if Opt["multi_stations_flag"]
-                    if isStation(block)
-
-                        dir = err.direction
-                        RN.blocks[block].tracks[dir] += 1
-
-                        # for d in DIRECTIONS
-                        #     RN.blocks[block].tracks[d] += 1
-                        #     RN.blocks[block].nt[d] = 0
-                        # end
-                    else
-                        RN.blocks[block].tracks += 1
-                        RN.blocks[block].nt = 0
-                        RN.blocks[block].train=Set{String}()
-                    end
-                else          # no multi-stations
-
-                    RN.blocks[block].tracks += 1 #ntracks+1
-                    RN.blocks[block].nt = 0
-                    RN.blocks[block].train=Set{String}()
+                if typeof(b.tracks)==Int
+                    b.tracks += 1
+                    # b.nt = 0
+                else
+                    dir = err.direction
+                    b.tracks[dir] += 1
                 end
 
-                println("After:  ",RN.blocks[block])
-
+                println("Tracks after at $block:  ",b.tracks)
 
                 resetSimulation(FL);
                 resetDynblock(RN);
             end
-
-
-
         end
     end
 
@@ -273,7 +254,7 @@ function catch_conflict(RN,FL,parsed_args)
 end
 
 
-function isStation(bst_name::String)
+function isStation(bst_name::AbstractString)
      a = split(bst_name, "-");
      return a[1] == a[2]
 end
