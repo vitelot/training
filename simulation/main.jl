@@ -3,6 +3,7 @@ include("extern.jl")
 include("initialize.jl")
 include("parameters.jl")
 include("functions.jl")
+include("blocks.jl")
 include("simulation.jl")
 include("parser.jl")
 @info "Compiling."

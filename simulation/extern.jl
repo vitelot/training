@@ -100,15 +100,3 @@ end
 #     n_trains::Int
 #     trains_in_platform::Set{String} # which train is on it
 # end
-
-########################################
-##EXCEPTIONS DEFINING
-##################################
-struct exception_blockConflict <: Exception
-        trainid::String
-        block::String
-        direction::Int
-    end
-
-Base.showerror(io::IO, e::exception_blockConflict) =
-    print(io, "Train $(e.trainid) has conflict in block $(e.block) ")
