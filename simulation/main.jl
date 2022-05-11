@@ -74,7 +74,7 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-    if parsed_args["catch_conflict_flag"]
+    if parsed_args["catch_conflict"]
         catch_conflict(RN,FL,parsed_args)
     else
         #one or multiple simulations

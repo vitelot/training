@@ -14,10 +14,6 @@ struct exception_blockConflict <: Exception
 Base.showerror(io::IO, e::exception_blockConflict) =
     print(io, "Train $(e.trainid) has conflict in block $(e.block) ");
 
-function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)::Bool
-    return (nt<tracks_in_platform)
-end
-
 function initBlock(name::AbstractString, ntracks::Int)
     #list of the tracks, for now just 5
     tracks=[5]
@@ -32,7 +28,7 @@ function initBlock(name::AbstractString, ntracks::Int)
             # ntracks+=1
         end
 
-        if Opt["multi_stations_flag"] # directionality
+        if Opt["multi_stations"] # directionality
             #number of directions taken into account
             n_dir = length(DIRECTIONS)
 
@@ -94,6 +90,9 @@ function check_nextblock_occupancy(train::Train,nt::Dict{Int,Int},tracks_in_plat
     return (nt[direction]<tracks_in_platform[direction])
 end
 
+function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)::Bool
+    return (nt<tracks_in_platform)
+end
 
 #update next block if old simulation or new one updating a block, not station
 function update_block(train::Train,next_nt::Int,

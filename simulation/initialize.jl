@@ -46,13 +46,8 @@ function loadInfrastructure()::Network
 
     df = nothing # explicitly free the memory
 
-    RN.blocks[""] = Block( # the null block
-                        "",
-                        false,
-                        0,
-                        0,
-                        Set{String}()
-    )
+    # insert the empty block
+    RN.blocks[""] = Block();
 
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
@@ -75,7 +70,7 @@ function loadFleet()::Fleet
     #take direction from the file
     if isfile(trains_info_file)
         train2dir=CSV.File(trains_info_file) |> Dict
-    elseif Opt["multi_stations_flag"]
+    elseif Opt["multi_stations"]
         println("multi platforms activated but no info un usage, add file and restart")
         exit()
     else

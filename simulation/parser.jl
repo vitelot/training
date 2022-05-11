@@ -20,7 +20,7 @@ function parse_commandline()
             help = "a flag for running multiple simulations"
             action = :store_true
 
-        "--catch_conflict_flag"
+        "--catch_conflict"
             help = "a flag for running routines for checking the structure of the railway"
             action = :store_true
 
@@ -32,8 +32,8 @@ function parse_commandline()
                     If the --multi_simulation flag is not specified, the first ordered delay file is used."
             action = :store_true
 
-        "--multi_stations_flag"
-            help = "a flag for making the stations have a preferential direction"
+        "--multi_stations"
+            help = "a flag for making the platforms at stations have a preferential direction"
             action = :store_true
 
             # "--opt1"

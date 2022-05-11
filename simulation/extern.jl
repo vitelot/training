@@ -37,6 +37,10 @@ mutable struct Block
     train::Set{String} # which train is on it, for platforms: which train is in which of the directions
 end
 
+function Block()
+    Block("",false,0,0,Set{String}()); #the null empty block
+end
+
 mutable struct Network
     n::Int # number of nodes (Operational Points = Betriebstellen)
     nodes::Dict{String,OPoint} #contains all the ops
