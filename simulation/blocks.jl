@@ -233,7 +233,7 @@ function catch_conflict(RN,FL,parsed_args)
                     b.tracks[dir] += 1
                 end
 
-                println("Tracks after at $block:  ",b.tracks)
+                println("Tracks after at  $block: ",b.tracks)
 
                 resetSimulation(FL);
                 resetDynblock(RN);
