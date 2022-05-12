@@ -64,7 +64,8 @@ then it samples the trains, blocks and respective delay from another file.
         n=rand(dfn.number)                              # Total number of exogeneous delays we inject
         sample_row_idxs = rand(1:dfnrow, n) #sample(1:nrow(df),n)             # It samples n rows
         dfout = df[sample_row_idxs, :]
-        outfile = "$(baseoutfile)_$i$extension";
+        sequence = lpad(i,4,"0");
+        outfile = "$(baseoutfile)_$sequence" * "$extension";
         CSV.write(outfile, dfout)
         println("Exo delay file \"$outfile\" saved.")
     end

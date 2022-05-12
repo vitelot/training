@@ -159,23 +159,14 @@ function loadFleet()::Fleet
 end
 
 
-
-
-
-
-
-function read_non_hidden_files(repo)::Vector{String}
-    return filter(!startswith(".") ∘ basename, readdir(repo))
-end
-
 #customized sorting, for correctly sorting strings based on last digits
-function custom_cmp(x::String)
-    arr_str = rsplit(x, "_",limit=2)
-    str1, _ = arr_str[1], arr_str[2]
-    number_idx = findlast(isdigit, arr_str[2])
-    num,str2 = SubString(arr_str[2], 1, number_idx), SubString(arr_str[2], number_idx+1, length(arr_str[2]))
-    return str1,parse(Int, num)
-end
+# function custom_cmp(x::String)
+#     arr_str = rsplit(x, "_",limit=2)
+#     str1, _ = arr_str[1], arr_str[2]
+#     number_idx = findlast(isdigit, arr_str[2])
+#     num,str2 = SubString(arr_str[2], 1, number_idx), SubString(arr_str[2], number_idx+1, length(arr_str[2]))
+#     return str1,parse(Int, num)
+# end
 
 function loadDelays()::Tuple{Vector{DataFrame},Int}
     """Takes all the delay files in the data/delays/ directory
@@ -189,7 +180,7 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
     repo = Opt["imposed_delay_repo_path"]
     occursin(r"/$", repo) || (repo *= "/"); # add slash to the folder name if not present
 
-    files=sort!(read_non_hidden_files(repo), by = custom_cmp)
+    files=sort!(read_non_hidden_files(repo))
 
 
     if isempty(files)

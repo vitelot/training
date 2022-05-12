@@ -20,6 +20,10 @@ assuming that it is already the number of seconds elapsed from the epoch
     return d
 end
 
+function read_non_hidden_files(repo)::Vector{String}
+    return filter(!startswith(".") ∘ basename, readdir(repo))
+end
+
 function runTest(RN::Network, FL::Fleet)
     """If test mode is enabled, runs test without printing simulation results on std out
     """

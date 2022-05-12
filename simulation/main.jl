@@ -53,7 +53,7 @@ function multiple_sim(RN::Network, FL::Fleet)
         isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 
 
-        simulation(RN, FL, simulation_id)  && (println("returned 1 , restarting");)
+        simulation(RN, FL, simulation_id)  && (println("successfully ended , restarting");)
 
 
     end
