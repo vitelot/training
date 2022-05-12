@@ -47,27 +47,27 @@ jobs:
 
       - name: Running dummy simulation and putting into scripts/out file
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/scripts/out
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test.ini > ${{ github.workspace }}/scripts/out
 
       - name: Running dummy simulation with the flag for using time macro
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
 
       - name: Running dummy simulation for creating and covering ini file
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini
 
       - name: Running dummy for single sim, with delay, and not simulating
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --inject_delays -i ${{ github.workspace }}/tests/data/par_test2.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --inject_delays -i ${{ github.workspace }}/tests/data/par_test2.ini
 
       - name: Running dummy MULTIPLE simulation
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
 
       - name: Running dummy MULTIPLE simulation without injecting delays :/
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim -i ${{ github.workspace }}/tests/data/par_test1.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim -i ${{ github.workspace }}/tests/data/par_test1.ini
 
 
 #############################################
@@ -76,10 +76,10 @@ jobs:
 
       - name: Running TEST over the simulation
         run: |
-            julia --project=training_env --code-coverage=user ${{ github.workspace }}/tests/simulation_test.jl
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/tests/simulation_test.jl
 
       - name: send results to codecov.io, watching at simulation folder
-        run: julia --project=training_env -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
+        run: julia --project=environment -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
 
       # - name: julia-actions/julia-processcoverage@v1
       #   uses: julia-actions/julia-processcoverage@v1
