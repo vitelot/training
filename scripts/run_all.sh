@@ -22,8 +22,8 @@ echo "\n#####################################\n"
 echo "Fixing the infrastructure."
 cd ../simulation
 
-echo "julia --project=../environment main.jl --catch_conflict_flag"
-julia --project=../environment main.jl --catch_conflict_flag
+echo "julia --project=../environment main.jl --catch_conflict"
+julia --project=../environment main.jl --catch_conflict
 
 mv -f ../data/simulation_data/blocks_catch.csv ../data/simulation_data/blocks.csv
 
