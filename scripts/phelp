@@ -4,7 +4,7 @@ file="phelp.txt"
 
 if [ ! -e $file ]
 then
-  julia --project=../trening_env ../preprocessing/preprocessing.jl -h > $file
+  julia --project=../environment ../preprocessing/preprocessing.jl -h > $file
 fi
 
 cat $file
