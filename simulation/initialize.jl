@@ -187,6 +187,8 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
     delays_array=DataFrame[];
 
     repo = Opt["imposed_delay_repo_path"]
+    occursin(r"/$", repo) || (repo *= "/"); # add slash to the folder name if not present
+
     files=sort!(read_non_hidden_files(repo), by = custom_cmp)
 
 
