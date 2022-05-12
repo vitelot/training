@@ -1,0 +1,10 @@
+#! /bin/sh
+
+file="phelp.txt"
+
+if [ ! -e $file ]
+then
+  julia --project=../environment ../preprocessing/preprocessing.jl -h > $file
+fi
+
+cat $file

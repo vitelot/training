@@ -6,8 +6,8 @@ echo "#####################################\n"
 
 cd ../preprocessing
 
-echo "julia --project=../training_env preprocessing.jl $@"
-julia --project=../training_env preprocessing.jl $@
+echo "julia --project=../environment preprocessing.jl $@"
+julia --project=../environment preprocessing.jl $@
 
 
 # https://www.shellscript.sh/

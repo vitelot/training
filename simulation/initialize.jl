@@ -28,8 +28,6 @@ For example, loading the network, the block characteristics, the timetables
 # end
 
 
-
-
 function loadInfrastructure()::Network
     """
     takes the blocks.csv file and builds the network
@@ -37,146 +35,19 @@ function loadInfrastructure()::Network
     #creating and initializing a data struct network
     RN = Network()
 
-    #list of the tracks, for now just 5
-    tracks=[5]
-    #two directions wrt a track
-    DIRECTIONS=[-1,1];
-    COMMON_DIRECTION = 0;
-
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
-    # keep the stations, i.e., the blocks with same bst
-    df_stations=filter(row -> (split(row.id,"-")[1] == split(row.id,"-")[2]), df)
-    # add the column :bts with bst names
-    transform!(df_stations, :id => ByRow(x -> split(x,"-")[1]) => :bts)
-
-    # select blocks that aren't stations
-    df_blocks=antijoin(df, df_stations, on = :id)
-
-    # add columns with starting and endig bst
-    # transform!(df_blocks, :id => ByRow(x -> split(x,"-")[2]) => :ending_bts)
-    # transform!(df_blocks, :id => ByRow(x -> split(x,"-")[1]) => :starting_bts)
-
-
-    if Opt["multi_stations_flag"] #the stations are used with the directionality of the tracks
-
-        #handling the non-station blocks first
-        for i = 1:nrow(df_blocks)
-            name = df_blocks.id[i]
-
-            b = Block(
-                    name,
-                    # i,
-                    df_blocks.tracks[i],
-                    0,
-                    Set{String}()
-            )
-            RN.nb += 1
-            RN.blocks[name]=b
-
-        end
-
-        #handling stations
-        for i = 1:nrow(df_stations)
-
-            name      = df_stations.id[i]
-            bts       = df_stations.bts[i]
-            platforms = df_stations.tracks[i]
-
-            #impossible station with only one plat
-            if (platforms==1)
-                # println("$bts has 1 platform,update to 2")
-                printstyled("WARNING: station $name has only one platform.\n", bold=true)
-                # platforms+=1
-            end
-
-            #number of directions taken into account
-            n_dir=length(DIRECTIONS)
-
-            #integer number of plats per direction
-            n_plat=div(platforms,n_dir)
-
-            #remaining plat in common
-            common=platforms-n_dir*n_plat
-
-            # #cycle over blocks ending in that station
-            # df_blocksInStation=filter((row -> row.ending_bts == bts), df_blocks)
-            dir2platforms=Dict{Int,Int}()
-            dir2trainscount=Dict{Int,Int}()
-            # trainInBlock2direction=Dict()
-            # for j = 1:nrow(df_blocksInStation)
-            #
-            #     tracks=df_blocksInStation.tracks[j]
-            #     start_bts=df_blocksInStation.starting_bts[j]
-            #
-            #     platforms-=tracks
-            #
-            # end
-
-            #dictionaries for occupancy for every direction
-            for direction in DIRECTIONS
-                dir2platforms[direction]=n_plat
-                dir2trainscount[direction]=0
-            end
-
-            #update of simulation: usa also common plats.
-            if common > 0
-                dir2platforms[COMMON_DIRECTION]=common
-            else
-                dir2platforms[COMMON_DIRECTION]=0
-            end
-
-            b = Block(
-                    name,
-                    # i,
-                    dir2platforms,
-                    dir2trainscount,
-                    Set{String}()
-            )
-
-
-
-            RN.nb += 1
-            RN.blocks[name]=b
-            # push!(RN.nodes[from].child, to)
-            # push!(RN.nodes[to].parent, from)
-        end
-
-
-
-    else#normal blocks
-        for i = 1:nrow(df)
-            name = df.id[i]
-
-            name_split = split(name, '-')
-            if name_split[1]==name_split[2]
-                # println(name)
-            end
-
-            b = Block(
-                    name,
-                    # i,
-                    df.tracks[i],
-                    0,
-                    Set{String}()
-            )
-            RN.nb += 1
-            RN.blocks[name]=b
-            # push!(RN.nodes[from].child, to)
-            # push!(RN.nodes[to].parent, from)
-        end
+    for i = 1:nrow(df)
+        name = df.id[i]; ntracks = df.tracks[i];
+        RN.blocks[name] = initBlock(name, ntracks);
+        RN.nb += 1
     end
+
     df = nothing # explicitly free the memory
 
-    RN.blocks[""] = Block( # the null block
-                        "",
-                        0,
-                        0,
-                        Set{String}()
-    )
-
-
+    # insert the empty block
+    RN.blocks[""] = Block();
 
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
@@ -199,7 +70,7 @@ function loadFleet()::Fleet
     #take direction from the file
     if isfile(trains_info_file)
         train2dir=CSV.File(trains_info_file) |> Dict
-    elseif Opt["multi_stations_flag"]
+    elseif Opt["multi_stations"]
         println("multi platforms activated but no info un usage, add file and restart")
         exit()
     else
@@ -285,26 +156,17 @@ function loadFleet()::Fleet
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
 
-    end
-
-
-
-
-
-
-
-function read_non_hidden_files(repo)::Vector{String}
-    return filter(!startswith(".") ∘ basename, readdir(repo))
 end
+
 
 #customized sorting, for correctly sorting strings based on last digits
-function custom_cmp(x::String)
-    arr_str = rsplit(x, "_",limit=2)
-    str1, _ = arr_str[1], arr_str[2]
-    number_idx = findlast(isdigit, arr_str[2])
-    num,str2 = SubString(arr_str[2], 1, number_idx), SubString(arr_str[2], number_idx+1, length(arr_str[2]))
-    return str1,parse(Int, num)
-end
+# function custom_cmp(x::String)
+#     arr_str = rsplit(x, "_",limit=2)
+#     str1, _ = arr_str[1], arr_str[2]
+#     number_idx = findlast(isdigit, arr_str[2])
+#     num,str2 = SubString(arr_str[2], 1, number_idx), SubString(arr_str[2], number_idx+1, length(arr_str[2]))
+#     return str1,parse(Int, num)
+# end
 
 function loadDelays()::Tuple{Vector{DataFrame},Int}
     """Takes all the delay files in the data/delays/ directory
@@ -316,7 +178,9 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
     delays_array=DataFrame[];
 
     repo = Opt["imposed_delay_repo_path"]
-    files=sort!(read_non_hidden_files(repo), by = custom_cmp)
+    occursin(r"/$", repo) || (repo *= "/"); # add slash to the folder name if not present
+
+    files=sort!(read_non_hidden_files(repo))
 
 
     if isempty(files)

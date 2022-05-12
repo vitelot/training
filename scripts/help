@@ -4,7 +4,7 @@ file="help.txt"
 
 if [ ! -e $file ]
 then
-  julia --project=../trening_env ../simulation/main.jl -h > $file
+  julia --project=../environment ../simulation/main.jl -h > $file
 fi
 
 cat $file

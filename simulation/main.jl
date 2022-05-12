@@ -3,6 +3,7 @@ include("extern.jl")
 include("initialize.jl")
 include("parameters.jl")
 include("functions.jl")
+include("blocks.jl")
 include("simulation.jl")
 include("parser.jl")
 @info "Compiling."
@@ -52,7 +53,7 @@ function multiple_sim(RN::Network, FL::Fleet)
         isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
 
 
-        simulation(RN, FL, simulation_id)  && (println("returned 1 , restarting");)
+        simulation(RN, FL, simulation_id)  && (println("successfully ended , restarting");)
 
 
     end
@@ -73,7 +74,7 @@ function main()
     RN = loadInfrastructure();
     FL = loadFleet();
 
-    if parsed_args["catch_conflict_flag"]
+    if parsed_args["catch_conflict"]
         catch_conflict(RN,FL,parsed_args)
     else
         #one or multiple simulations

@@ -15,8 +15,8 @@ echo "#####################################\n"
 
 cd ../preprocessing
 
-echo "julia --project=../training_env preprocessing.jl -d $day"
-julia --project=../training_env preprocessing.jl -d $day
+echo "julia --project=../environment preprocessing.jl -d $day"
+julia --project=../environment preprocessing.jl -d $day
 
 
 # https://www.shellscript.sh/

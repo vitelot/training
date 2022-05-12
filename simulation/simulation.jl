@@ -12,7 +12,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_elapsed_time      = Opt["print_elapsed_time"]
     print_tot_delay         = Opt["print_tot_delay"]
     print_timetable         = Opt["print_timetable"]
-    catch_conflicts_flag    = Opt["catch_conflict_flag"]
+    catch_conflicts         = Opt["catch_conflict"]
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another
@@ -141,7 +141,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
 
-                        if catch_conflicts_flag
+                        if catch_conflicts
                             throw(exception_blockConflict(trainid,nextBlockid,train.direction))
                         end
 
