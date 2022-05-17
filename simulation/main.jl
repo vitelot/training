@@ -84,7 +84,8 @@ function main()
             one_sim(RN, FL)
         end
     end
-
+    
+    @info "Done."
 end
 
 main()

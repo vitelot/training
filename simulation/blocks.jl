@@ -133,13 +133,14 @@ function increase_block_occupancy(train::Train, blk::Block)
 
     # if the tracks dedicated to the direction are free, occupy one at first
     direction = train.direction;
-    if blk.nt[direction] < blk.tracks[direction]
-        blk.nt[train.direction] += update;
+    nr_trains = blk.nt;
+    if nr_trains[direction] < blk.tracks[direction]
+        nr_trains[train.direction] += update;
         return;
     end
 
     # if nothing else is free, occupy the common track
-    blk.nt[COMMON_DIRECTION] += update
+    nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
 
 end
 
@@ -217,7 +218,7 @@ function catch_conflict(RN,FL,parsed_args)
 
             if isa(err, KeyError) # if the error comes from non existing blocks:
 
-                println("KeyError occurring : $(err.key)")
+                println("New block found : $(err.key)")
                 name=err.key
 
                 if isStation(name)
@@ -238,7 +239,7 @@ function catch_conflict(RN,FL,parsed_args)
                 block=err.block
                 b = RN.blocks[block];
 
-                println("Tracks before at $block: ", b.tracks)
+                println("Nr of tracks before at $block: ", b.tracks)
 
                 if typeof(b.tracks)==Int
                     b.tracks += 1
@@ -248,7 +249,7 @@ function catch_conflict(RN,FL,parsed_args)
                     b.tracks[dir] += 1
                 end
 
-                println("Tracks after at  $block: ",b.tracks)
+                println("Nr of tracks after  at $block: ",b.tracks)
 
                 resetSimulation(FL);
                 resetDynblock(RN);
