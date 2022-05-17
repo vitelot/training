@@ -101,18 +101,19 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                     currentBlock = BK[train.dyn.currentBlock]
 
-                    if check_nextblock_occupancy(train,nextBlock.nt,nextBlock.tracks) # if there are less trains than the number of available tracks
+                     # if there are less trains than the number of available tracks
+                    if isBlockFree(train, nextBlock)
 
                         #updating current block, popping
                         if currentBlock.id != ""
 
-                            currentBlock.nt,currentBlock.train=update_block(train,currentBlock.nt,currentBlock.train,-1)
+                            decrease_block_occupancy(train, currentBlock)
                             # pop!(currentBlock.train, trainid)
                         end
 
                         #updating next block, adding
 
-                        nextBlock.nt,nextBlock.train=update_block(train,nextBlock.nt,nextBlock.train, 1)
+                        increase_block_occupancy(train, nextBlock)
 
                         print_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
 
@@ -160,7 +161,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
 
                         #updating the values in the corresponding block, train ended
-                        BK[train.dyn.currentBlock].nt,BK[train.dyn.currentBlock].train=update_block(train,BK[train.dyn.currentBlock].nt,BK[train.dyn.currentBlock].train,-1)
+                        decrease_block_occupancy(train, BK[train.dyn.currentBlock])
 
                         #BK[train.dyn.currentBlock].nt -= 1
 

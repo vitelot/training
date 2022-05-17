@@ -80,51 +80,66 @@ function initBlock(name::AbstractString, ntracks::Int)
     return b;
 end
 
-#multiple dispatch functions for multiple-sided stations
-function check_nextblock_occupancy(train::Train,nt::Dict{Int,Int},tracks_in_platform::Dict{Int,Int})::Bool
+function isBlockFree(train::Train, blk::Block)::Bool
 
-    track=train.track
+    COMMON_DIRECTION = 0;
+
+    nr_trains = blk.nt;
+    nr_tracks = blk.tracks;
+
+    # if the block is not in a station
+    if typeof(nr_trains) == Int
+        return (nr_trains < nr_tracks);
+    end
+
+    #track=train.track
     direction=train.direction
 
     #check occupancy in that direction
-    return (nt[direction]<tracks_in_platform[direction])
+    return (get(nr_trains, COMMON_DIRECTION, 0)==0 || nr_trains[direction] < nr_tracks[direction])
 end
 
-function check_nextblock_occupancy(train::Train,nt::Int,tracks_in_platform::Int)::Bool
-    return (nt<tracks_in_platform)
-end
+function decrease_block_occupancy(train::Train, blk::Block)
+    COMMON_DIRECTION = 0;
+    update = -1;
 
-#update next block if old simulation or new one updating a block, not station
-function update_block(train::Train,next_nt::Int,
-    nextBlock_train::Set{String},update::Int)::Tuple{Int, Set{String}}
+    pop!(blk.train, train.id)
 
-    trainid=train.id
-    next_nt+=update
-    if update >0
-        push!(nextBlock_train, trainid)
-    else
-        pop!(nextBlock_train, trainid)
-    end
-    return next_nt,nextBlock_train
-end
-
-#MULTIPLE DISPATCH
-function update_block(train::Train,next_nt::Dict{Int,Int},
-    nextBlock_train::Set{String},update::Int)::Tuple{Dict,Set{String}}
-
-    trainid=train.id
-    direction=train.direction
-
-    next_nt[direction]+=update
-
-    if update >0
-        push!(nextBlock_train, trainid)
-    else
-        pop!(nextBlock_train, trainid)
+    if typeof(blk.nt) == Int
+        blk.nt += update;
+        return;
     end
 
-    return next_nt,nextBlock_train
+    # if the common track is occupied, free it at first
+    if get(blk.nt, COMMON_DIRECTION, 0) > 0
+        blk.nt[COMMON_DIRECTION] += update;
+        return;
+    end
 
+    blk.nt[train.direction] += update
+
+end
+
+function increase_block_occupancy(train::Train, blk::Block)
+    COMMON_DIRECTION = 0;
+    update = 1;
+
+    push!(blk.train, train.id)
+
+    if typeof(blk.nt) == Int
+        blk.nt += update;
+        return;
+    end
+
+    # if the tracks dedicated to the direction are free, occupy one at first
+    direction = train.direction;
+    if blk.nt[direction] < blk.tracks[direction]
+        blk.nt[train.direction] += update;
+        return;
+    end
+
+    # if nothing else is free, occupy the common track
+    blk.nt[COMMON_DIRECTION] += update
 
 end
 
