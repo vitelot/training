@@ -77,8 +77,6 @@ function loadFleet()::Fleet
         train2dir=Dict(zip(unique_trains, zeros(length(unique_trains))))
     end
 
-    block=String
-
     #right now the train track is only n.5
     track=5
 
@@ -105,7 +103,7 @@ function loadFleet()::Fleet
         direction=train2dir[unpopped]
 
 
-        for i in 1:nrows
+        for i in 1:nrows-1
 
 
             bts=df2.opid[i]
@@ -119,12 +117,10 @@ function loadFleet()::Fleet
                     duetime
             )
 
-            if i < nrows
-                next_bts=df2.opid[i+1]
-                block=bts*"-"*next_bts
-            end
 
-
+            next_bts=df2.opid[i+1]
+            block=bts*"-"*next_bts
+            
             if !haskey(FL.train, train)
 
                 get!(FL.train, train,

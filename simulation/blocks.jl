@@ -184,7 +184,7 @@ function resetDynblock(RN::Network)#,
 Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
 """
 
-    DIRECTIONS = [-1,1]
+    DIRECTIONS = [-1,0,1]
     dir2trainscount = Dict{Int,Int}()
 
     for direction in DIRECTIONS
@@ -202,7 +202,7 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
         end
         b.train = Set{String}();
     end
-
+#@show get(RN.blocks, "WBFS12-WBFS22", Block())
 end
 
 function catch_conflict(RN,FL,parsed_args)
@@ -229,7 +229,7 @@ function catch_conflict(RN,FL,parsed_args)
 
                 RN.nb += 1
                 RN.blocks[name]=b
-
+#@show RN.nb
                 resetSimulation(FL);
                 resetDynblock(RN);
 

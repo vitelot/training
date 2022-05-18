@@ -48,7 +48,6 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     t0 = t = minimum(keys(Event)) - 1
     t_final=t_final_starting = maximum(keys(Event))
 
-
     print_elapsed_time && println("t final starting is $t_final_starting")
 
     while(t<=t_final) # a for loop does not fit here since we need to recalculate t_final in the loop
