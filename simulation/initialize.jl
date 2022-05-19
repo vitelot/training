@@ -55,8 +55,9 @@ end
 
 
 
+"""takes the timetable.csv file and loads the Fleet """
 function loadFleet()::Fleet
-    """takes the timetable.csv file and loads the Fleet """
+
     file = Opt["timetable_file"]
     trains_info_file=Opt["trains_info_file"]
 
@@ -64,6 +65,8 @@ function loadFleet()::Fleet
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
+
+    df.duetime = dateToSeconds.(df.duetime)
 
     unique_trains=unique(df.trainid)
 
@@ -80,69 +83,61 @@ function loadFleet()::Fleet
     #right now the train track is only n.5
     track=5
 
-
-
     for train in unique_trains
 
         df2=filter(row -> (row.trainid == train), df) #provo a usare subset
         nrows=nrow(df2)
 
-        #restore original name from poppers
-        if occursin("_pop", train)
-
-            r=collect(findfirst("_pop", train))
-
-            unpopped = train[1:r[1]-1]
-
-            # println("$train, removing: $unpopped")
-        else
-            unpopped=train
-        end
-
-
+        #restore original name from poppers since the direction is associated with the plain name
+        unpopped = replace(train, "_pop" => "");
         direction=train2dir[unpopped]
 
-
+    #    for i in 1:nrows-1
         for i in 1:nrows-1
 
-
-            bts=df2.opid[i]
-
             # trainid=string(df2.trainid[i])
-            duetime = dateToSeconds(df2.duetime[i])
+            bts     = df2.opid[i]
+            duetime = df2.duetime[i];
+
             str = Transit(
                     train,
-                    df2.opid[i],
+                    bts,
                     df2.kind[i],
                     duetime
             )
 
-
             next_bts=df2.opid[i+1]
             block=bts*"-"*next_bts
-            
-            if !haskey(FL.train, train)
 
-                get!(FL.train, train,
-                        Train(train,track,direction, [str],
-                            DynTrain(0,"",""),Dict(block=>0)))
-                # get!(FL.train, trainid,
-                #         Train(trainid, [str],
-                #             DynTrain(0,"","",0,0)))
-            else
-                push!(FL.train[train].schedule, str)
-                # println(i,nrows)
-                FL.train[train].delay[block]=0
-            end
+            @show train, block, str
 
+            get!(FL.train, train,
+                    Train(train,track,direction, Transit[],
+                    DynTrain(0,"",""),
+                    Dict{String,Int}()));
+
+            push!(FL.train[train].schedule, str)
+            FL.train[train].delay[block]=0
         end
+        # last bts:
+        str = Transit(
+                train,
+                df2.opid[end],
+                df2.kind[end],
+                df2.duetime[end]
+        );
+        get!(FL.train, train,
+                Train(train,track,direction, Transit[],
+                DynTrain(0,"",""),
+                Dict{String,Int}()));
+        push!(FL.train[train].schedule, str)
 
     end
 
 
     FL.n = length(FL.train)
     df = nothing
-    df2= nothing
+#    df2= nothing
 
 
     for train in keys(FL.train)
