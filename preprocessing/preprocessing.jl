@@ -3,6 +3,7 @@ using DataFrames, CSV, Dates
 include("parser.jl")
 include("exo_delays.jl")
 include("functions.jl")
+include("rotations.jl")
 @info "Compiling."
 
 function main()
@@ -29,6 +30,7 @@ function main()
     nr_exo_delays = parsed_args["exo_delays"];
     use_real_time = parsed_args["use_real_time"];
     split_transit = parsed_args["split_transits"];
+    find_rotations= parsed_args["rotations"];
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -53,6 +55,8 @@ function main()
     #load the df
 @info "Loading data"
     df=CSV.read(file,DataFrame, delim=',', decimal=',')
+
+    find_rotations && Rotations(copy(df));
 
     rename!(df, :"BST Code Anlieferung" => :bts_code)
     rename!(df, :Betriebstag            => :date)

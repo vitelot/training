@@ -33,6 +33,10 @@ function parse_commandline()
             help = "Splits a Durchfahrt into two events by adding a durchfahrt_out few seconds later."
             action = :store_true
 
+        "--rotations"
+            help = "Create a file with train dependencies. One train cannot start if the other has not arrived yet."
+            action = :store_true
+
     end
 
     return parse_args(s)
