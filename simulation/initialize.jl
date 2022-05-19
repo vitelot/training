@@ -109,7 +109,7 @@ function loadFleet()::Fleet
             next_bts=df2.opid[i+1]
             block=bts*"-"*next_bts
 
-            @show train, block, str
+            #@show train, block, str
 
             get!(FL.train, train,
                     Train(train,track,direction, Transit[],
