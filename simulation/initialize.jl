@@ -89,7 +89,7 @@ function loadFleet()::Fleet
         nrows=nrow(df2)
 
         #restore original name from poppers since the direction is associated with the plain name
-        unpopped = replace(train, "_pop" => "");
+        unpopped = replace(train, r"_pop.*" => "");
         direction=train2dir[unpopped]
 
     #    for i in 1:nrows-1
