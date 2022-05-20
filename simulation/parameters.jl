@@ -29,9 +29,9 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="block_file")           Opt[key] = val
         elseif(key=="timetable_file")       Opt[key] = val
         elseif(key=="opoint_file")          Opt[key] = val
-        #elseif(key=="imposed_delay_file")      Opt[key] = val
-        elseif(key=="imposed_delay_repo_path")      Opt[key] = val
         elseif(key=="trains_info_file")     Opt[key] = val
+        elseif(key=="rotation_file")        Opt[key] = val
+        elseif(key=="imposed_delay_repo_path")      Opt[key] = val
         ####################################################################
         elseif(key=="simulate")             Opt[key] = parse(Bool, val)
         ####################################################################
@@ -47,6 +47,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="print_imposed_delay")  Opt[key] = parse(Bool, val)
         elseif(key=="print_tot_delay")      Opt[key] = parse(Bool, val)
         elseif(key=="print_notifications")  Opt[key] = parse(Bool, val)
+        ####################################################################
         elseif(key=="print_timetable")      Opt[key] = parse(Bool, val)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
@@ -113,6 +114,7 @@ Version                 $ProgramVersion # Program's version
 timetable_file          ../data/simulation_data/timetable.csv # contains the timetable to simulate
 block_file              ../data/simulation_data/blocks.csv    # contains the nr of tracks for each block
 trains_info_file        None   # contains info on all the trains (direction, line, etc.)
+rotation_file           None   # list of train dependencies: one train does not start if the other has not arrived
 imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
@@ -129,7 +131,8 @@ print_elapsed_time      0   # display elapsed simulated seconds
 print_imposed_delay     0   # display trains with imposed delay
 print_tot_delay         1   # print the total delay at the end of simulation
 print_notifications     0   # the simulation sequential number in stderr
-print_timetable         0   # print a timetable similar to input in file
+#############################
+print_timetable         0   # save the simulated timetables
 #############################
 
 """
