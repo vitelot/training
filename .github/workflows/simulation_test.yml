@@ -51,7 +51,7 @@ jobs:
 
       - name: Running dummy simulation with the flag for using time macro
         run: |
-            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --test 1
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl -i ${{ github.workspace }}/tests/data/par_test0.ini --speed_test
 
       - name: Running dummy simulation for creating and covering ini file
         run: |
@@ -63,11 +63,11 @@ jobs:
 
       - name: Running dummy MULTIPLE simulation
         run: |
-            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_simulation --inject_delays -i ${{ github.workspace }}/tests/data/par_test1.ini
 
       - name: Running dummy MULTIPLE simulation without injecting delays :/
         run: |
-            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_sim -i ${{ github.workspace }}/tests/data/par_test1.ini
+            julia --project=environment --code-coverage=user ${{ github.workspace }}/simulation/main.jl --multi_simulation -i ${{ github.workspace }}/tests/data/par_test1.ini
 
 
 #############################################
