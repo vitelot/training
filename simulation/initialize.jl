@@ -68,7 +68,7 @@ function loadFleet()::Fleet
 
     df.duetime = dateToSeconds.(df.duetime)
 
-    unique_trains=unique(df.trainid)
+    Trains = FL.train;
 
     #take direction from the file
     if isfile(trains_info_file)
@@ -83,65 +83,50 @@ function loadFleet()::Fleet
     #right now the train track is only n.5
     track=5
 
-    for train in unique_trains
-
-        df2=filter(row -> (row.trainid == train), df) #provo a usare subset
-        nrows=nrow(df2)
+    # build the schedule for every train
+    for i = 1:nrow(df)
+        (train, bts, kind, duetime) = df[i,:];
 
         #restore original name from poppers since the direction is associated with the plain name
-        unpopped = replace(train, r"_pop.*" => "");
-        direction=train2dir[unpopped]
+        unpopped  = replace(train, r"_pop.*" => "");
+        direction = train2dir[unpopped]
 
-    #    for i in 1:nrows-1
-        for i in 1:nrows-1
-
-            # trainid=string(df2.trainid[i])
-            bts     = df2.opid[i]
-            duetime = df2.duetime[i];
-
-            str = Transit(
-                    train,
-                    bts,
-                    df2.kind[i],
-                    duetime
-            )
-
-            next_bts=df2.opid[i+1]
-            block=bts*"-"*next_bts
-
-            #@show train, block, str
-
-            get!(FL.train, train,
-                    Train(train,track,direction, Transit[],
-                    DynTrain(0,"",""),
-                    Dict{String,Int}()));
-
-            push!(FL.train[train].schedule, str)
-            FL.train[train].delay[block]=0
-        end
-        # last bts:
         str = Transit(
                 train,
-                df2.opid[end],
-                df2.kind[end],
-                df2.duetime[end]
-        );
-        get!(FL.train, train,
-                Train(train,track,direction, Transit[],
-                DynTrain(0,"",""),
-                Dict{String,Int}()));
-        push!(FL.train[train].schedule, str)
+                bts,
+                kind,
+                duetime
+        )
 
+        if !haskey(Trains, train)
+            Trains[train] = Train(
+                                train,
+                                track,direction,
+                                Transit[],
+                                DynTrain(0,"",""),
+                                Dict{String,Int}()
+                            );
+        end
+        push!(Trains[train].schedule, str);
     end
 
+    FL.n = length(Trains);
+    df = nothing; # free memory for a better world
 
-    FL.n = length(FL.train)
-    df = nothing
-#    df2= nothing
+    # initialize the delay on the blocks
+    for train in keys(Trains)
+        # be sure the schedule is sorted
+        Schedule = Trains[train].schedule;
+        issorted(Schedule) || sort!(Schedule)
 
+        for i = 1:length(Schedule)-1
+            bts = Schedule[i].opid;
+            nextbts = Schedule[i+1].opid;
+            block = bts*"-"*nextbts;
 
-    for train in keys(FL.train)
-        !issorted(FL.train[train].schedule) && sort!(FL.train[train].schedule)#(println("here!");exit())#()
+            Trains[train].delay[block] = 0
+        end
+
     end
 
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
@@ -241,36 +226,25 @@ function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::I
 
 end
 
-
+"""
+Initializes the Event dict, having times as keys and the first train event in that time as values
+"""
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 
-    """Creates the Event dict,
-     having times as keys and events in that time as values """
     E = Dict{Int,Vector{Transit}}()
 
-    #TB = generateTimetable(FL)
-
     Opt["print_flow"] && println("Initializing the event table")
-
-    S = Set{String}() # trains circulating
 
     for trainid in keys(FL.train)
 
         Opt["print_train_list"] && println("\tTrain $trainid")
 
-        for s in FL.train[trainid].schedule #fl.train[trainid].schedule --> vector of transits
+        s = FL.train[trainid].schedule[1]; # first transit
+        duetime = s.duetime;
 
-            duetime = s.duetime
+        get!(E, duetime, Transit[]);
+        push!(E[duetime], s)
 
-            if trainid ∉ S # add new train in the current day events
-
-                get!(E,duetime,Transit[])
-                push!(E[duetime], s)
-                push!(S, trainid)
-                #println("New train $trainid starting at $opid")
-            end
-
-        end
     end
 
     E
