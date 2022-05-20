@@ -10,11 +10,9 @@ function parse_commandline()
             arg_type = String
             default = "../data/simulation_data/par.ini"
 
-        "--test", "-t"
-            help = "Int for running time or btime on simulation, default 0"
-            arg_type = Int
-            range_tester=x->issubset(x,[0,1,2])
-            default = 0
+        "--speed_test"
+            help = "perform a speed test using the @time macro"
+            action = :store_true
 
         "--multi_simulation"
             help = "a flag for running multiple simulations"

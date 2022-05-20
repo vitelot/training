@@ -7,12 +7,12 @@ function loadOptions(parsed_args::Dict)
 
     file                        = parsed_args["ini"]
 
-    Opt["test"]                 = parsed_args["test"]
+    Opt["test"]                 = parsed_args["speed_test"]
     Opt["catch_conflict"]       = parsed_args["catch_conflict"]
     Opt["multi_stations"]       = parsed_args["multi_stations"]
     Opt["inject_delays"]        = parsed_args["inject_delays"]
     Opt["multi_simulation"]     = parsed_args["multi_simulation"]
-    
+
     if !isfile(file)
         createIniFile(file)
     end
@@ -64,7 +64,7 @@ function loadOptions(parsed_args::Dict)
 
     parsed_args["inject_delays"] || (Opt["imposed_delay_repo_path"] = "None";)
 
-    if parsed_args["test"]>0
+    if Opt["test"]
 
         print("\nPerforming speed test with no output.\nPlease be patient. ")
 

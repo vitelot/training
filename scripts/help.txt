@@ -1,12 +1,11 @@
-usage: main.jl [-i INI] [-t TEST] [--multi_simulation]
+usage: main.jl [-i INI] [--speed_test] [--multi_simulation]
                [--catch_conflict] [--inject_delays] [--multi_stations]
                [-h]
 
 optional arguments:
   -i, --ini INI       path for the .ini file (default:
                       "../data/simulation_data/par.ini")
-  -t, --test TEST     Int for running time or btime on simulation,
-                      default 0 (type: Int64, default: 0)
+  --speed_test        perform a speed test using the @time macro
   --multi_simulation  a flag for running multiple simulations
   --catch_conflict    a flag for running routines for checking the
                       structure of the railway

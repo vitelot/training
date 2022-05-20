@@ -194,8 +194,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                                             t is $t ; status is  $status")
 
                 #Event = nothing; #don't need to do that. it will be garbage collected.
-                resetSimulation(FL); # set trains dynamical variables to zero
-                resetDynblock(RN);
+                # resetSimulation(FL); # set trains dynamical variables to zero
+                # resetDynblock(RN);
                 return true;
             end
             t_evaluated=0
@@ -207,7 +207,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_timetable && close(out_file)
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
-    resetSimulation(FL); # set trains dynamical variables to zero
-    resetDynblock(RN);
+    # resetSimulation(FL); # set trains dynamical variables to zero
+    # resetDynblock(RN);
     return false
 end

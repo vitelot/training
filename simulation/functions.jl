@@ -25,19 +25,17 @@ function read_non_hidden_files(repo)::Vector{String}
 end
 
 function runTest(RN::Network, FL::Fleet)
-    """If test mode is enabled, runs test without printing simulation results on std out
+    """If test mode is enabled, runs speed test without printing simulation results on std out
     """
 
 #    print("\nPerforming speed test with no output. Please be patient.\r")
-    if Opt["test"] == 2
-        print("Using @btime ...\r")
-        @btime simulation($RN, $FL)
-    # elseif Opt["TEST"] == 3
-    #     @benchmark simulation($RN, $FL)
-    else
+    # if Opt["test"] == 2
+    #     print("Using @btime ...\r")
+    #     @btime simulation($RN, $FL)
+    # else
         @time simulation(RN, FL)
         print("Macro @time was used.\n")
-    end
+    # end
 end
 
 function myRand(min::Float64, max::Float64)::Float64
@@ -82,8 +80,8 @@ function resetSimulation(FL::Fleet)#,RN::Network
 Resets the dynamical variables of trains in case of multiple simulation runs
 """
     #println("resetting Fleet")
-    for trainid in keys(FL.train)
-        FL.train[trainid].dyn = DynTrain(0,"","");
+    for Train in values(FL.train)
+        Train.dyn = DynTrain(0,"","");
     end
 end
 

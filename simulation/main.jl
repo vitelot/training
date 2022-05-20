@@ -27,7 +27,10 @@ function one_sim(RN::Network, FL::Fleet)
 
     if Opt["simulate"]
 
-        Opt["test"]>0 && runTest(RN,FL)
+        if Opt["test"]
+            runTest(RN,FL)
+            return;
+        end
 
         simulation(RN, FL)
     else
@@ -40,13 +43,11 @@ end
 
 function multiple_sim(RN::Network, FL::Fleet)
 
-    number_simulations=1;
-
     if isdir(Opt["imposed_delay_repo_path"])
         delays_array = loadDelays()
         number_simulations = length(delays_array)
     else
-        Opt["print_notifications"] && println(stderr,"Running multiple_sim() without imposing delay files makes no sense. Running a simple simulation.")
+        println(stderr,"Running multiple_sim() without imposing delay files makes no sense. Running a simple simulation.")
         one_sim(RN,FL);
         return;
     end
@@ -59,9 +60,10 @@ function multiple_sim(RN::Network, FL::Fleet)
 
         isempty(delays_array) || imposeDelays(FL, delays_array[simulation_id])
 
-
         simulation(RN, FL, simulation_id)  && (println("successfully ended , restarting");)
 
+        resetSimulation(FL); # set trains dynamical variables to zero
+        resetDynblock(RN); # reinitialize the blocks
 
     end
     nothing

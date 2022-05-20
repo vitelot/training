@@ -71,13 +71,12 @@ function loadFleet()::Fleet
     Trains = FL.train;
 
     #take direction from the file
+    train2dir = Dict{String,Int}();
     if isfile(trains_info_file)
-        train2dir=CSV.File(trains_info_file) |> Dict
+        train2dir = CSV.File(trains_info_file) |> Dict
     elseif Opt["multi_stations"]
-        println("multi platforms activated but no info un usage, add file and restart")
+        println("multi platforms activated but no file found. Add file and restart")
         exit()
-    else
-        train2dir=Dict(zip(unique_trains, zeros(length(unique_trains))))
     end
 
     #right now the train track is only n.5
@@ -89,7 +88,7 @@ function loadFleet()::Fleet
 
         #restore original name from poppers since the direction is associated with the plain name
         unpopped  = replace(train, r"_pop.*" => "");
-        direction = train2dir[unpopped]
+        direction = get(train2dir, unpopped, 0);
 
         str = Transit(
                 train,
