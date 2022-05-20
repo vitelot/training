@@ -53,8 +53,6 @@ function loadInfrastructure()::Network
     RN
 end
 
-using PrettyPrint
-
 """takes the timetable.csv file and loads the Fleet """
 function loadFleet()::Fleet
 
@@ -136,7 +134,6 @@ function loadFleet()::Fleet
 
     end
 
-    pprint(FL); exit();
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
 

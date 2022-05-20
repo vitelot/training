@@ -60,10 +60,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
             for transit in Event[t]
 
-                trainid = transit.trainid
+                trainid      = transit.trainid
                 current_opid = transit.opid
-                kind = transit.kind
-                duetime = transit.duetime
+                kind         = transit.kind
+                duetime      = transit.duetime
 
 
                 #arrived early, appending event for next time and continue,skipping this transit
@@ -80,14 +80,21 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                 print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
 
+                train = FL.train[trainid]
 
                 if trainid ∉ S # new train in the current day
+                    if in(train.dependence, S)
+                        get!(Event, t+1, Transit[])
+                        push!(Event[t+1], train.schedule[1]);
+                        println("Train $trainid cannot start because $(train.dependence) did not arrive. $t")
+                        continue;
+                    end
+
                     push!(S,trainid)
                     print_new_train && println("New train $trainid starting at $current_opid at time $t")
                 end
 
                 # we are in current_opid and would like to move to nextopid travelling on block "current_opid-nextopid"
-                train = FL.train[trainid]
                 train.dyn.n_opoints_visited += 1
                 n_op = train.dyn.n_opoints_visited # number of opoints passed
 

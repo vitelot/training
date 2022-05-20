@@ -1,4 +1,4 @@
-function dateToSeconds(d::String31)::Int
+function dateToSeconds(d::AbstractString)::Int
 """
 Given a string in the format "yyyy-mm-dd HH:MM:SS"
 returns the number of seconds elapsed from the epoch

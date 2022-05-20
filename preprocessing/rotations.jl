@@ -5,13 +5,14 @@ function Rotations(df::DataFrame)
 
 #filter!( row -> row[:Betriebstag]=="25.03.19", df);
 
-    rename!(df, :"BST Code Anlieferung" => :bst)
+    rename!(df, :bts_code => :bst)
     #rename!(df, :Betriebstag            => :date)
     #rename!(df, :Istzeit                => :rtime)
     #rename!(df, :"Messpunkt Bez"        => :kind)
-    rename!(df, :"Sollzeit R"           => :stime)
-    rename!(df, :"Zuglaufmodus Code"    => :code)
-    df.trainid = string.(df.Zuggattung, "_",  df.Zugnr)
+    rename!(df, :scheduled_time         => :stime)
+    rename!(df, :CODE                   => :code)
+    rename!(df, :train_id               => :trainid)
+    #df.trainid = string.(df.Zuggattung, "_",  df.Zugnr)
 
     select!(df, ([:trainid,:code,:stime, :Tfz1,:Tfz2,:Tfz3,:Tfz4,:Tfz5]))
 
@@ -52,6 +53,11 @@ function Rotations(df::DataFrame)
             D[V[i]] = V[i-1];
         end
     end
+
+    # for l in keys(LokoTrain)
+    #     "SB_29890" in LokoTrain[l] && println("$l ", LokoTrain[l]);
+    # end
+    # exit();
 
     dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
     file = "../data/simulation_data/rotations.csv";

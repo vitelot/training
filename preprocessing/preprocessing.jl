@@ -54,9 +54,8 @@ function main()
 
     #load the df
 @info "Loading data"
-    df=CSV.read(file,DataFrame, delim=',', decimal=',')
+    df=CSV.read(file,DataFrame, delim=',', types=String)
 
-    find_rotations && Rotations(copy(df));
 
     rename!(df, :"BST Code Anlieferung" => :bts_code)
     rename!(df, :Betriebstag            => :date)
@@ -67,7 +66,7 @@ function main()
     df.train_id = string.(df.Zuggattung, "_",  df.Zugnr)
 
 
-    select!(df, ([:date,:train_id,:bts_code,:CODE,:scheduled_time,:real_time,:kind]))
+    select!(df, ([:date,:train_id,:bts_code,:CODE,:scheduled_time,:real_time,:kind,:Tfz1,:Tfz2,:Tfz3,:Tfz4,:Tfz5]))
 
     #take only real running trains
     filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
@@ -76,6 +75,8 @@ function main()
     if in_file == ""
         filter!(row -> (row.date == date ), df)
     end
+
+    find_rotations && Rotations(copy(df));
 
     if use_real_time
         df.scheduled_time = df.real_time;
