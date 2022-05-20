@@ -1,24 +1,31 @@
-usage: main.jl [-i INI] [--speed_test] [--multi_simulation]
-               [--catch_conflict] [--inject_delays] [--multi_stations]
-               [-h]
+usage: main.jl [-i INI] [-t TIMETABLE_FILE] [-b BLOCK_FILE]
+               [--speed_test] [--multi_simulation] [--catch_conflict]
+               [--inject_delays] [--multi_stations] [-h]
 
 optional arguments:
-  -i, --ini INI       path for the .ini file (default:
-                      "../data/simulation_data/par.ini")
-  --speed_test        perform a speed test using the @time macro
-  --multi_simulation  a flag for running multiple simulations
-  --catch_conflict    a flag for running routines for checking the
-                      structure of the railway
-  --inject_delays     The program searches for delays to inject in the
-                      simulation.                    The corresponding
-                      files with the lists of trians to delay must be
-                      placed                    in the folder
-                      specified in par.ini under
-                      imposed_delay_repo_path, which usually
-                      is the /data/delays/ folder;
-                      If the --multi_simulation flag is not specified,
-                      the first ordered delay file is used.
-  --multi_stations    a flag for making the platforms at stations have
-                      a preferential direction
-  -h, --help          show this help message and exit
+  -i, --ini INI         path for the .ini file (default:
+                        "../data/simulation_data/par.ini")
+  -t, --timetable_file TIMETABLE_FILE
+                        override the path to the timetable file
+                        (default: "")
+  -b, --block_file BLOCK_FILE
+                        override the path to the file with block
+                        specifications (default: "")
+  --speed_test          perform a speed test using the @time macro
+  --multi_simulation    a flag for running multiple simulations
+  --catch_conflict      a flag for running routines for checking the
+                        structure of the railway
+  --inject_delays       The program searches for delays to inject in
+                        the simulation.                    The
+                        corresponding files with the lists of trians
+                        to delay must be placed                    in
+                        the folder specified in par.ini under
+                        imposed_delay_repo_path, which usually
+                        is the /data/delays/ folder;
+                        If the --multi_simulation flag is not
+                        specified, the first ordered delay file is
+                        used.
+  --multi_stations      a flag for making the platforms at stations
+                        have a preferential direction
+  -h, --help            show this help message and exit
 

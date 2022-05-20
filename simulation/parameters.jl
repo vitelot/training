@@ -64,6 +64,13 @@ function loadOptions(parsed_args::Dict)
 
     parsed_args["inject_delays"] || (Opt["imposed_delay_repo_path"] = "None";)
 
+    if !isempty(parsed_args["timetable_file"])
+        Opt["timetable_file"] = parsed_args["timetable_file"];
+    end
+    if !isempty(parsed_args["block_file"])
+        Opt["block_file"] = parsed_args["block_file"];
+    end
+
     if Opt["test"]
 
         print("\nPerforming speed test with no output.\nPlease be patient. ")

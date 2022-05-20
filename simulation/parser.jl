@@ -10,6 +10,16 @@ function parse_commandline()
             arg_type = String
             default = "../data/simulation_data/par.ini"
 
+        "--timetable_file", "-t"
+            help = "override the path to the timetable file"
+            arg_type = String
+            default = ""
+
+        "--block_file", "-b"
+            help = "override the path to the file with block specifications"
+            arg_type = String
+            default = ""
+
         "--speed_test"
             help = "perform a speed test using the @time macro"
             action = :store_true

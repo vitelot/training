@@ -4,7 +4,7 @@ useful shortcuts,
 and the packages to be loaded
 """
 
-using DataFrames, CSV, Dates, BenchmarkTools; #, DataStructures;
+using DataFrames, CSV, Dates;
 # using StatsBase, PrettyPrint;
 # using Profile
 # using InteractiveUtils
