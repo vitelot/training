@@ -79,6 +79,11 @@ function main()
     #load parsed_args["ini"] file infos
     loadOptions(parsed_args);
 
+    if parsed_args["version"]
+        println("Program version $ProgramVersion");
+        return;
+    end
+
     #load the railway net
     RN = loadInfrastructure();
     FL = loadFleet();

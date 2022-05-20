@@ -5,6 +5,10 @@ function parse_commandline()
 
     @add_arg_table s begin
 
+        "--version", "-v"
+            help = "show the simulation's version"
+            action = :store_true
+            
         "--ini", "-i"
             help = "path for the .ini file"
             arg_type = String
