@@ -83,6 +83,7 @@ mutable struct Train
 
     track::Int # track id in whih the train runs
     direction::Int# direction wrt the origin of the track
+    dependence::String # id of train that has to arrive at final destination before this train starts
     schedule::Vector{Transit} # schedule[duetime] = info on stops
     dyn::DynTrain
     delay::Dict{String, Int} # Train[block] = imposed delay for train inblock

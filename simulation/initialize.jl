@@ -53,13 +53,14 @@ function loadInfrastructure()::Network
     RN
 end
 
-
+using PrettyPrint
 
 """takes the timetable.csv file and loads the Fleet """
 function loadFleet()::Fleet
 
-    file = Opt["timetable_file"]
-    trains_info_file=Opt["trains_info_file"]
+    file = Opt["timetable_file"];
+    trains_info_file=Opt["trains_info_file"];
+    rotation_file = Opt["rotation_file"];
 
     Opt["print_flow"] && println("Loading fleet information")
 
@@ -77,6 +78,12 @@ function loadFleet()::Fleet
     elseif Opt["multi_stations"]
         println("multi platforms activated but no file found. Add file and restart")
         exit()
+    end
+
+    Rot = Dict{String,String}();
+    if isfile(rotation_file)
+        Rot = Dict(CSV.File(rotation_file));
+        Opt["print_flow"] && println("Rotations loaded")
     end
 
     #right now the train track is only n.5
@@ -101,6 +108,7 @@ function loadFleet()::Fleet
             Trains[train] = Train(
                                 train,
                                 track,direction,
+                                get(Rot, unpopped, ""),
                                 Transit[],
                                 DynTrain(0,"",""),
                                 Dict{String,Int}()
@@ -128,6 +136,7 @@ function loadFleet()::Fleet
 
     end
 
+    pprint(FL); exit();
     Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
     return FL
 
