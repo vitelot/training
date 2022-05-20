@@ -13,10 +13,14 @@ function one_sim(RN::Network, FL::Fleet)
 
     #inserting delays from data/delays/ repo..
     if isdir(Opt["imposed_delay_repo_path"])
-         delays_array,number_simulations = loadDelays();
+         delays_array = loadDelays();
+         number_simulations = length(delays_array)
          #imposing first file delay, simulation_id=1
-         imposeDelays(FL,delays_array,1)
-     end
+         imposeDelays(FL, delays_array[1])
+    elseif Opt["inject_delays"]
+         printstyled("The option --inject_delays is active, but no path specified to the folder with delays in par.ini\n", bold=true);
+
+    end
 
     Opt["print_flow"] && println("##################################################################")
     Opt["print_flow"] && println("Starting simulation")
@@ -36,12 +40,15 @@ end
 
 function multiple_sim(RN::Network, FL::Fleet)
 
+    number_simulations=1;
+
     if isdir(Opt["imposed_delay_repo_path"])
-        delays_array,number_simulations = loadDelays()
+        delays_array = loadDelays()
+        number_simulations = length(delays_array)
     else
         Opt["print_notifications"] && println(stderr,"Running multiple_sim() without imposing delay files makes no sense. Running a simple simulation.")
-        delays_array=[]
-        number_simulations=1
+        one_sim(RN,FL);
+        return;
     end
 
     for simulation_id in 1:number_simulations
@@ -50,7 +57,7 @@ function multiple_sim(RN::Network, FL::Fleet)
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
         Opt["print_notifications"] && (@info "Starting simulation number $simulation_id.")
 
-        isempty(delays_array) || imposeDelays(FL,delays_array,simulation_id)
+        isempty(delays_array) || imposeDelays(FL, delays_array[simulation_id])
 
 
         simulation(RN, FL, simulation_id)  && (println("successfully ended , restarting");)
@@ -84,7 +91,7 @@ function main()
             one_sim(RN, FL)
         end
     end
-    
+
     @info "Done."
 end
 

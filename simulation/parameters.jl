@@ -10,7 +10,9 @@ function loadOptions(parsed_args::Dict)
     Opt["test"]                 = parsed_args["test"]
     Opt["catch_conflict"]       = parsed_args["catch_conflict"]
     Opt["multi_stations"]       = parsed_args["multi_stations"]
-
+    Opt["inject_delays"]        = parsed_args["inject_delays"]
+    Opt["multi_simulation"]     = parsed_args["multi_simulation"]
+    
     if !isfile(file)
         createIniFile(file)
     end

@@ -119,13 +119,13 @@ function loadFleet()::Fleet
         Schedule = Trains[train].schedule;
         issorted(Schedule) || sort!(Schedule)
 
-        for i = 1:length(Schedule)-1
-            bts = Schedule[i].opid;
-            nextbts = Schedule[i+1].opid;
-            block = bts*"-"*nextbts;
-
-            Trains[train].delay[block] = 0
-        end
+        # for i = 1:length(Schedule)-1
+        #     bts = Schedule[i].opid;
+        #     nextbts = Schedule[i+1].opid;
+        #     block = bts*"-"*nextbts;
+        #
+        #     Trains[train].delay[block] = 0
+        # end
 
     end
 
@@ -144,13 +144,15 @@ end
 #     return str1,parse(Int, num)
 # end
 
-function loadDelays()::Tuple{Vector{DataFrame},Int}
-    """Takes all the delay files in the data/delays/ directory
-    and loads it in a vector of dataframes;
-    each df defines a different simulation to be done """
+"""
+Takes all the delay files in the data/delays/ directory
+and loads it in a vector of dataframes;
+each df defines a different simulation to be done
+"""
+function loadDelays()::Vector{DataFrame}
+
     print_imposed_delay = Opt["print_imposed_delay"];
 
-    n=0
     delays_array=DataFrame[];
 
     repo = Opt["imposed_delay_repo_path"]
@@ -164,31 +166,35 @@ function loadDelays()::Tuple{Vector{DataFrame},Int}
         return (delays_array,1);
     end
 
-    for file in files
+    if Opt["multi_simulation"]
+        for file in files
+            delay= DataFrame(CSV.File(repo*file, comment="#"))
+            push!(delays_array,delay)
+        end
+    else
+        file = files[1];
         delay= DataFrame(CSV.File(repo*file, comment="#"))
         push!(delays_array,delay)
     end
 
-    #print(delays_array)
-    n=length(delays_array)
-    Opt["print_flow"] && println("Delays loaded. The number of files in data/delays/ is: ",n)
+    Opt["print_flow"] && println("Delays loaded. The number of delay scenarios is: ",length(delays_array));
     delay=nothing
 
-    return (delays_array,n)
+    return delays_array
 end
 
-function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
-    """takes the vector of df,
-    resets to 0 the delays imposed to the previews simulation """
+"""
+takes the vector of df,
+resets to 0 the delays imposed to the previews simulation
+"""
+function resetDelays(FL::Fleet, df::DataFrame)
     print_imposed_delay = Opt["print_imposed_delay"];
-
-    df = delays_array[simulation_id-1];
-
 
     for i = 1:nrow(df)
         (train, block, delay) = df[i,:];
 
-        FL.train[train].delay[block]=0
+        # FL.train[train].delay[block]=0
+        FL.train[train].delay = Dict{String,Int}();
         if print_imposed_delay
             println("Reset $delay to train $train, at block $block.")
         end
@@ -199,16 +205,26 @@ function resetDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::In
 
 end
 
-function imposeDelays(FL::Fleet,delays_array::Vector{DataFrame},simulation_id::Int)
-    """imposes the delays for the actual simulation """
+function resetDelays(FL::Fleet)
     print_imposed_delay = Opt["print_imposed_delay"];
 
-
-    if simulation_id>1
-        resetDelays(FL,delays_array,simulation_id);
+    for Train in values(FL.train)
+        Train.delay = Dict{String,Int}();
     end
 
-    df = delays_array[simulation_id];
+    Opt["print_flow"] && println("Delays reset");
+
+end
+
+"""imposes the delays for the actual simulation """
+function imposeDelays(FL::Fleet, df::DataFrame)
+
+    print_imposed_delay = Opt["print_imposed_delay"];
+
+    # reset the delays imposed in the previous simulation
+    resetDelays(FL);
+
+    # df = delays_array[simulation_id];
 
     c=0;
     for i = 1:nrow(df)
@@ -239,6 +255,7 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 
         Opt["print_train_list"] && println("\tTrain $trainid")
 
+        # the transits of a train were sorted in LoadFleet()
         s = FL.train[trainid].schedule[1]; # first transit
         duetime = s.duetime;
 

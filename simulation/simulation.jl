@@ -127,7 +127,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         nextBlockRealTime = nextBlockDueTime
                         #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime)"""
 
-                        delay_imposed=FL.train[trainid].delay[nextBlockid]
+                        delay_imposed = get(train.delay, nextBlockid,0);
 
                         tt = t + nextBlockRealTime + delay_imposed;
 
