@@ -22,6 +22,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     #time interval in seconds between an evaluation of stuck and another
     stuck_interval=3000
 
+    ROTATION_WAITING_TIME = 120; # time to wait for a dependent rotation
+
     old_status = status = ""; # trains going around, used to get stuck status
 
 
@@ -83,9 +85,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 train = FL.train[trainid]
 
                 if trainid ∉ S # new train in the current day
+                    # if its dependence has not yet arrived, delay the departure
                     if in(train.dependence, S)
-                        get!(Event, t+1, Transit[])
-                        push!(Event[t+1], train.schedule[1]);
+                        get!(Event, t+ROTATION_WAITING_TIME, Transit[])
+                        push!(Event[t+ROTATION_WAITING_TIME], train.schedule[1]);
                         println("Train $trainid cannot start because $(train.dependence) did not arrive. $t")
                         continue;
                     end

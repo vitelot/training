@@ -1,10 +1,6 @@
 function Rotations(df::DataFrame)
 @info "Generating train reassignements"
 
-#df = DataFrame(CSV.File("PAD-Zuglaufdaten_2019-01.csv"));
-
-#filter!( row -> row[:Betriebstag]=="25.03.19", df);
-
     rename!(df, :bts_code => :bst)
     #rename!(df, :Betriebstag            => :date)
     #rename!(df, :Istzeit                => :rtime)

@@ -129,7 +129,7 @@ function main()
             if split_transit && bts_kind == "Durchfahrt"
                 time_diff = next_bts_time-bts_time;
                 if time_diff <=1
-                    printstyled("WARNING: train $train_id exceeds speed of light in $bts\n", bold=true)
+                    @warn "Train $train_id exceeds speed of light in $bts"
                 end
 
                 if time_diff <= FAST_STATION_TRANSIT_TIME
