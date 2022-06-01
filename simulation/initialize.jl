@@ -72,7 +72,7 @@ function loadFleet()::Fleet
     #take direction from the file
     train2dir = Dict{String,Int}();
     if isfile(trains_info_file)
-        train2dir = CSV.File(trains_info_file) |> Dict
+        train2dir = CSV.File(trains_info_file, comment="#") |> Dict
     elseif Opt["multi_stations"]
         println("multi platforms activated but no file found. Add file and restart")
         exit()
@@ -80,7 +80,7 @@ function loadFleet()::Fleet
 
     Rot = Dict{String,String}();
     if isfile(rotation_file)
-        Rot = Dict(CSV.File(rotation_file));
+        Rot = Dict(CSV.File(rotation_file, comment="#"));
         Opt["print_flow"] && println("Rotations loaded")
     end
 
