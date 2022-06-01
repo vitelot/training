@@ -11,7 +11,7 @@ using DataFrames, CSV, Dates;
 
 ###################################
 ###       Global variables      ###
-ProgramVersion = v"0.3.2";
+ProgramVersion = v"0.3.3";
 Opt = Dict{String,Any}()
 ###################################
 

@@ -47,6 +47,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="print_imposed_delay")  Opt[key] = parse(Bool, val)
         elseif(key=="print_tot_delay")      Opt[key] = parse(Bool, val)
         elseif(key=="print_notifications")  Opt[key] = parse(Bool, val)
+        elseif(key=="print_rotations")      Opt[key] = parse(Bool, val)
         ####################################################################
         elseif(key=="print_timetable")      Opt[key] = parse(Bool, val)
         ####################################################################
@@ -131,6 +132,7 @@ print_elapsed_time      0   # display elapsed simulated seconds
 print_imposed_delay     0   # display trains with imposed delay
 print_tot_delay         1   # print the total delay at the end of simulation
 print_notifications     0   # the simulation sequential number in stderr
+print_rotations         0   # display the trains waiting because the necessary train did not arrive yet
 #############################
 print_timetable         0   # save the simulated timetables
 #############################

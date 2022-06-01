@@ -12,6 +12,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_elapsed_time      = Opt["print_elapsed_time"]
     print_tot_delay         = Opt["print_tot_delay"]
     print_timetable         = Opt["print_timetable"]
+    print_rot               = Opt["print_rotations"]
     catch_conflicts         = Opt["catch_conflict"]
     ##variabili
 
@@ -89,7 +90,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     if in(train.dependence, S)
                         get!(Event, t+ROTATION_WAITING_TIME, Transit[])
                         push!(Event[t+ROTATION_WAITING_TIME], train.schedule[1]);
-                        println("Train $trainid cannot start because $(train.dependence) did not arrive. $t")
+                        print_rot && println("Train $trainid cannot start because $(train.dependence) did not arrive. $t")
                         continue;
                     end
 
