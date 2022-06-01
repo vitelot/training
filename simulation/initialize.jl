@@ -224,6 +224,8 @@ end
 """imposes the delays for the actual simulation """
 function imposeDelays(FL::Fleet, df::DataFrame)
 
+    BLACKLIST = [""]; #["SB_29229"];
+
     print_imposed_delay = Opt["print_imposed_delay"];
 
     # reset the delays imposed in the previous simulation
@@ -234,6 +236,8 @@ function imposeDelays(FL::Fleet, df::DataFrame)
     c=0;
     for i = 1:nrow(df)
         (train, block, delay) = df[i,:];
+
+        train ∈ BLACKLIST && continue;
 
         FL.train[train].delay[block]=delay
 
