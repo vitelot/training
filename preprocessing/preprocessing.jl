@@ -86,21 +86,27 @@ function main()
     # convert date format in seconds alltogether
     df.scheduled_time = dateToSeconds.(df.scheduled_time);
 
+    nroftrains = length(unique(df.train_id));
+    println("Found $nroftrains trains")
 
 @info "Cycling through trains"
     for train in unique(df.train_id)
-        # println("$train");
+#        println(out_file, train);
+
         df_train=filter(row -> (row.train_id == train), df)
         sort!(df_train, [order(:scheduled_time, rev=false)])
 
         nrows=nrow(df_train)
+        if nrows == 1 # remove fossiles already here
+            nroftrains -= 1
+            continue
+        end
 
         missing_in_columns=[count(ismissing,col) for col in eachcol(df_train)]
 
         #if trajectory has too many missing in scheduled, kill
         if (missing_in_columns[5] > nrows/2)
             println("train $train has too many nans $missing_in_columns,nrows $nrows skippig it; ")
-#             println("theo missing: $(missing_in_columns[4]), nrows $nrows")
             continue
         end
 
@@ -108,11 +114,12 @@ function main()
         dropmissing!(df_train, :scheduled_time)
 
         nrows=nrow(df_train)
+
         train_id=train
         npops=0
 
 
-        for i in 1:nrows-1
+        for i in 1:nrows-1 # removes trains with one event
 
             bts      = df_train[i, :].bts_code
             next_bts = df_train[i+1, :].bts_code
@@ -203,6 +210,7 @@ function main()
         end
 
     end
+    println("Number of trains after cleaning: $nroftrains");
     println();
 
     close(out_file)
