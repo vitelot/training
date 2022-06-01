@@ -32,7 +32,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
         if sim_id == 0
             outfilename = "../data/simulation_data/timetable_simulation.csv";
         else
-            outfilename = "../data/simulation_data/timetable_simulation_$(sim_id).csv";
+            paddedsimid = lpad(sim_id,4,"0");
+            outfilename = "../data/simulation_data/timetable_simulation_$(paddedsimid).csv";
         end
 
         out_file = open(outfilename, "w");
