@@ -31,6 +31,9 @@ function main()
     use_real_time = parsed_args["use_real_time"];
     split_transit = parsed_args["split_transits"];
     find_rotations= parsed_args["rotations"];
+    trains_beginning=parsed_args["trains_beginning"]
+    create_delay_files=parsed_args["create_delay_files"]
+    trains_station_stop=parsed_args["trains_station_stop"]
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -102,6 +105,7 @@ function main()
             continue
         end
 
+
         missing_in_columns=[count(ismissing,col) for col in eachcol(df_train)]
 
         #if trajectory has too many missing in scheduled, kill
@@ -126,6 +130,7 @@ function main()
 
             block  = bts*"-"*next_bts
 
+
             bts_time      = df_train[i, :].scheduled_time
             next_bts_time = df_train[i+1, :].scheduled_time
 
@@ -134,25 +139,31 @@ function main()
 
             # if train transits in station only
             if split_transit && bts_kind == "Durchfahrt"
-                time_diff = next_bts_time-bts_time;
-                if time_diff <=1
-                    @warn "Train $train_id exceeds speed of light in $bts"
-                end
 
-                if time_diff <= FAST_STATION_TRANSIT_TIME
-                    # next bst is too close
-                    args = (train_id, bts, "Durchfahrt_out", bts_time+div(time_diff,2)) #lo faccio domani
+                if i >1 && df_train[i-1, :bts_code]==bts
+                    nothing;
                 else
-                    # assume a short transit time
-                    args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
+                    time_diff = next_bts_time-bts_time;
+                    if time_diff <=1
+                        @warn "Train $train_id exceeds speed of light in $bts"
+                    end
+
+                    if time_diff <= FAST_STATION_TRANSIT_TIME
+                        # next bst is too close
+                        args = (train_id, bts, "Durchfahrt_out", bts_time+div(time_diff,2)) #lo faccio domani
+                    else
+                        # assume a short transit time
+                        args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
+                    end
+
+                    println(out_file,join(args, SEPARATOR))
+                    # printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds: $(next_bts_time-bts_time) sec.\n", bold=true);
+                    # printstyled("$args\n", bold=true);
                 end
 
-                println(out_file,join(args, SEPARATOR))
-                # printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds: $(next_bts_time-bts_time) sec.\n", bold=true);
-                # printstyled("$args\n", bold=true);
             end
 
-            #if first raw , write it
+            #if first row , write it
             if i==1
                 if bts != next_bts
                     args=(train_id,bts, "Beginn", bts_time-PAUSE_BEFORE_POPPING)
@@ -249,8 +260,300 @@ function main()
             "../data/delays/imposed_exo_delay.csv",
             nr_exo_delays)
     end
+
+
+    #if you want to create the beginning of the trains for the generated timetable
+    if trains_beginning
+
+        timetable_path="../data/simulation_data/"
+
+        get_trains_begin(out_file_name,timetable_path,timetable_path)
+    end
+
+    if trains_station_stop
+
+        timetable_path="../data/simulation_data/"
+
+        get_station_stops(out_file_name,timetable_path,timetable_path)
+    end
+
+    if create_delay_files
+        ###########################################################################################################
+        # LOADING THE FILE trainIni.in for the trains to be delayed
+        ###########################################################################################################
+
+        Interval = Dict{String,Int}()
+        Trains=String[]
+
+        Interval,Trains=loadTrains()
+        delays=Interval["step_beginning"]:Interval["step_length"]:Interval["step_end"]
+        #
+        # ############################################################################################################
+        #
+        #reloading the starting df for clarity
+        path_out="../data/simulation_data/"
+
+
+        #removing previous defined delay files
+        delays_path="../data/delays/"
+
+        if !isdir(delays_path)
+          mkdir(delays_path)
+        end
+        #
+        #cleaning old files
+        files=read_non_hidden_files(delays_path)
+        for file in files
+           rm(delays_path*file)
+        end
+
+
+        if trains_beginning
+            outfile = "trains_beginning.ini"
+
+            starts= DataFrame(CSV.File(path_out*outfile, comment="#"))
+
+            #creating a dict from it
+            start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
+            #
+            #defining the train list and delay list
+
+            #writing the new delay files
+
+            ct=1
+            train_keys=collect(keys(start_dict))
+            # println(train_keys)
+            for train in Trains
+                for delay in delays
+
+                    if train in train_keys
+                        # println(train,delay)
+                        pad=lpad(ct,4,"0")
+                        outfile = delays_path*"imposed_delay_simulation_$pad.csv"
+                        # println(outfile)
+                        f = open(outfile, "w")
+
+                        println(f,"trainid,block,delay")
+                        println(f,train,",",start_dict[train].block,",",delay)
+
+
+                        close(f)
+
+                        ct+=1
+                    end
+                end
+            end
+
+        elseif trains_station_stop
+            outfile = "trains_stations.ini"
+
+            starts= DataFrame(CSV.File(path_out*outfile, comment="#"))
+
+            #creating a dict from it
+            start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
+            #
+            #defining the train list and delay list
+
+
+
+            #writing the new delay files
+
+            ct=1
+            train_keys=collect(keys(start_dict))
+            # println(train_keys)
+            for i in 1:nrow(starts)-1
+
+                for delay in delays
+
+
+                        # println(train,delay)
+
+                    train=starts[i,:].trainid
+                    block=starts[i,:].block
+
+                    pad=lpad(ct,4,"0")
+                    outfile = delays_path*"imposed_delay_simulation_$pad.csv"
+                    # println(outfile)
+                    f = open(outfile, "w")
+
+                    println(f,"trainid,block,delay")
+                    println(f,train,",",block,",",delay)
+
+
+                    close(f)
+
+                    ct+=1
+
+                end
+            end
+        end
+
+
+
+        @info "Delay files created."
+    end
+
 @info "Ending main()"
 end
+
+############################################################################################################
+#Parses files of delay injection
+
+function loadTrains(file::String="./trainIni.in")
+    if !isfile(file)
+        createTrainIni(file)
+    end
+
+    Interval = Dict{String,Any}()
+    Trains=[]
+    for line in eachline(file)
+        occursin(r"^#", line) && continue # ignore lines beginning with #
+        df = split(line, r"\s+")
+        length(df) < 1 && continue # ignore empty lines
+        key = df[1]
+        ####################################################################
+        if(key=="step_beginning") Interval[key]=parse(Int64, df[2])
+        ####################################################################
+        elseif(key=="step_end") Interval[key]=parse(Int64, df[2])
+        elseif(key=="step_length") Interval[key]=parse(Int64, df[2])
+        else push!(Trains,key)
+        end
+    end
+
+    println("File of train delay injection parsed.")
+
+    return Interval,Trains
+end
+
+function isStation(bst_name::AbstractString)
+     a = split(bst_name, "-");
+     return a[1] == a[2]
+end
+
+############################################################################################################
+#gets the stations in which the train stops
+function get_station_stops(timetable_name::AbstractString,timetable_path::AbstractString,path_out::AbstractString)
+
+    outfile = "trains_stations.ini"
+    #printing out the file
+
+
+
+    df = DataFrame(CSV.File(timetable_path*timetable_name))
+
+    durchfahrt_set=["Durchfahrt","Durchfahrt_out"]
+
+    if !isfile(path_out*outfile)
+
+        f = open(path_out*outfile, "w")
+        println(f,"trainid,block,first_time,second_time")
+        #getting begins array of beginnings of trains
+
+        train_list=unique(df.trainid)
+
+
+
+        for train in train_list
+
+
+
+            df2=df[isequal.(df.trainid,train),:]
+
+             if nrow(df2) >= 2
+
+                for i in 1:nrow(df2)-1
+
+                    bts=df2[i,:].opid
+                    type=df2[i,:].kind
+
+                    blk=df2[i,:].opid*"-"*df2[i+1,:].opid
+
+                    if isStation(blk) && type ∉ durchfahrt_set
+                        println(f,train,",",blk,",",df2[i,:].duetime,",",df2[i+1,:].duetime)
+                    end
+
+                end
+
+            else
+                println("df $df2 has less than 2 rows")
+            end
+
+        end
+
+
+        close(f)
+        println("trains_beginning.ini created.")
+
+    else println("Trains stations file already present, using it.")
+    end
+end
+
+
+############################################################################################################
+#function that reads the timetable and returns the events of beginning of trains if ["Abfahrt","Beginn"] are there
+function get_trains_begin(timetable_name::AbstractString,timetable_path::AbstractString,path_out::AbstractString)
+
+    outfile = "trains_beginning.ini"
+    #printing out the file
+    outfile_unique_trains="unique_trains_running.txt"
+
+
+    df = DataFrame(CSV.File(timetable_path*timetable_name))
+
+
+
+    if !isfile(path_out*outfile)
+
+        f = open(path_out*outfile, "w")
+        println(f,"trainid,block,first_time,second_time")
+        #getting begins array of beginnings of trains
+
+        train_list=unique(df.trainid)
+
+        f_unique=open(outfile_unique_trains, "w")
+
+        for train in train_list
+
+            println(f_unique,train)
+
+            df2=df[isequal.(df.trainid,train),:]
+
+             if nrow(df2) >= 2
+
+
+                # if !issubset(["Begin"], df2.kind) && !issubset(["Abfahrt"], df2.kind)
+                #     println(f,df2[1,:].trainid,",",df2[1,:].opid*"-"*df2[2,:].opid,",",df2[1,:].duetime,",",df2[2,:].duetime)
+                #     continue
+                # end
+                #
+                # first_idx=findfirst(in(["Abfahrt","Beginn"]), df2.kind)
+                first_idx=1
+
+                nrows=nrow(df2[first_idx:end,:])
+                # println(nrows,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+
+                if nrows <2
+                    # println(df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
+                    println(f,df2[first_idx,:].trainid,",",df2[first_idx-1,:].opid*"-"*df2[first_idx,:].opid,",",df2[first_idx-1,:].duetime,",",df2[first_idx,:].duetime)
+                else
+                    # println(df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+                    println(f,df2[first_idx,:].trainid,",",df2[first_idx,:].opid*"-"*df2[first_idx+1,:].opid,",",df2[first_idx,:].duetime,",",df2[first_idx+1,:].duetime)
+                end
+
+            else
+                println("df $df2 has less than 2 rows")
+            end
+
+        end
+
+        close(f_unique)
+        close(f)
+        println("trains_beginning.ini created.")
+
+    else println("Trains beginning file already present, using it.")
+    end
+end
+
 
 #if train_popnr has less than 2 row, what to do
 # nrows=nrow(df3)
@@ -304,70 +607,8 @@ end
 
 
 
-    ############################################################################################################
-    ## LOADING THE FILE trainIni.in for the trains to be delayed
-    ############################################################################################################
 
-#     Interval = Dict{String,Int}()
-#     Trains=String[]
-#
-#     Interval,Trains=loadTrains()
-#
-#     ############################################################################################################
-#
-#     #reloading the starting df for clarity
-#     path_out="../data/simulation_data/"
-#     outfile = "trains_beginning.ini"
-#     starts= DataFrame(CSV.File(path_out*outfile, comment="#"))
-#
-#     #creating a dict from it
-#     start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
-#
-#     #defining the train list and delay list
-#
-#     delays=Interval["step_beginning"]:Interval["step_length"]:Interval["step_end"]
-#
-#     # println(delays,Trains)
-#
-#     #removing previous defined delay files
-#     delays_path="../data/delays/"
-#
-#     if !isdir(delays_path)
-#       mkdir(delays_path)
-#     end
-#
-#     files=read_non_hidden_files(delays_path)
-#     for file in files
-#        rm(delays_path*file)
-#     end
-#
-#     #writing the new delay files
-#
-#     count=1
-#     train_keys=collect(keys(start_dict))
-#     # println(train_keys)
-#     for train in Trains
-#         for delay in delays
-#
-#             if train in train_keys
-#                 # println(train,delay)
-#                 outfile = delays_path*"imposed_delay_simulation_$count.csv"
-#                 # println(outfile)
-#                 f = open(outfile, "w")
-#
-#                 println(f,"trainid,block,delay")
-#                 println(f,train,",",start_dict[train].block,",",delay)
-#
-#
-#                 close(f)
-#
-#                 count+=1
-#             end
-#         end
-#     end
-#
-#     println("Delay files created.")
-#
+
 
 
 

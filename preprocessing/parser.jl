@@ -37,6 +37,18 @@ function parse_commandline()
             help = "Create a file with train dependencies. One train cannot start if the other has not arrived yet."
             action = :store_true
 
+        "--trains_beginning"
+            help = "Create the trains_beginning file for the timetable generated"
+            action = :store_true
+
+        "--trains_station_stop"
+            help = "Create the trains stop in stations file"
+            action = :store_true
+
+        "--create_delay_files"
+            help = "Use trainini.in to create the delay files in data/delays"
+            action = :store_true
+
     end
 
     return parse_args(s)

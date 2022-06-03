@@ -215,6 +215,7 @@ function resetDelays(FL::Fleet)
 
     for Train in values(FL.train)
         Train.delay = Dict{String,Int}();
+        # @show FL.train[Train.id].delay
     end
 
     Opt["print_flow"] && println("Delays reset");

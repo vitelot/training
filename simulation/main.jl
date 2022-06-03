@@ -56,11 +56,14 @@ function multiple_sim(RN::Network, FL::Fleet)
 
         Opt["print_flow"] && println("##################################################################")
         Opt["print_flow"] && println("Starting simulation number $simulation_id")
-        Opt["print_notifications"] && (@info "Starting simulation number $simulation_id.")
+        Opt["print_flow"] && (@info "Starting simulation number $simulation_id.")
+        # Opt["print_notifications"] && println("Starting simulation number $simulation_id.")
 
         isempty(delays_array) || imposeDelays(FL, delays_array[simulation_id])
 
         simulation(RN, FL, simulation_id)  && (println("successfully ended , restarting");)
+
+        # isempty(delays_array) || resetDelays(FL, delays_array[simulation_id])
 
         resetSimulation(FL); # set trains dynamical variables to zero
         resetDynblock(RN); # reinitialize the blocks
