@@ -96,7 +96,8 @@ function isBlockFree(train::Train, blk::Block)::Bool
     direction=train.direction
 
     #check occupancy in that direction
-    return (get(nr_trains, COMMON_DIRECTION, 0)==0 || nr_trains[direction] < nr_tracks[direction])
+    return ((get(nr_tracks, COMMON_DIRECTION, 0)>0 && get(nr_trains, COMMON_DIRECTION, 0)==0)
+                || nr_trains[direction] < nr_tracks[direction])
 end
 
 function decrease_block_occupancy(train::Train, blk::Block)
