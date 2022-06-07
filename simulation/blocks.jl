@@ -141,8 +141,13 @@ function increase_block_occupancy(train::Train, blk::Block)
     end
 
     # if nothing else is free, occupy the common track
-    nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
+    if get(blk.tracks, COMMON_DIRECTION, 0) > 0
+        nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
+        return;
+    end
 
+    # it has never to come until here, otherwise something is wrong
+    @warn "We cannot increase the occupancy of block $(blk.id)."
 end
 
 #passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
