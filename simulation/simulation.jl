@@ -112,6 +112,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                     currentBlock = BK[train.dyn.currentBlock]
 
+                    # if nextBlockid == "MD H1-MD H1"
+                        # @show t,trainid,nextBlock
+                    # end
+
                      # if there are less trains than the number of available tracks
                     if isBlockFree(train, nextBlock)
 
