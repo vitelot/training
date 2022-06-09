@@ -37,6 +37,11 @@ function parse_commandline()
             help = "Create a file with train dependencies. One train cannot start if the other has not arrived yet."
             action = :store_true
 
+        "--buffering"
+            help = "Number of seconds to increase the buffering time of trains at selected stations stations. The list of trains and stations is in the code not in a file yet."
+            arg_type = Int
+            default = 0
+
     end
 
     return parse_args(s)

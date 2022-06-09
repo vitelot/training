@@ -31,6 +31,7 @@ function main()
     use_real_time = parsed_args["use_real_time"];
     split_transit = parsed_args["split_transits"];
     find_rotations= parsed_args["rotations"];
+    buffering_sec = parsed_args["buffering"];
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -80,7 +81,7 @@ function main()
 
     if use_real_time
         df.scheduled_time = df.real_time;
-        println("*** Using real time instead of scheduled ***")
+        println("*** Using the real timetable instead of the planned one ***")
     end
 
     # convert date format in seconds alltogether
@@ -113,6 +114,10 @@ function main()
 
         dropmissing!(df_train, :scheduled_time)
 
+        if buffering_sec > 0
+            buffering(df_train, buffering_sec);
+        end
+
         nrows=nrow(df_train)
 
         train_id=train
@@ -121,16 +126,16 @@ function main()
 
         for i in 1:nrows-1 # removes trains with one event
 
-            bts      = df_train[i, :].bts_code
-            next_bts = df_train[i+1, :].bts_code
+            bts      = df_train[i, :bts_code]
+            next_bts = df_train[i+1, :bts_code]
 
             block  = bts*"-"*next_bts
 
-            bts_time      = df_train[i, :].scheduled_time
-            next_bts_time = df_train[i+1, :].scheduled_time
+            bts_time      = df_train[i, :scheduled_time]
+            next_bts_time = df_train[i+1, :scheduled_time]
 
-            bts_kind      = df_train[i, :].kind
-            next_bts_kind = df_train[i+1, :].kind
+            bts_kind      = df_train[i, :kind]
+            next_bts_kind = df_train[i+1, :kind]
 
             # if train transits in station only
             if split_transit && bts_kind == "Durchfahrt"

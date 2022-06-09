@@ -161,3 +161,33 @@ function inputfile_from_date(date::String,source_path::String,file_base="PAD-Zug
 
     return file
 end
+
+"""
+Modify the schedule of a train by adding a buffer in selected stations
+"""
+function buffering(dft::DataFrame, buffer::Int)
+
+# @info "checkpoint 1"
+
+    list_of_trains = ["R_2206", "R_2208", "R_2210", "R_2212", "R_22282",
+        "R_22302", "R_22322", "R_22342", "R_2308", "R_2310", "R_2312",
+        "R_2314", "R_7404", "SB_22354", "SB_23316", "SB_29296", "SB_29336"];
+
+    list_of_stations = ["FLD", "LB", "BVS", "BF H1", "MD", "LG", "MI", "WSP"];
+
+    train = dft[1,:train_id];
+
+    train in list_of_trains || return;
+    # @info "checkpoint 2"
+
+    sort!(dft, :scheduled_time); # it was sorted already but let's be sure
+    # scheduled_time was aready converted into Int
+    increment = 0;
+    for i = 1:nrow(dft)
+        dft.scheduled_time[i] += increment;
+        if (dft.bts_code[i] in list_of_stations) && (dft.kind[i] == "Abfahrt")
+            dft.scheduled_time[i] += buffer;
+            increment += buffer;
+        end
+    end
+end

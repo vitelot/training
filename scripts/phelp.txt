@@ -1,7 +1,8 @@
 usage: preprocessing.jl [-d DATE] [-f FILE]
                         [--source_data_path SOURCE_DATA_PATH]
                         [--exo_delays EXO_DELAYS] [--use_real_time]
-                        [--split_transits] [--rotations] [-h]
+                        [--split_transits] [--rotations]
+                        [--buffering BUFFERING] [-h]
 
 optional arguments:
   -d, --date DATE       Date from which we want to extract the
@@ -21,5 +22,10 @@ optional arguments:
   --rotations           Create a file with train dependencies. One
                         train cannot start if the other has not
                         arrived yet.
+  --buffering BUFFERING
+                        Number of seconds to increase the buffering
+                        time of trains at selected stations stations.
+                        The list of trains and stations is in the code
+                        not in a file yet. (type: Int64, default: 0)
   -h, --help            show this help message and exit
 
