@@ -139,22 +139,28 @@ function main()
 
             # if train transits in station only
             if split_transit && bts_kind == "Durchfahrt"
-                time_diff = next_bts_time-bts_time;
-                if time_diff <=1
-                    @warn "Train $train_id exceeds speed of light in $bts"
-                end
 
-                if time_diff <= FAST_STATION_TRANSIT_TIME
-                    # next bst is too close
-                    args = (train_id, bts, "Durchfahrt_out", bts_time+div(time_diff,2)) #lo faccio domani
+                if i >1 && df_train[i-1, :bts_code]==bts
+                    nothing;
                 else
-                    # assume a short transit time
-                    args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
+                    time_diff = next_bts_time-bts_time;
+                    if time_diff <=1
+                        @warn "Train $train_id exceeds speed of light in $bts"
+                    end
+
+                    if time_diff <= FAST_STATION_TRANSIT_TIME
+                        # next bst is too close
+                        args = (train_id, bts, "Durchfahrt_out", bts_time+div(time_diff,2)) #lo faccio domani
+                    else
+                        # assume a short transit time
+                        args = (train_id, bts, "Durchfahrt_out", bts_time+FAST_STATION_TRANSIT_TIME)
+                    end
+
+                    println(out_file,join(args, SEPARATOR))
+                    # printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds: $(next_bts_time-bts_time) sec.\n", bold=true);
+                    # printstyled("$args\n", bold=true);
                 end
 
-                println(out_file,join(args, SEPARATOR))
-                # printstyled("Warning: next bst is closer in time less than $FAST_STATION_TRANSIT_TIME seconds: $(next_bts_time-bts_time) sec.\n", bold=true);
-                # printstyled("$args\n", bold=true);
             end
 
             #if first raw , write it
