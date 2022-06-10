@@ -24,6 +24,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     stuck_interval=3000
 
     ROTATION_WAITING_TIME = 120; # time to wait for a dependent rotation
+    MINIMUM_HALT_AT_STATION = 120 # Wait at least this amount of seconds before leaving
 
     old_status = status = ""; # trains going around, used to get stuck status
 
@@ -73,7 +74,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
                     print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind)")
-                    if kind == "Abfahrt"||"Beginn"
+                    if kind == "Abfahrt" || kind=="Beginn"
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
                         push!(Event[duetime], transit)
@@ -135,15 +136,25 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         train.dyn.currentBlock = nextBlockid
 
                         nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
-                        #"""train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
+
+                        # remove comment to list halting time at stations
+                        # isStation(nextBlockid) && train.schedule[n_op+1].kind == "Abfahrt" && println("$trainid,$nextBlockid,$nextBlockDueTime");
 
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = nextBlockDueTime
-                        #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime)"""
+                        # if we arrive at station inside buffering time, do not wait
+                        if !haskey(train.delay, nextBlockid) && train.schedule[n_op+1].kind == "Abfahrt" && nextBlockDueTime > MINIMUM_HALT_AT_STATION
+                            nextBlockRealTime = MINIMUM_HALT_AT_STATION;
+                            print_train_status && println("$trainid recovers in $nextopid");
+                            #println("$trainid recovers in $nextopid");
+                        end
 
                         delay_imposed = get(train.delay, nextBlockid,0);
+                        # if delay_imposed>0
+                        #     println("$trainid,$nextBlockid,$delay_imposed");
+                        # end
 
                         tt = t + nextBlockRealTime + delay_imposed;
 

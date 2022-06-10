@@ -145,8 +145,10 @@ function loadTrains(file::String="./trainIni.in")
 end
 
 ############################################################################################################
-function read_non_hidden_files(repo)::Vector{String}
-    return filter(!startswith(".") ∘ basename, readdir(repo))
+function read_non_hidden_files(repo::AbstractString)::Vector{String}
+    filelist = basename.(readdir(repo));
+    # ignore files starting with . and _
+    return filter(x->!occursin(r"^\.|^_",x), filelist)
 end
 
 
@@ -173,7 +175,8 @@ function buffering(dft::DataFrame, buffer::Int)
         "R_22302", "R_22322", "R_22342", "R_2308", "R_2310", "R_2312",
         "R_2314", "R_7404", "SB_22354", "SB_23316", "SB_29296", "SB_29336"];
 
-    list_of_stations = ["FLD", "LB", "BVS", "BF H1", "MD", "LG", "MI", "WSP"];
+    list_of_stations = ["LB", "MD", "MI"];
+    # list_of_stations = ["FLD", "LB", "BVS", "BF H1", "MD", "LG", "MI", "WSP"];
 
     train = dft[1,:train_id];
 
