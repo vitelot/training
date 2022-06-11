@@ -6,8 +6,8 @@ include("functions.jl")
 include("rotations.jl")
 @info "Compiling."
 
-function main()
-@info "Starting main()"
+function preprocessing()
+@info "Starting preprocessing"
 
     if VERSION < v"1.6"
         println("Please upgrade Julia to at least version 1.6. Exiting.")
@@ -57,25 +57,24 @@ function main()
 @info "Loading data"
     df=CSV.read(file,DataFrame, delim=',', types=String)
 
-
-    rename!(df, :"BST Code Anlieferung" => :bts_code)
-    rename!(df, :Betriebstag            => :date)
-    rename!(df, :Istzeit                => :real_time)
-    rename!(df, :"Messpunkt Bez"        => :kind)
-    rename!(df, :"Sollzeit R"           => :scheduled_time)
-    rename!(df, :"Zuglaufmodus Code"    => :CODE)
-    df.train_id = string.(df.Zuggattung, "_",  df.Zugnr)
-
-
-    select!(df, ([:date,:train_id,:bts_code,:CODE,:scheduled_time,:real_time,:kind,:Tfz1,:Tfz2,:Tfz3,:Tfz4,:Tfz5]))
-
-    #take only real running trains
-    filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
+    select!(df,
+           :Betriebstag            => :date,
+           [:Zuggattung, :Zugnr]   => ByRow((x,y) -> string(x, "_",  y)) => :train_id,
+           "BST Code Anlieferung"  => :bts_code,
+           "Zuglaufmodus Code"     => :CODE,
+           "Sollzeit R"            => :scheduled_time,
+           :Istzeit                => :real_time,
+           "Messpunkt Bez"         => :kind,
+           Between(:Tfz1, :Tfz5)
+           )
 
     #get the df_date
     if in_file == ""
         filter!(row -> (row.date == date ), df)
     end
+
+    #take only real running trains
+    filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
 
     find_rotations && Rotations(copy(df));
 
@@ -85,17 +84,23 @@ function main()
     end
 
     # convert date format in seconds alltogether
+    dropmissing!(df, :scheduled_time)
     df.scheduled_time = dateToSeconds.(df.scheduled_time);
 
     nroftrains = length(unique(df.train_id));
     println("Found $nroftrains trains")
 
 @info "Cycling through trains"
-    for train in unique(df.train_id)
-#        println(out_file, train);
 
-        df_train=filter(row -> (row.train_id == train), df)
-        sort!(df_train, [order(:scheduled_time, rev=false)])
+    gd = groupby(df, :train_id);
+    df = nothing;
+
+    for i = 1:length(gd)
+    # for train in unique(df.train_id)
+        df_train = gd[i];
+        train = df_train.train_id[1];
+
+        sort!(df_train, :scheduled_time);
 
         nrows=nrow(df_train)
         if nrows == 1 # remove fossiles already here
@@ -110,9 +115,6 @@ function main()
             println("train $train has too many nans $missing_in_columns,nrows $nrows skippig it; ")
             continue
         end
-
-
-        dropmissing!(df_train, :scheduled_time)
 
         if buffering_sec > 0
             buffering(df_train, buffering_sec);
@@ -260,127 +262,9 @@ function main()
             "../data/delays/imposed_exo_delay.csv",
             nr_exo_delays)
     end
-@info "Ending main()"
+@info "Ending preprocessing"
 end
-
-#if train_popnr has less than 2 row, what to do
-# nrows=nrow(df3)
-#             if nrows < 2
-#                 println("$train has too few rows,adding one in $(df3[1, :].opid)")
-#                 args=(train_id,df3[1, :].opid,df3[1, :].kind,dateToSeconds(df3[1, :].duetime))
-#                 println(out_file,join(args, SEPARATOR))
-#
-#                 args=(train_id,df3[1, :].opid,"Ende",dateToSeconds(df3[1, :].duetime)+PAUSE_BEFORE_POPPING)
-#                 println(out_file,join(args, SEPARATOR))
-#     #             println(df3)
-#                 continue
-#             end
-
-
-    ############################################################################################################
-    ##MOVING THE UNZIPPED FILES FROM DATA.ZIP TO THE CORRECT DIRS
-    ##############################################################################
-    # path_ini="../data/data/"
-    #
-    # path_end="../data/simulation_data/"
-    #
-    # if !isdir(path_end)
-    #   mkdir(path_end)
-    # end
-    #
-    # if !isdir(path_ini)
-    #   path_alternative="../data/"
-    #   for file in filter(x -> endswith(x, ".csv"), readdir(path_alternative))
-    #       mv(path_alternative*file,path_end*file,force=true)
-    #   end
-    # else
-    #   for file in filter(x -> endswith(x, ".csv"), readdir(path_ini))
-    #       mv(path_ini*file,path_end*file,force=true)
-    #   end
-    # end
-
-
-
-    ############################################################################################################
-    ## CREATE THE FILE FOR THE BEGINNING BLOCK FOR THAT TIMETABLE
-    ############################################################################################################
-    # #getting the timetable df
-    # timetable_path="../data/simulation_data/"
-    # #df = DataFrame(CSV.File(timetable_path*"timetable.csv"))
-    #
-    # path_out="../data/simulation_data/"
-    # outfile = "trains_beginning.ini"
-    # timetable_name="timetable-25.03.19-filtered.csv"
-    # get_trains_begin(timetable_name,timetable_path,path_out)
-
-
-
-    ############################################################################################################
-    ## LOADING THE FILE trainIni.in for the trains to be delayed
-    ############################################################################################################
-
-#     Interval = Dict{String,Int}()
-#     Trains=String[]
-#
-#     Interval,Trains=loadTrains()
-#
-#     ############################################################################################################
-#
-#     #reloading the starting df for clarity
-#     path_out="../data/simulation_data/"
-#     outfile = "trains_beginning.ini"
-#     starts= DataFrame(CSV.File(path_out*outfile, comment="#"))
-#
-#     #creating a dict from it
-#     start_dict=Dict((starts.trainid[i] => starts[i,2:4] for i=1:nrow(starts)) )
-#
-#     #defining the train list and delay list
-#
-#     delays=Interval["step_beginning"]:Interval["step_length"]:Interval["step_end"]
-#
-#     # println(delays,Trains)
-#
-#     #removing previous defined delay files
-#     delays_path="../data/delays/"
-#
-#     if !isdir(delays_path)
-#       mkdir(delays_path)
-#     end
-#
-#     files=read_non_hidden_files(delays_path)
-#     for file in files
-#        rm(delays_path*file)
-#     end
-#
-#     #writing the new delay files
-#
-#     count=1
-#     train_keys=collect(keys(start_dict))
-#     # println(train_keys)
-#     for train in Trains
-#         for delay in delays
-#
-#             if train in train_keys
-#                 # println(train,delay)
-#                 outfile = delays_path*"imposed_delay_simulation_$count.csv"
-#                 # println(outfile)
-#                 f = open(outfile, "w")
-#
-#                 println(f,"trainid,block,delay")
-#                 println(f,train,",",start_dict[train].block,",",delay)
-#
-#
-#                 close(f)
-#
-#                 count+=1
-#             end
-#         end
-#     end
-#
-#     println("Delay files created.")
-#
-
 
 
 ############################################################################################################
-main()
+preprocessing()
