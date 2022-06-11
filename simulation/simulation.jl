@@ -23,8 +23,9 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     #time interval in seconds between an evaluation of stuck and another
     stuck_interval=3000
 
-    ROTATION_WAITING_TIME = 120; # time to wait for a dependent rotation
-    MINIMUM_HALT_AT_STATION = 120 # Wait at least this amount of seconds before leaving
+    ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
+    MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
+    MINIMUM_HALT_AT_STATION = 30; # Wait at least this amount of seconds before leaving
 
     old_status = status = ""; # trains going around, used to get stuck status
 
@@ -83,7 +84,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     end
                 end
 
-                print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
+                print_train_status && (t-duetime>0) &&
+                    println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)");
 
                 train = FL.train[trainid]
 
@@ -144,11 +146,19 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = nextBlockDueTime
+                        # next block is a passenger station and is not supposed to get exo delay
+                        if train.schedule[n_op+1].kind == "Abfahrt" && !haskey(train.delay, nextBlockid)
                         # if we arrive at station inside buffering time, do not wait
-                        if !haskey(train.delay, nextBlockid) && train.schedule[n_op+1].kind == "Abfahrt" && nextBlockDueTime > MINIMUM_HALT_AT_STATION
-                            nextBlockRealTime = MINIMUM_HALT_AT_STATION;
-                            print_train_status && println("$trainid recovers in $nextopid");
-                            #println("$trainid recovers in $nextopid");
+                            if nextBlockDueTime > MAXIMUM_HALT_AT_STATION
+                                print_train_status && println("$trainid recovers $(nextBlockDueTime-MAXIMUM_HALT_AT_STATION)s in $nextopid");
+                                nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
+                                #println("$trainid recovers in $nextopid");
+                            end
+                            if nextBlockDueTime < MINIMUM_HALT_AT_STATION
+                                nextBlockRealTime = MINIMUM_HALT_AT_STATION;
+                                print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
+                                #println("$trainid recovers in $nextopid");
+                            end
                         end
 
                         delay_imposed = get(train.delay, nextBlockid,0);
@@ -158,7 +168,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                         tt = t + nextBlockRealTime + delay_imposed;
 
-                        print_train_status && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid]; Opt[imposed_delay_repo_path] is $(Opt["imposed_delay_repo_path"]) "))
+                        print_train_status && delay_imposed > 0 &&
+                            println("An exo-delay to train $trainid is imposed in  block [$nextBlockid]");
 
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[n_op+1])
