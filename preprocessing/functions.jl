@@ -167,7 +167,7 @@ end
 """
 Modify the schedule of a train by adding a buffer in selected stations
 """
-function buffering(dft::DataFrame, buffer::Int)
+function buffering(dft::AbstractDataFrame, buffer::Int)
 
 # @info "checkpoint 1"
 
