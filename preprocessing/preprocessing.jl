@@ -55,7 +55,7 @@ function preprocessing()
 
     #load the df
 @info "Loading data"
-    df=CSV.read(file,DataFrame, delim=',', types=String)
+    df=CSV.read(file,DataFrame)
 
     select!(df,
            :Betriebstag            => :date,
