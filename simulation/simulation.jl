@@ -25,7 +25,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
     MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
-    MINIMUM_HALT_AT_STATION = 30; # Wait at least this amount of seconds before leaving
+    MINIMUM_HALT_AT_STATION = 24; # Wait at least this amount of seconds before leaving
 
     old_status = status = ""; # trains going around, used to get stuck status
 
@@ -74,7 +74,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
-                    print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind)")
+                    print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind) but has to wait to leave on schedule")
                     if kind == "Abfahrt" || kind=="Beginn"
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
@@ -154,7 +154,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                                 nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
                                 #println("$trainid recovers in $nextopid");
                             end
-                            if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1) 
+                            if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1)
                                 nextBlockRealTime = MINIMUM_HALT_AT_STATION;
                                 print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
                                 #println("$trainid recovers in $nextopid");
