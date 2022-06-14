@@ -154,7 +154,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                                 nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
                                 #println("$trainid recovers in $nextopid");
                             end
-                            if nextBlockDueTime < MINIMUM_HALT_AT_STATION
+                            if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1) 
                                 nextBlockRealTime = MINIMUM_HALT_AT_STATION;
                                 print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
                                 #println("$trainid recovers in $nextopid");
