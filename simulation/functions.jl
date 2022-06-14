@@ -22,9 +22,12 @@ end
 
 ############################################################################################################
 function read_non_hidden_files(repo::AbstractString)::Vector{String}
-    filelist = basename.(readdir(repo));
+    filelist = readdir(repo, join=true);
+    filter!(!isdir, filelist);
+    filelist = basename.(filelist);
+
     # ignore files starting with . and _
-    return filter(x->!occursin(r"^\.|^_",x), filelist)
+    return filter(x->!startswith(x, r"\.|_"), filelist)
 end
 
 function runTest(RN::Network, FL::Fleet)
