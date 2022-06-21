@@ -81,7 +81,8 @@ function loadFleet()::Fleet
     Rot = Dict{String,String}();
     if isfile(rotation_file)
         Rot = Dict(CSV.File(rotation_file, comment="#"));
-        Opt["print_flow"] && println("Rotations loaded")
+        Opt["print_flow"] && println("Rotations loaded");
+        @info "Rotations loaded.";
     end
 
     #right now the train track is only n.5
@@ -163,7 +164,7 @@ function loadDelays()::Vector{DataFrame}
     repo = Opt["imposed_delay_repo_path"]
     occursin(r"/$", repo) || (repo *= "/"); # add slash to the folder name if not present
 
-    files=sort!(read_non_hidden_files(repo))
+    files=sort(read_non_hidden_files(repo))
 
 
     if isempty(files)
@@ -249,7 +250,6 @@ function imposeDelays(FL::Fleet, df::DataFrame)
 
     Opt["print_flow"] && println("$(nrow(df)) Delays imposed");
     df = nothing;
-
 end
 
 """

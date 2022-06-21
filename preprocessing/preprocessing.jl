@@ -6,8 +6,8 @@ include("functions.jl")
 include("rotations.jl")
 @info "Compiling."
 
-function main()
-@info "Starting main()"
+function preprocessing()
+@info "Starting preprocessing"
 
     if VERSION < v"1.6"
         println("Please upgrade Julia to at least version 1.6. Exiting.")
@@ -31,9 +31,13 @@ function main()
     use_real_time = parsed_args["use_real_time"];
     split_transit = parsed_args["split_transits"];
     find_rotations= parsed_args["rotations"];
+
     trains_beginning=parsed_args["trains_beginning"]
     create_delay_files=parsed_args["create_delay_files"]
     trains_station_stop=parsed_args["trains_station_stop"]
+
+    buffering_sec = parsed_args["buffering"];
+
 
     if (!isdir(source_path))
         println("No data folder $source_path is available.");
@@ -57,47 +61,52 @@ function main()
 
     #load the df
 @info "Loading data"
-    df=CSV.read(file,DataFrame, delim=',', types=String)
+    df=CSV.read(file,DataFrame)
 
-
-    rename!(df, :"BST Code Anlieferung" => :bts_code)
-    rename!(df, :Betriebstag            => :date)
-    rename!(df, :Istzeit                => :real_time)
-    rename!(df, :"Messpunkt Bez"        => :kind)
-    rename!(df, :"Sollzeit R"           => :scheduled_time)
-    rename!(df, :"Zuglaufmodus Code"    => :CODE)
-    df.train_id = string.(df.Zuggattung, "_",  df.Zugnr)
-
-
-    select!(df, ([:date,:train_id,:bts_code,:CODE,:scheduled_time,:real_time,:kind,:Tfz1,:Tfz2,:Tfz3,:Tfz4,:Tfz5]))
-
-    #take only real running trains
-    filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
+    select!(df,
+           :Betriebstag            => :date,
+           [:Zuggattung, :Zugnr]   => ByRow((x,y) -> string(x, "_",  y)) => :train_id,
+           "BST Code Anlieferung"  => :bts_code,
+           "Zuglaufmodus Code"     => :CODE,
+           "Sollzeit R"            => :scheduled_time,
+           :Istzeit                => :real_time,
+           "Messpunkt Bez"         => :kind,
+           Between(:Tfz1, :Tfz5)
+           )
 
     #get the df_date
     if in_file == ""
         filter!(row -> (row.date == date ), df)
     end
 
+    #take only real running trains
+    filter!(row -> row.CODE ∈ ACCEPTED_TRAJ_CODE, df)
+
     find_rotations && Rotations(copy(df));
 
     if use_real_time
         df.scheduled_time = df.real_time;
-        println("*** Using real time instead of scheduled ***")
+        println("*** Using the real timetable instead of the planned one ***")
     end
 
     # convert date format in seconds alltogether
+    dropmissing!(df, :scheduled_time)
     df.scheduled_time = dateToSeconds.(df.scheduled_time);
 
     nroftrains = length(unique(df.train_id));
     println("Found $nroftrains trains")
 
 @info "Cycling through trains"
-    for train in unique(df.train_id)
-#        println(out_file, train);
 
-        df_train=filter(row -> (row.train_id == train), df)
-        sort!(df_train, [order(:scheduled_time, rev=false)])
+    gd = groupby(df, :train_id);
+    df = nothing;
+
+    for i = 1:length(gd)
+    # for train in unique(df.train_id)
+        df_train = gd[i];
+        train = df_train.train_id[1];
+
+        sort!(df_train, :scheduled_time);
 
         nrows=nrow(df_train)
         if nrows == 1 # remove fossiles already here
@@ -114,8 +123,9 @@ function main()
             continue
         end
 
-
-        dropmissing!(df_train, :scheduled_time)
+        if buffering_sec > 0
+            buffering(df_train, buffering_sec);
+        end
 
         nrows=nrow(df_train)
 
@@ -125,17 +135,16 @@ function main()
 
         for i in 1:nrows-1 # removes trains with one event
 
-            bts      = df_train[i, :].bts_code
-            next_bts = df_train[i+1, :].bts_code
+            bts      = df_train[i, :bts_code]
+            next_bts = df_train[i+1, :bts_code]
 
             block  = bts*"-"*next_bts
 
+            bts_time      = df_train[i, :scheduled_time]
+            next_bts_time = df_train[i+1, :scheduled_time]
 
-            bts_time      = df_train[i, :].scheduled_time
-            next_bts_time = df_train[i+1, :].scheduled_time
-
-            bts_kind      = df_train[i, :].kind
-            next_bts_kind = df_train[i+1, :].kind
+            bts_kind      = df_train[i, :kind]
+            next_bts_kind = df_train[i+1, :kind]
 
             # if train transits in station only
             if split_transit && bts_kind == "Durchfahrt"
@@ -613,4 +622,4 @@ end
 
 
 ############################################################################################################
-main()
+preprocessing()

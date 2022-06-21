@@ -23,7 +23,9 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     #time interval in seconds between an evaluation of stuck and another
     stuck_interval=3000
 
-    ROTATION_WAITING_TIME = 120; # time to wait for a dependent rotation
+    ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
+    MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
+    MINIMUM_HALT_AT_STATION = 24; # Wait at least this amount of seconds before leaving
 
     old_status = status = ""; # trains going around, used to get stuck status
 
@@ -72,8 +74,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
-                    print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind)")
-                    if kind == "Abfahrt"||"Beginn"
+                    print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind) but has to wait to leave on schedule")
+                    if kind == "Abfahrt" || kind=="Beginn"
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
                         push!(Event[duetime], transit)
@@ -82,7 +84,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     end
                 end
 
-                print_train_status && println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)")
+                print_train_status && (t-duetime>0) &&
+                    println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)");
 
                 train = FL.train[trainid]
 
@@ -135,19 +138,38 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         train.dyn.currentBlock = nextBlockid
 
                         nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
-                        #"""train.dyn.nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime"""
+
+                        # remove comment to list halting time at stations
+                        # isStation(nextBlockid) && train.schedule[n_op+1].kind == "Abfahrt" && println("$trainid,$nextBlockid,$nextBlockDueTime");
 
                         # nice way of listing blocks and travelling times by train
                         #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = nextBlockDueTime
-                        #"""train.dyn.nextBlockRealTime = floor(Int, nextBlockDueTime)"""
+                        # next block is a passenger station and is not supposed to get exo delay
+                        if train.schedule[n_op+1].kind == "Abfahrt" && !haskey(train.delay, nextBlockid)
+                        # if we arrive at station inside buffering time, do not wait
+                            if nextBlockDueTime > MAXIMUM_HALT_AT_STATION
+                                print_train_status && println("$trainid recovers $(nextBlockDueTime-MAXIMUM_HALT_AT_STATION)s in $nextopid");
+                                nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
+                                #println("$trainid recovers in $nextopid");
+                            end
+                            if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1)
+                                nextBlockRealTime = MINIMUM_HALT_AT_STATION;
+                                print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
+                                #println("$trainid recovers in $nextopid");
+                            end
+                        end
 
                         delay_imposed = get(train.delay, nextBlockid,0);
+                        # if delay_imposed>0
+                        #     println("$trainid,$nextBlockid,$delay_imposed");
+                        # end
 
                         tt = t + nextBlockRealTime + delay_imposed;
 
-                        print_train_status && (delay_imposed > 0 && println("A delay to train $trainid is imposed in  block [$nextBlockid]; Opt[imposed_delay_repo_path] is $(Opt["imposed_delay_repo_path"]) "))
+                        print_train_status && delay_imposed > 0 &&
+                            println("An exo-delay to train $trainid is imposed in  block [$nextBlockid]");
 
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[n_op+1])
