@@ -9,7 +9,6 @@ function loadOptions(parsed_args::Dict)
 
     Opt["test"]                 = parsed_args["speed_test"]
     Opt["catch_conflict"]       = parsed_args["catch_conflict"]
-    Opt["multi_stations"]       = parsed_args["multi_stations"]
     Opt["inject_delays"]        = parsed_args["inject_delays"]
     Opt["multi_simulation"]     = parsed_args["multi_simulation"]
 
@@ -34,6 +33,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
         ####################################################################
         elseif(key=="simulate")             Opt[key] = parse(Bool, val)
+        elseif(key=="free_platforms")       Opt[key] = parse(Bool, val)
         ####################################################################
         elseif(key=="print_options")        Opt[key] = parse(Bool, val)
         elseif(key=="print_flow")           Opt[key] = parse(Bool, val)
@@ -49,7 +49,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="print_notifications")  Opt[key] = parse(Bool, val)
         elseif(key=="print_rotations")      Opt[key] = parse(Bool, val)
         ####################################################################
-        elseif(key=="print_timetable")      Opt[key] = parse(Bool, val)
+        elseif(key=="save_timetable")       Opt[key] = parse(Bool, val)
         ####################################################################
         else println("WARNING: input parameter $key does not exist")
         end
@@ -78,7 +78,7 @@ function loadOptions(parsed_args::Dict)
         print("\nPerforming speed test with no output.\nPlease be patient. ")
 
         for k in keys(Opt)
-            if occursin(r"^print", k)
+            if startswith(k, r"print|save")
                 Opt[k] = false
             end
         end
@@ -96,7 +96,7 @@ function loadOptions(parsed_args::Dict)
         println("########################")
     end
 
-    Opt["print_flow"] && println("Options loaded, starting the program.")
+    Opt["print_flow"] && @info("Options loaded, starting the program.")
 
 end
 
@@ -119,6 +119,7 @@ rotation_file           None   # list of train dependencies: one train does not 
 imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
+free_platforms          0   # if true, platforms at stations may be used in any direction
 #############################
 print_options           0   # print out these options
 print_flow              0   # notify when a new function starts and ends
@@ -134,7 +135,7 @@ print_tot_delay         1   # print the total delay at the end of simulation
 print_notifications     0   # the simulation sequential number in stderr
 print_rotations         0   # display the trains waiting because the necessary train did not arrive yet
 #############################
-print_timetable         0   # save the simulated timetables
+save_timetable          0   # save the simulated timetables
 #############################
 
 """

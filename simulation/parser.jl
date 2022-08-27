@@ -8,7 +8,7 @@ function parse_commandline()
         "--version", "-v"
             help = "show the simulation's version"
             action = :store_true
-            
+
         "--ini", "-i"
             help = "path for the .ini file"
             arg_type = String
@@ -25,7 +25,7 @@ function parse_commandline()
             default = ""
 
         "--speed_test"
-            help = "perform a speed test using the @time macro"
+            help = "perform a speed test on the simulation core using the @time macro -- disable all outputs"
             action = :store_true
 
         "--multi_simulation"
@@ -42,10 +42,6 @@ function parse_commandline()
                     in the folder specified in par.ini under imposed_delay_repo_path, which usually
                     is the /data/delays/ folder;
                     If the --multi_simulation flag is not specified, the first ordered delay file is used."
-            action = :store_true
-
-        "--multi_stations"
-            help = "a flag for making the platforms at stations have a preferential direction"
             action = :store_true
 
             # "--opt1"

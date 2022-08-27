@@ -73,8 +73,8 @@ function loadFleet()::Fleet
     train2dir = Dict{String,Int}();
     if isfile(trains_info_file)
         train2dir = CSV.File(trains_info_file, comment="#") |> Dict
-    elseif Opt["multi_stations"]
-        println("multi platforms activated but no file found. Add file and restart")
+    elseif !Opt["free_platforms"]
+        println("fixed direction platforms activated but no file found. Add file and restart")
         exit()
     end
 
