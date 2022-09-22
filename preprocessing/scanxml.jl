@@ -19,7 +19,7 @@ function xml2df(file::String)
 
     df = DataFrame(train=UString[],
                     bst=UString[], bstname=UString[],
-                    direction=UString[], section=UString[],
+                    direction=UString[], line=UString[],
                     distance=UString[], km=UString[],
                     arrival=UString[], departure=UString[],
                     type=UString[]);
@@ -87,10 +87,10 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
 
     if !raw
         # remove lines with no operational point (OP)
-        dropmissing!(df, :bst);
+        filter!(x->!isnothing(x.bst), df);
         # remove lines with OP of type KM + number
         filter!(x->!startswith(x.bst,"KM "), df);
-        # remove OP with no convetional name and of type Ixxx (OP at border)
+        # remove OP with no conventional name and of type Ixxx (OP at border)
         filter!(x->!occursin(r"^I\d+$", x.bst), df);
         # remove spaces and underscores from OP names
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
