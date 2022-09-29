@@ -1,3 +1,5 @@
+@info "Loading libraries";
+
 using CSV, DataFrames;
 include("MyGraphs.jl");
 include("MyDates.jl");
@@ -7,7 +9,7 @@ UInt = Union{Int,Missing};
 UString = Union{String,Missing};
 
 POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
-DEBUG = true;
+DEBUG = true;#false;#true;
 
 struct Block
         name::String
@@ -110,10 +112,10 @@ function cleanBstPADXML!(dfpad::DataFrame, dfxml::DataFrame)
         bstpad = unique(select(dfpad, :bst));
         bstxlm = unique(select(dfxml, :bst));
         
-        aj = antijoin(dfpad,dfxml, on=:bst);
+        aj = antijoin(bstpad,bstxlm, on=:bst);
         filter!(x->(x.bst ∉ aj.bst), dfpad);
         
-        aj = antijoin(dfxml,dfpad, on=:bst);
+        aj = antijoin(bstxlm,bstpad, on=:bst);
         filter!(x->(x.bst ∉ aj.bst), dfxml);
         
         nothing
@@ -141,7 +143,7 @@ function findBlocks(df::DataFrame, outfile="")::DataFrame
                 lenm = df_train.distance[n] - df_train.distance[n-1]; # blk length in meters
                 sec = df_train.line[n-1];
                 dir = df_train.direction[n-1];
-                ismissing(sec) && (sec=df_train.line[n-2];);
+                ismissing(sec) && (sec=df_train.line[n-2]; );
                 ismissing(dir) && (dir=df_train.direction[n-2];);
                 blk = string(b1,"-",b2);
                 blk = replace(blk, r" +" => "");
@@ -152,7 +154,12 @@ function findBlocks(df::DataFrame, outfile="")::DataFrame
 #    end
     # Bs = sort(BlkList, byvalue=true, rev=true);
     unique!(D);
-    outfile == "" || CSV.write(outfile, sort(D,:block));
+    
+    if outfile !== "" 
+        @info "Saving blocks on file \"$outfile\"";
+        CSV.write(outfile, sort(D,:block));
+    end
+
     D
 end
 """
@@ -160,7 +167,7 @@ end
 
 TBW
 """
-function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)#::DataFrame
+function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
         @info "Building a clean timetable"
         gdpad = groupby(dfpad, :train);
         gdxml = groupby(dfxml, :train);
@@ -182,7 +189,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)#::Data
 
                 for i = 1:nrow(gd)
                         # train = gd.train[1]
-                        key = string(gd.train[i], "-", gd.bst[i]);
+                        key = string(train, "-", gd.bst[i]);
                         Dxml[key] = gd[i, [:direction, :line, :distance]];
                 end
         end
@@ -228,6 +235,9 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)#::Data
                                         direction = BlkList[blk].direction;
                                         line = BlkList[blk].line[1]; # fix what happens if more lines exist here
                                         distance = BlkList[blk].length[1]; # fix what happens if more lines exist here
+
+                                        length(BlkList[blk].line)>1 && @warn "Line ambiguity for train $key in block $blk";
+
                                         iscumul = true;
                                         #@warn "must add the length";
                                 elseif bst==nextbst
@@ -265,7 +275,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)#::Data
                         #         @info "Adding $b for train $train";
                         #         push!(dfout, (train*poppy, b, ttype, direction, line, cumuldist, t2));
                         # end
-                        if 2 < length(shortestpath) <= POPPING_JUMPS
+                        if 2 < length(shortestpath) <= POPPING_JUMPS+2
                                 DEBUG && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
                                 # println("$bst->$nextbst:", length(shortestpath));
                                 totlen = 0;
@@ -280,6 +290,9 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)#::Data
                                 for w = 1:length(shortestpath)-2
                                         block = string(shortestpath[w],"-",shortestpath[w+1]);
                                         cumullen += BlkList[block].length[1];
+
+                                        length(BlkList[block].length)>1 && @warn "Length ambiguity for train $train in block $block";
+                                        
                                         t = starttime + floor(Int, (endtime-starttime)/totlen*cumullen);
                                         b = shortestpath[w+1];
                                         ttype = "p";
@@ -305,11 +318,20 @@ end
 # dfout = trainMatch(dfpad,dfxml,dfblk);
 function composeTimetable(padfile::String, xmlfile::String, outfile="timetable.csv")
 
-        dfxml = loadXML(xmlfile);
         dfpad = loadPAD(padfile);
-        dfblk = findBlocks(dfxml);
-
+        dfxml = loadXML(xmlfile);
+        
+        
+        (file, _) = splitext(xmlfile);
+        outblkfile = "blocks-$file.csv";
+        dfblk = findBlocks(dfxml, outblkfile);
+        
         cleanBstPADXML!(dfpad,dfxml);
+        
+        # CSV.write("pippo.csv", dfxml);
+        
+        
+
 
         dfout = trainMatch(dfpad,dfxml,dfblk);
 
