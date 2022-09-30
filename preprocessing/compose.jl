@@ -1,3 +1,26 @@
+"""
+compose.jl
+
+Input: 
+        1) a csv file with the daily PAD Zuglaufdaten as provided by OeBB
+        2) a csv file with the preprocessed xml containing the yearly scheduled timetable 
+Output:
+        a csv file with the timetable to use in the simulation
+
+Description:
+        The task of this script is to cure the many issues present in data.
+        
+        First, very often some trains do not appear in the official schedule.
+        Usually these are international trains that exit Austria and for some reason
+        reenter somewhere else. In this case no information is available on the line they will
+        travel on and the direction. This script assigns both direction and line to those trains.
+        
+        Second, some trains disappear in one station and reappear far away. This script
+        builds the network of operational points and uses it to infer where the disappearing 
+        trains would have passed through. The teansit times at the added locations are estimated
+        with a linear interpolation. If more than POPPING_JUMPS are necessary, the train is
+        removed from the network and popped directly into its new location.
+"""
 @info "Loading libraries";
 
 using CSV, DataFrames;
