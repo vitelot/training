@@ -27,8 +27,8 @@ function xml2soldf(file::String)
     sort(df, :id)
 end
 
-df = xml2soldf("RINF-SOL.xml");
-CSV.write("blocks.csv", df);
+# df = xml2soldf("RINF-SOL.xml");
+# CSV.write("blocks.csv", df);
 
 function xml2soldfl(file::String)
     data = parse_file(file);
@@ -58,7 +58,9 @@ function xml2soldfl(file::String)
 end
 
 df = xml2soldfl("RINF-SOL.xml");
-CSV.write("rinf-blocksl.csv", df);
+file = "rinf-blocksl.csv";
+CSV.write(file, df);
+@info "Section of line data saved in file \"$file\"";
 
 function xml2optdf(file::String)
     data = parse_file(file);
@@ -72,7 +74,7 @@ function xml2optdf(file::String)
 
     for o in op;
 
-        id = thevalue(o, "UniqueOPID")[3:end] |> uppercase;
+        id = thevalue(o, "UniqueOPID")[3:end] |> uppercase |> x->replace(x, r"[ ]+"=>"");
         opname = thevalue(o,"OPName"); #attribute(get_elements_by_tagname(o, "OPName")[1], "Value");
         optype = theoptionalvalue(o, "OPType");
         ntracks = thelength(o, "OPTrack");
@@ -84,4 +86,6 @@ function xml2optdf(file::String)
 end
 
 df = xml2optdf("RINF-SOL.xml");
-CSV.write("rinf-OperationalPoints.csv", df);
+file = "rinf-OperationalPoints.csv";
+CSV.write(file, df);
+@info "Operational points data saved in file \"$file\"";
