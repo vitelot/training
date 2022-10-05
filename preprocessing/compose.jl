@@ -21,6 +21,7 @@ Description:
         with a linear interpolation. If more than POPPING_JUMPS are necessary, the train is
         removed from the network and popped directly into its new location.
 """
+
 @info "Loading libraries";
 
 using CSV, DataFrames;
@@ -32,7 +33,7 @@ UInt = Union{Int,Missing};
 UString = Union{String,Missing};
 
 POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
-DEBUG = true;#false;#true;
+DEBUG = 1; # five levels of debugging
 
 struct Block
         name::String
@@ -191,7 +192,7 @@ end
 TBW
 """
 function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
-        @info "Building a clean timetable"
+        @info "Building a clean timetable";
         gdpad = groupby(dfpad, :train);
         gdxml = groupby(dfxml, :train);
         Dxml = Dict{String, DataFrameRow}();
@@ -248,7 +249,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                 # continue;
 
 
-                                # DEBUG && @info "Train $train is not supposed to be in $bst according to the schedule. Trying to fix."
+                                DEBUG ≥ 4 && @info "Train $train is not supposed to be in $bst according to the schedule. Trying to fix."
                                 # lets look at the next block if it is in the block list
                                 direction = missing;
                                 line = missing;
@@ -259,7 +260,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                         line = BlkList[blk].line[1]; # fix what happens if more lines exist here
                                         distance = BlkList[blk].length[1]; # fix what happens if more lines exist here
 
-                                        length(BlkList[blk].line)>1 && @warn "Line ambiguity for train $key in block $blk";
+                                        DEBUG ≥ 3 && length(BlkList[blk].line)>1 && @warn "Line ambiguity for train $key in block $blk";
 
                                         iscumul = true;
                                         #@warn "must add the length";
@@ -299,7 +300,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         #         push!(dfout, (train*poppy, b, ttype, direction, line, cumuldist, t2));
                         # end
                         if 2 < length(shortestpath) <= POPPING_JUMPS+2
-                                DEBUG && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
+                                DEBUG ≥ 1 && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
                                 # println("$bst->$nextbst:", length(shortestpath));
                                 totlen = 0;
                                 for w = 1:length(shortestpath)-1
@@ -314,13 +315,13 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                         block = string(shortestpath[w],"-",shortestpath[w+1]);
                                         cumullen += BlkList[block].length[1];
 
-                                        length(BlkList[block].length)>1 && @warn "Length ambiguity for train $train in block $block";
+                                        DEBUG ≥ 3 && length(BlkList[block].length)>1 && @warn "Length ambiguity for train $train in block $block";
                                         
                                         t = starttime + floor(Int, (endtime-starttime)/totlen*cumullen);
                                         b = shortestpath[w+1];
                                         ttype = "p";
                                         cumuldist += cumullen;
-                                        DEBUG && @info "\tAdding $b for train $train";
+                                        DEBUG ≥ 2 && @info "\tAdding $b for train $train";
                                         push!(dfout, (train*poppy, b, ttype, direction, line, cumuldist, t));
                                 end
                         end
@@ -328,7 +329,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         if iscumul cumuldist += distance; end
 
                         if ispopping
-                                DEBUG && @info "Popping train $train from $bst to $nextbst because of $(length(shortestpath)) jumps";
+                                DEBUG ≥ 1 && @info "Popping train $train from $bst to $nextbst because of $(length(shortestpath)) jumps";
                                 poppy = string("_pop_", nextbst);
                                 ispopping = false;
                                 cumuldist = 0;
