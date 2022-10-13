@@ -4,8 +4,13 @@ compose.jl
 Input: 
         1) a csv file with the daily PAD Zuglaufdaten as provided by OeBB
         2) a csv file with the preprocessed xml containing the yearly scheduled timetable 
+        3) a csv file with the blocks found from the RINF data: "rinf-blocks.csv"
+        4) a csv file with the operational points determined from RINF: "rinf-OperationalPoints.csv"
+                        outfile = "blocks.csv"
 Output:
-        a csv file with the timetable to use in the simulation
+        1) a csv file with the timetable to use in the simulation: "timetable.csv"
+        2) a csv file with the list of blocks for the simulation: "blocks.csv"
+        - an intermediate file "blocks-xml-YEAR.csv" distilled from RINF and XML
 
 Description:
         The task of this script is to cure the many issues present in data.
@@ -34,6 +39,8 @@ UString = Union{String,Missing};
 
 POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
 DEBUG = 1; # five levels of debugging
+
+@enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
 struct Block
         name::String
@@ -145,47 +152,45 @@ function cleanBstPADXML!(dfpad::DataFrame, dfxml::DataFrame)
         nothing
 end
 
-
 function findBlocks(df::DataFrame, outfile="")::DataFrame
-        @info "Finding blocks by aggregating two consecutive lines"
-    #BlkList = Dict{String, Int}();
-#    for file in files # "pad-sample.csv"; #files[1];
+        
+        @info "Finding blocks by aggregating two consecutive lines";
 
         # cleaning already done in scanxml.jl
- 
+
         gd = groupby(df, :train);
         df = nothing;
 
         D = DataFrame(block=String[], line=String[], length=Int[], direction=Int[]);
 
         for df_train in gd
-            train = df_train.train[1];
+                train = df_train.train[1];
 
-            sort!(df_train, :distance);
-            for n = 2:nrow(df_train)
-                b1 = df_train.bst[n-1]; b2 = df_train.bst[n];
-                lenm = df_train.distance[n] - df_train.distance[n-1]; # blk length in meters
-                sec = df_train.line[n-1];
-                dir = df_train.direction[n-1];
-                ismissing(sec) && (sec=df_train.line[n-2]; );
-                ismissing(dir) && (dir=df_train.direction[n-2];);
-                blk = string(b1,"-",b2);
-                blk = replace(blk, r" +" => "");
-                push!(D, (blk,sec,lenm,dir));
-                #BlkList[blk] = get(BlkList,blk,0) + 1;
-            end
+                sort!(df_train, :distance);
+                for n = 2:nrow(df_train)
+                        b1 = df_train.bst[n-1]; b2 = df_train.bst[n];
+                        lenm = df_train.distance[n] - df_train.distance[n-1]; # blk length in meters
+                        sec = df_train.line[n-1];
+                        dir = df_train.direction[n-1];
+                        ismissing(sec) && (sec=df_train.line[n-2]; );
+                        ismissing(dir) && (dir=df_train.direction[n-2];);
+                        blk = string(b1,"-",b2);
+                        blk = replace(blk, r" +" => "");
+                        push!(D, (blk,sec,lenm,dir));
+                        #BlkList[blk] = get(BlkList,blk,0) + 1;
+                end
         end
-#    end
-    # Bs = sort(BlkList, byvalue=true, rev=true);
-    unique!(D);
-    
-    if outfile !== "" 
-        @info "Saving blocks on file \"$outfile\"";
-        CSV.write(outfile, sort(D,:block));
-    end
 
-    D
+        unique!(D);
+
+        if outfile !== "" 
+                @info "Saving blocks on file \"$outfile\"";
+                CSV.write(outfile, sort(D,:block));
+        end
+
+        D
 end
+
 """
     trainMatch(dfpad::DataFrame, dfxml::DataFrame)::DataFrame
 
@@ -339,33 +344,73 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
         dfout
 end
 
-# dfout = trainMatch(dfpad,dfxml,dfblk);
 function composeTimetable(padfile::String, xmlfile::String, outfile="timetable.csv")
 
         dfpad = loadPAD(padfile);
         dfxml = loadXML(xmlfile);
-        
-        
-        (file, _) = splitext(xmlfile);
-        outblkfile = "blocks-$file.csv";
-        dfblk = findBlocks(dfxml, outblkfile);
+            
+        # (file, _) = splitext(xmlfile);
+        # outblkfile = "blocks-$file.csv";
+        dfblk = findBlocks(dfxml); #, outblkfile);
         
         cleanBstPADXML!(dfpad,dfxml);
         
-        # CSV.write("pippo.csv", dfxml);
-        
-        
-
-
         dfout = trainMatch(dfpad,dfxml,dfblk);
 
-        # CSV.write("pippo.csv", dfout);
         @info "Saving timetable on file \"$outfile\"";
         CSV.write(outfile, dfout);
 end
 
-padfile = "PAD-Zuglaufdaten-2018-05-09.csv";
-# padfile = "rex5803pad.csv";
-xmlfile = "xml-2018.csv";
+function generateBlocks(xmlfile::String, 
+                        rinfbkfile = "rinf-blocks.csv", 
+                        rinfopfile = "rinf-OperationalPoints.csv"; 
+                        outfile = "blocks.csv")   
 
-composeTimetable(padfile,xmlfile);
+        @info "Building a complete block file";
+
+        dfxml = loadXML(xmlfile);
+        xmlbk = findBlocks(dfxml);
+ 
+#     xmlbk  = CSV.File(xmlbkfile)  |> DataFrame;
+    rinfbk = CSV.File(rinfbkfile) |> DataFrame;
+    rinfop = CSV.File(rinfopfile) |> DataFrame;
+
+    Bk = Dict{String,TrackNr}();
+    for r in eachrow(rinfbk)
+            op1,op2,line,ntracks,length = r[:];
+
+            # simmetrizziamo e pigliamo ntracks, poi aggiungiamo una colonna :ismono a xmlbk
+            # con 1 se un binario solo. 
+            ismono = ifelse(ntracks==1, ONETRACK, TWOTRACKS);
+            blk = string(op1,"-",op2,"-",line);
+            Bk[blk] = ismono;
+            blk = string(op2,"-",op1,"-",line);
+            Bk[blk] = ismono;
+    end
+
+    xmlbk.ismono = Vector{Int}(undef, nrow(xmlbk));
+    for r in eachrow(xmlbk)
+        block,line,_length,_direction = r[:];
+        blk = string(block,"-",line);
+        r[:ismono] = get(Bk, blk, UNASSIGNED) |> Int; # -1 == unassigned
+    end
+
+    @info "Saving block information on file \"$outfile\"";
+    CSV.write(outfile, sort(xmlbk, :block));
+
+end
+
+function run()
+        padfile = "PAD-Zuglaufdaten-2018-05-09.csv";
+        # padfile = "rex5803pad.csv";
+        xmlfile = "xml-2018.csv";
+
+        composeTimetable(padfile,xmlfile);
+
+        # (file, _) = splitext(xmlfile);
+        # xmlbkfile = "blocks-$file.csv";
+
+        generateBlocks(xmlfile);
+end
+
+run();
