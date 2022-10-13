@@ -39,26 +39,30 @@ function xml2soldfl(file::String)
 
     UString = Union{String, Nothing};
 
-    df = DataFrame(block=UString[], line=UString[],
-                    ntracks=Int[], length=Int[]);
+    df = DataFrame(bst1=UString[], bst2=UString[],
+                    line=UString[],
+                    ntracks=Int[], 
+                    length=Int[]);
 
     for s in sol
         line = thevalue(s, "SOLLineIdentification");
-        bst1 = thevalue(s,"SOLOPStart")[3:end];
-        bst2 = thevalue(s,"SOLOPEnd")[3:end];
+        bst1 = thevalue(s,"SOLOPStart") |> uppercase |> x->replace(x,r"^AT"=>""); # removes the initial AT prefix
+        bst2 = thevalue(s,"SOLOPEnd")   |> uppercase |> x->replace(x,r"^AT"=>"");
         ntracks = thelength(s,"SOLTrack");
         len = thevalue(s, "SOLLength") |> x->replace(x,","=>"") |> x->parse(Int,x);
 
-        block = string(bst1,"-",bst2) |> uppercase;
-        block = replace(block, r"[ _]+" => "");
-        push!(df, (block, line, ntracks, len));
+        # block = string(bst1,"-",bst2) |> uppercase;
+        # block = replace(block, r"[ _]+" => "");
+        bst1 = replace(bst1, r"[ _]+" => "");
+        bst2 = replace(bst2, r"[ _]+" => "");
+        push!(df, (bst1,bst2, line, ntracks, len));
     end
 
-    sort(df, :block)
+    sort(df, :bst1)
 end
 
 df = xml2soldfl("RINF-SOL.xml");
-file = "rinf-blocksl.csv";
+file = "rinf-blocks.csv";
 CSV.write(file, df);
 @info "Section of line data saved in file \"$file\"";
 
