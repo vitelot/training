@@ -10,6 +10,7 @@ Input:
 Output:
         1) a csv file with the timetable to use in the simulation: "timetable.csv"
         2) a csv file with the list of blocks for the simulation: "blocks.csv"
+        3) a csv file with the list of operational points with more than one track (stations, junctions)
         - an intermediate file "blocks-xml-YEAR.csv" distilled from RINF and XML
 
 Description:
@@ -33,6 +34,11 @@ using CSV, DataFrames;
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
+include("parser.jl")
+
+@info "We are going to build the timetable for the simulation.\
+        Since we have lots of trains in Austria and during the day some data are not retrieved,\
+        we need to repair the schedule and this takes some time. Please relax.";
 
 UInt = Union{Int,Missing};
 UString = Union{String,Missing};
@@ -43,6 +49,17 @@ ACCEPTED_TRAJ_CODE        = ["Z","E"];
 POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
 FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
 STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
+
+#CLI parser
+parsed_args = parse_commandline()
+
+date          = parsed_args["date"]
+in_file       = parsed_args["file"]
+source_path   = parsed_args["source_data_path"]
+target_path   = parsed_args["target_data_path"]
+# nr_exo_delays = parsed_args["exo_delays"];
+use_real_time = parsed_args["use_real_time"];
+find_rotations= parsed_args["rotations"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -397,7 +414,7 @@ end
 
 function generateBlocks(xmlfile::String, 
                         rinfbkfile = "rinf-blocks.csv", 
-                        rinfopfile = "rinf-OperationalPoints.csv"; 
+                        rinfopfile = "rinf-OperationalPoints.csv",
                         outblkfile = "blocks.csv",
                         outopfile = "stations.csv")   
 
@@ -461,23 +478,46 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         end
 end
 
-function run(padfile = "PAD-Zuglaufdaten-2018-05-09.csv", xmlfile = "xml-2018.csv", stationfile="stations.csv")
+function padfile_from_date(file_base="PAD-Zuglaufdaten-20")::String
+        
+        day = join(reverse(split(date,".")), "-");
+    
+        return source_path*file_base*"$day.csv"; 
+end
+
+function xmlfile_from_date()::String
+        year = split(date, ".")[3];
+        return source_path * "xml-20$year.csv";
+end
+
+function run()
         # padfile = "rex5803pad.csv";
         # xmlfile = "xml-2018.csv";
         
-        generateBlocks(xmlfile);
+        if in_file == ""
+                timetablefile = target_path*"timetable-$date.csv"
+                padfile=padfile_from_date();
+        else
+                timetablefile = target_path*"timetable_$in_file"
+                padfile = source_path * in_file; #inputfile_from_date(date,source_path)
+        end
 
-        composeTimetable(padfile,xmlfile, stationfile);
+        
+        xmlfile     = xmlfile_from_date();
+        rinfbkfile  = source_path*"rinf-blocks.csv";
+        rinfopfile  = source_path*"rinf-OperationalPoints.csv";
+        outblkfile  = target_path*"blocks.csv";
+        stationfile = target_path*"stations.csv";
+
+        generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
+
+        composeTimetable(padfile,xmlfile, stationfile, timetablefile);
 
         # (file, _) = splitext(xmlfile);
         # xmlbkfile = "blocks-$file.csv";
 
 
-        sanityCheck();
+        sanityCheck(timetablefile, outblkfile, stationfile);
 end
 
-if length(ARGS) == 2
-        run(ARGS[1], ARGS[2]);
-else
-        run();
-end
+run();

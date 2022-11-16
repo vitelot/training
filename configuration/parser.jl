@@ -1,14 +1,14 @@
-using ArgParse
+using ArgParse;
 
 function parse_commandline()
-    s = ArgParseSettings()
+    s = ArgParseSettings();
 
     @add_arg_table s begin
 
         "--date", "-d"
             help = "Date from which we want to extract the timetable."
             arg_type = String
-            default = "25.03.19"
+            default = "09.05.18"
 
         "--file", "-f"
             help = "File with the timetable to process."
@@ -16,31 +16,36 @@ function parse_commandline()
             default = ""
 
         "--source_data_path"
-            help = "Source of the pad zuglauf..."
+            help = "Source of the PAD timetable files."
             arg_type = String
-            default = "../data/hidden_data/"
+            default = "../preprocessing/data/"
 
-        "--exo_delays"
-            help = "Number of files with exo delays to be created."
-            arg_type = Int
-            default = 0
+        "--target_data_path"
+            help = "Folder to write processed data for the simulation."
+            arg_type = String
+            default = "../data/simulation_data/"
+
+        # "--exo_delays"
+        #     help = "Number of files with exo delays to be created."
+        #     arg_type = Int
+        #     default = 0
 
         "--use_real_time"
             help = "Use the real time column of the timetable instead of the scheduled time."
             action = :store_true
 
-        "--split_transits"
-            help = "Splits a Durchfahrt into two events by adding a durchfahrt_out few seconds later."
-            action = :store_true
+        # "--split_transits"
+        #     help = "Splits a Durchfahrt into two events by adding a durchfahrt_out few seconds later."
+        #     action = :store_true
 
         "--rotations"
             help = "Create a file with train dependencies. One train cannot start if the other has not arrived yet."
             action = :store_true
 
-        "--buffering"
-            help = "Number of seconds to increase the buffering time of trains at selected stations stations. The list of trains and stations is in the code not in a file yet."
-            arg_type = Int
-            default = 0
+        # "--buffering"
+        #     help = "Number of seconds to increase the buffering time of trains at selected stations stations. The list of trains and stations is in the code not in a file yet."
+        #     arg_type = Int
+        #     default = 0
 
     end
 

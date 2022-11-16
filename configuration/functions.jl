@@ -1,25 +1,25 @@
-function dateToSeconds(d::AbstractString)::Int
-"""
-Given a string in the format "yyyy-mm-dd HH:MM:SS"
-returns the number of seconds elapsed from the epoch
-"""
-    dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-    return Int(floor(datetime2unix(dt)))
-    #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
-end
-function dateToSeconds(d::Int)::Int
-"""
-If the input is an Int do nothing
-assuming that it is already the number of seconds elapsed from the epoch
-"""
-    return d
-end
-function dateToSeconds(d::Missing)::Missing
-"""
-If the input is missing do nothing
-"""
-    return missing
-end
+# function dateToSeconds(d::AbstractString)::Int
+# """
+# Given a string in the format "yyyy-mm-dd HH:MM:SS"
+# returns the number of seconds elapsed from the epoch
+# """
+#     dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
+#     return Int(floor(datetime2unix(dt)))
+#     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
+# end
+# function dateToSeconds(d::Int)::Int
+# """
+# If the input is an Int do nothing
+# assuming that it is already the number of seconds elapsed from the epoch
+# """
+#     return d
+# end
+# function dateToSeconds(d::Missing)::Missing
+# """
+# If the input is missing do nothing
+# """
+#     return missing
+# end
 
 ############################################################################################################
 #function that reads the timetable and returns the events of beginning of trains if ["Abfahrt","Beginn"] are there
