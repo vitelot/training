@@ -37,8 +37,12 @@ using .MyGraphs, .MyDates;
 UInt = Union{Int,Missing};
 UString = Union{String,Missing};
 
-POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
 DEBUG = 1; # five levels of debugging
+
+ACCEPTED_TRAJ_CODE        = ["Z","E"];
+POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
+FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
+STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -87,9 +91,11 @@ function loadPAD(file::String)::DataFrame
         skipto = 2) |> DataFrame;
         
         dropmissing!(bigpad, :scheduledtime);
+        filter!(x->length(x.scheduledtime)>0, bigpad );
 
         # keep only running trains Z=scheduled, E=substitution
-        # filter!(x->x.runningtype ∈ ["Z","E"], bigpad);
+        filter!(x->x.runningtype ∈ ACCEPTED_TRAJ_CODE, bigpad);
+        
         # remove OP at the border
         filter!(x->!startswith(x.bstname,"Staatsgrenze"), bigpad);
         
@@ -102,7 +108,7 @@ function loadPAD(file::String)::DataFrame
         
         transform!(bigpad, :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime);
         
-        return(bigpad);
+        sort(bigpad, [:train, :scheduledtime]);
 end
 
 """
@@ -138,7 +144,7 @@ end
 Remove lines in both dataframes that contain :bst that are not present in both.
 """
 function cleanBstPADXML!(dfpad::DataFrame, dfxml::DataFrame)
-        @info "Removing the operational points that do not appear in both datasets"
+        @info "Removing the operational points that do not appear in both PAD and XML datasets"
 
         bstpad = unique(select(dfpad, :bst));
         bstxlm = unique(select(dfxml, :bst));
@@ -289,21 +295,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
 
                         push!(dfout, (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
 
-                        # if length(shortestpath) == 3 
-                        #         # println("$bst->$nextbst:", length(shortestpath));
-                        #         starttime = scheduledtime;
-                        #         endtime = gd[i+1, :scheduledtime];
-                        #         blk1 = string(shortestpath[1],"-",shortestpath[2]);
-                        #         blk2 = string(shortestpath[2],"-",shortestpath[3]);
-                        #         len1 = BlkList[blk1].length[1];
-                        #         len2 = BlkList[blk2].length[1];
-                        #         t2 = starttime + floor(Int, (endtime-starttime)/(len1+len2)*len1);
-                        #         b = shortestpath[2];
-                        #         ttype = "p";
-                        #         cumuldist += len1;
-                        #         @info "Adding $b for train $train";
-                        #         push!(dfout, (train*poppy, b, ttype, direction, line, cumuldist, t2));
-                        # end
+                        
                         if 2 < length(shortestpath) <= POPPING_JUMPS+2
                                 DEBUG ≥ 1 && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
                                 # println("$bst->$nextbst:", length(shortestpath));
@@ -341,14 +333,54 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         end
                 end
         end
+
+ 
         dfout
 end
 
-function composeTimetable(padfile::String, xmlfile::String, outfile="timetable.csv")
+function passingStation!(df::DataFrame, dfsta::DataFrame)::DataFrame
+
+        @info "Estimating passing time through stations";
+        
+        sort!(df, [:train, :scheduledtime]);
+
+        for i in 1:nrow(df)
+                r = df[i,:];
+                train = r[:train];
+                if r[:bst] ∈ dfsta.id && r[:transittype] == "p" # passing through station
+                        nextr = df[i+1,:];
+                        if train==nextr[:train]
+                                d1 = r[:distance]; d2 = nextr[:distance];
+                                t1 = r[:scheduledtime]; t2 = nextr[:scheduledtime];
+                                Δt = t2-t1;
+                                if d2 - d1 <= STATION_LENGTH
+                                        push!(df, (train, r[:bst], "P", r[:direction], r[:line], d1, floor(Int, (t1+t2)/2)));
+                                        continue;
+                                end
+                                v = (d2-d1)/Δt;
+                                t = floor(Int, t1 + STATION_LENGTH/v);
+                                d = d1 + STATION_LENGTH;
+                                push!(df, (train, r[:bst], "P", r[:direction], r[:line], d, t));
+                                #r[:transittype] = "p1";
+                        else
+                                #@warn "Passing train $train is not the same as $(nextr[:train]) on next line";
+                                d = r[:distance] + STATION_LENGTH;
+                                t = FAST_STATION_TRANSIT_TIME + r[:scheduledtime];
+                                push!(df, (train, r[:bst], "P", r[:direction], r[:line], d, t));
+                                
+                        end
+                end
+        end
+        sort!(df, [:train, :scheduledtime, :distance])
+end
+
+function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
+        @info "Composing the timetable";
 
         dfpad = loadPAD(padfile);
         dfxml = loadXML(xmlfile);
-            
+        dfsta = CSV.read(stationfile, DataFrame);
+
         # (file, _) = splitext(xmlfile);
         # outblkfile = "blocks-$file.csv";
         dfblk = findBlocks(dfxml); #, outblkfile);
@@ -357,6 +389,8 @@ function composeTimetable(padfile::String, xmlfile::String, outfile="timetable.c
         
         dfout = trainMatch(dfpad,dfxml,dfblk);
 
+        passingStation!(dfout,dfsta);
+
         @info "Saving timetable on file \"$outfile\"";
         CSV.write(outfile, dfout);
 end
@@ -364,14 +398,16 @@ end
 function generateBlocks(xmlfile::String, 
                         rinfbkfile = "rinf-blocks.csv", 
                         rinfopfile = "rinf-OperationalPoints.csv"; 
-                        outfile = "blocks.csv")   
+                        outblkfile = "blocks.csv",
+                        outopfile = "stations.csv")   
 
-        @info "Building a complete block file";
+        @info "Building a complete block file and adding onetrack property";
 
         dfxml = loadXML(xmlfile);
         xmlbk = findBlocks(dfxml);
+        # WARNIG: we did not remove operational points not in common with PAD
  
-#     xmlbk  = CSV.File(xmlbkfile)  |> DataFrame;
+        # xmlbk  = CSV.File(xmlbkfile)  |> DataFrame;
     rinfbk = CSV.File(rinfbkfile) |> DataFrame;
     rinfop = CSV.File(rinfopfile) |> DataFrame;
 
@@ -395,22 +431,53 @@ function generateBlocks(xmlfile::String,
         r[:ismono] = get(Bk, blk, UNASSIGNED) |> Int; # -1 == unassigned
     end
 
-    @info "Saving block information on file \"$outfile\"";
-    CSV.write(outfile, sort(xmlbk, :block));
+    @info "Saving complete block information on file \"$outblkfile\"";
+    CSV.write(outblkfile, sort(xmlbk, :block));
+
+    @info "Looking for stations and places with more usable tracks";
+    places_type = ["station", "small station", "passenger stop", "junction"];
+    filter!(x-> x.type ∈ places_type, rinfop);
+    select!(rinfop, [:id, :ntracks, :nsidings]);
+    @info "Saving station information to file \"$outopfile\"";
+    CSV.write(outopfile, rinfop);
 
 end
 
-function run()
-        padfile = "PAD-Zuglaufdaten-2018-05-09.csv";
-        # padfile = "rex5803pad.csv";
-        xmlfile = "xml-2018.csv";
+function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stationfile="stations.csv")
+        @info "Doing a sanity check on the produced files"
 
-        composeTimetable(padfile,xmlfile);
+        dt = CSV.File(timetablefile, select=[:bst]) |> DataFrame;
+        ds = CSV.File(stationfile, select=[:id]) |> DataFrame;
+        db = CSV.File(blkfile, select=[:block]) |> DataFrame;
+        select!(db, :block => ByRow(x->split(x,"-")) => [:op1,:op2]);
+
+        sett = Set(unique(dt.bst));
+        sets = Set(unique(ds.id));
+        setb = Set(unique(vcat(db.op1,db.op2)));
+
+        @info "There are $(length(setdiff(sets,sett))) stations not appearing in the timetable. This is not a problem since they do not appear in the PAD data.";
+        if length(setdiff(sett,setb)) > 0
+                @warn "There are $(length(setdiff(sett,setb))) operational points that are in the timetable and not in the blocks. This is a problem";
+        end
+end
+
+function run(padfile = "PAD-Zuglaufdaten-2018-05-09.csv", xmlfile = "xml-2018.csv", stationfile="stations.csv")
+        # padfile = "rex5803pad.csv";
+        # xmlfile = "xml-2018.csv";
+        
+        generateBlocks(xmlfile);
+
+        composeTimetable(padfile,xmlfile, stationfile);
 
         # (file, _) = splitext(xmlfile);
         # xmlbkfile = "blocks-$file.csv";
 
-        generateBlocks(xmlfile);
+
+        sanityCheck();
 end
 
-run();
+if length(ARGS) == 2
+        run(ARGS[1], ARGS[2]);
+else
+        run();
+end
