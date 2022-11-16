@@ -1,9 +1,25 @@
+"""
+Scans the xml EBU files to output the scheduled timetable in file xml-year.csv
+Available years are 2018 and 2019 only.
+"""
+
+@info "Loading libraries";
+
 using LightXML, DataFrames, CSV;
 import Base.uppercase;
 
+inputdir = "./data";
+outputdir = "./data";
+
 uppercase(nothing) = nothing;
 
-function xml2df(file::String)
+"""
+    xml2df(file::String)::DataFrame
+
+Parses the XML file with scheduled timetable and returns a dataframe with
+train, posID, posName, dir, secid, distance, km, arrival, departure, type
+"""
+function xml2df(file::String)::DataFrame
     data = parse_file(file);
 
     # save_file(data, "dataf.xml") # save in a readable format
@@ -74,18 +90,24 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         println("Outfile \"$outfile\" is already present. Doing nothing.")
         return;
     end
-
-    filelist = filter(x->startswith(x,"EBU_Reise"), readdir());
-    # c = 0;
+    
+    filelist = filter(x->startswith(x,"$inputdir/EBU_Reise"), readdir(inputdir, join=true));
+    
     f1 = popfirst!(filelist);
     df = xml2df(f1);
 
     for f in filelist
-        # c += 1;
+        println("Processing file $f");
         append!(df, xml2df(f));
     end
 
     if !raw
+        @info "The resulting timetable will be cleaned. \
+            Set raw=true if you need the raw one.
+            We remove lines with empty operational point,\
+            those with signals at km x,
+            the pseudo operational points right after the border.";
+
         # remove lines with no operational point (OP)
         filter!(x->!isnothing(x.bst), df);
         # remove lines with OP of type KM + number
@@ -96,12 +118,31 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
     end
 
+    @info "Saving the schedule into file \"$outfile\"";
     CSV.write(outfile, df, transform=(col, val)->val==nothing ? missing : val);
 
     nothing
 end
 
-convertAll("xml-2018.csv", raw = false);
+if length(ARGS) > 0
+    year = ARGS[1];
+else
+    year = "2018";
+end
+
+availableyears = ["2018", "2019"];
+if year ∈ availableyears
+    
+    @info "Scanning year $year";
+
+    outfile = "$outputdir/xml-$year.csv";
+    inputdir = inputdir * "/$year";
+
+    convertAll(outfile, raw = false);
+else
+    @info "Only the years 2018 and 2019 are available. I do not know anything about \"$year\".";
+end
+
 
 # EXAMPLE OF XML FILE
 # <timetableEntry arrival="06:59:30" brakeRatio="89" departure="07:00:30" distance="3892" kmPos="9.4" kmSys="58" optSpeed="50" posID="Ott" posName="Ottensheim" radioChannel="-ZLF A-77-" speed="55" type="stop">
