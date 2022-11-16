@@ -490,7 +490,7 @@ function xmlfile_from_date()::String
         return source_path * "xml-20$year.csv";
 end
 
-function run()
+function configure()
         # padfile = "rex5803pad.csv";
         # xmlfile = "xml-2018.csv";
         
@@ -520,4 +520,4 @@ function run()
         sanityCheck(timetablefile, outblkfile, stationfile);
 end
 
-run();
+configure();
