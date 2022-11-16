@@ -1,6 +1,12 @@
-using DataFrames, CSV, Dates
+# the script compose.jl finds all we need of the blocks.
+# we use this script to generate gml files to display the network of
+# operational points with GePhi.
 
-function findBlocks(file::String, outfile="out.csv")::DataFrame
+@info "Loading libraries";
+
+using DataFrames, CSV, Dates;
+
+function findBlocks(file::String, outfile="")::DataFrame
 
     #BlkList = Dict{String, Int}();
 #    for file in files # "pad-sample.csv"; #files[1];
@@ -40,7 +46,9 @@ function findBlocks(file::String, outfile="out.csv")::DataFrame
 #    end
     # Bs = sort(BlkList, byvalue=true, rev=true);
     unique!(D);
-    CSV.write(outfile, sort(D,:block));
+    if length(outfile)>0
+        CSV.write(outfile, sort(D,:block));
+    end
     D
 end
 
@@ -67,6 +75,7 @@ function df2gml(df::DataFrame)
     end
 end
 
-D = findBlocks("xml-2018.csv", "xml-2018-blocks.csv");
+D = findBlocks("xml-2018.csv");
 
+@info "Exporting the out.gml file of the network of operational points."
 df2gml(D);
