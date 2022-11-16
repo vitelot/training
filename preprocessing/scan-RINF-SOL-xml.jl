@@ -1,31 +1,41 @@
+"""
+Takes the file RINF-SOL.xml as input and generates the files
+   - rinf-blocks.csv with block information: op1, op2, line, ntracks, length;
+   - rinf-OperationalPoints.csv with operational poin information: id, name, type, ntracks, nsidings
+"""
+
+@info "Loading libraries";
 using LightXML, DataFrames, CSV;
+
+inputdir = "./data";
+outputdir = "./data";
 
 thevalue(x,s) = attribute(get_elements_by_tagname(x, s)[1], "Value");
 theoptionalvalue(x,s) = attribute(get_elements_by_tagname(x, s)[1], "OptionalValue");
 thelength(x,s) = length(get_elements_by_tagname(x, s));
 
-function xml2soldf(file::String)
-    data = parse_file(file);
-    xroot = root(data);
-    sol = get_elements_by_tagname(xroot, "SectionOfLine");
+# function xml2soldf(file::String)
+#     data = parse_file(file);
+#     xroot = root(data);
+#     sol = get_elements_by_tagname(xroot, "SectionOfLine");
 
-    data = xroot = nothing;
+#     data = xroot = nothing;
 
-    UString = Union{String, Nothing};
+#     UString = Union{String, Nothing};
 
-    df = DataFrame(id=UString[], tracks=Int[]);
+#     df = DataFrame(id=UString[], tracks=Int[]);
 
-    for s in sol
-        bst1 = thevalue(s,"SOLOPStart")[3:end] |> uppercase;
-        bst2 = thevalue(s,"SOLOPEnd")[3:end] |> uppercase;
-        ntracks = thelength(s,"SOLTrack");
+#     for s in sol
+#         bst1 = thevalue(s,"SOLOPStart")[3:end] |> uppercase;
+#         bst2 = thevalue(s,"SOLOPEnd")[3:end] |> uppercase;
+#         ntracks = thelength(s,"SOLTrack");
 
-        blk = string(bst1,"-",bst2);
-        push!(df, (blk, ntracks));
-    end
+#         blk = string(bst1,"-",bst2);
+#         push!(df, (blk, ntracks));
+#     end
 
-    sort(df, :id)
-end
+#     sort(df, :id)
+# end
 
 # df = xml2soldf("RINF-SOL.xml");
 # CSV.write("blocks.csv", df);
@@ -61,11 +71,6 @@ function xml2soldfl(file::String)
     sort(df, :bst1)
 end
 
-df = xml2soldfl("RINF-SOL.xml");
-file = "rinf-blocks.csv";
-CSV.write(file, df);
-@info "Section of line data saved in file \"$file\"";
-
 function xml2optdf(file::String)
     data = parse_file(file);
     xroot = root(data);
@@ -89,7 +94,14 @@ function xml2optdf(file::String)
     sort(df, :id)
 end
 
-df = xml2optdf("RINF-SOL.xml");
-file = "rinf-OperationalPoints.csv";
+@info "Scanning...";
+
+df = xml2soldfl("$inputdir/RINF-SOL.xml");
+file = "$outputdir/rinf-blocks.csv";
+CSV.write(file, df);
+@info "Section of line data saved in file \"$file\"";
+
+df = xml2optdf("$inputdir/RINF-SOL.xml");
+file = "$outputdir/rinf-OperationalPoints.csv";
 CSV.write(file, df);
 @info "Operational points data saved in file \"$file\"";
