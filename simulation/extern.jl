@@ -11,8 +11,8 @@ using DataFrames, CSV, Dates;
 
 ###################################
 ###       Global variables      ###
-ProgramVersion = v"0.3.4";
-Opt = Dict{String,Any}()
+ProgramVersion = v"0.4.1";
+Opt = Dict{String,Any}(); # options read from par.ini
 ###################################
 
 #struct not used for now
@@ -27,18 +27,22 @@ struct OPoint # Operational Point: Betriebstelle
 end
 
 mutable struct Block
-    id::String #each block has got its own name
-    # idx::Int # and number
-    # minT::Int #minimum time of block travelling in seconds
-    # dueT::Int #due time of travelling in seconds
-    isStation::Bool #tells if a block is in a station and possibly involves passengers
+    id::String          #each block has got its own name
+                        # idx::Int # and number
+                        # minT::Int #minimum time of block travelling in seconds
+                        # dueT::Int #due time of travelling in seconds
+    isStation::Bool     # tells if a block is in a station and possibly involves passengers
+    line::Int           # the line a block is serving
+    length::Int         # length in meters
+    direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
+    ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     tracks::Union{Int, Dict{Int,Int}} # number of parallel tracks (multiple trains allowed)
-    nt::Union{Int, Dict{Int,Int}} # number of trains on the block (size of next set)
-    train::Set{String} # which train is on it, for platforms: which train is in which of the directions
+    nt::Union{Int, Dict{Int,Int}}     # number of trains on the block (size of next set)
+    train::Set{String}                # which train is on it, for platforms: which train is in which of the directions
 end
 
 function Block()
-    Block("",false,0,0,Set{String}()); #the null empty block
+    Block("",false,0,0,0,0,0,0,Set{String}()); #the null empty block
 end
 
 mutable struct Network
