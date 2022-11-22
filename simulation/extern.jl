@@ -5,7 +5,8 @@ and the packages to be loaded
 """
 
 using DataFrames, CSV, Dates;
-# using StatsBase, PrettyPrint;
+# using StatsBase;
+using PrettyPrint;
 # using Profile
 # using InteractiveUtils
 
@@ -16,23 +17,20 @@ Opt = Dict{String,Any}(); # options read from par.ini
 ###################################
 
 #struct not used for now
-struct OPoint # Operational Point: Betriebstelle
-    id::String # id name
-    idx::Int # numerical index
-    lat::Float64
-    long::Float64
-    parent::Vector{String}
-    child::Vector{String}
-    isStation::Bool
-end
+# struct OPoint # Operational Point: Betriebstelle
+#     id::String # id name
+#     idx::Int # numerical index
+#     lat::Float64
+#     long::Float64
+#     parent::Vector{String}
+#     child::Vector{String}
+#     isStation::Bool
+# end
 
-mutable struct Block
-    id::String          #each block has got its own name
-                        # idx::Int # and number
-                        # minT::Int #minimum time of block travelling in seconds
-                        # dueT::Int #due time of travelling in seconds
-    isStation::Bool     # tells if a block is in a station and possibly involves passengers
-    line::Int           # the line a block is serving
+mutable struct Station
+    id::String          # each station has got its own name
+    line::String        # the line a block is serving
+    isStation::Bool     # tells if a block is in a station and possibly involves passengers; it can be a junction otherwise
     length::Int         # length in meters
     direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
     ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
@@ -41,19 +39,30 @@ mutable struct Block
     train::Set{String}                # which train is on it, for platforms: which train is in which of the directions
 end
 
+mutable struct Block
+    id::String          # each block has got its own name
+    line::String        # the line a block is serving
+    length::Int         # length in meters
+    direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
+    ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
+    tracks::Int         # number of parallel tracks (multiple trains allowed)
+    nt::Int             # number of trains on the block (size of next set)
+    train::Set{String}  # which train is on it, for platforms: which train is in which of the directions
+end
+
 function Block()
-    Block("",false,0,0,0,0,0,0,Set{String}()); #the null empty block
+    Block("","",0,0,0,0,0,Set{String}()); #the null empty block
 end
 
 mutable struct Network
     n::Int # number of nodes (Operational Points = Betriebstellen)
-    nodes::Dict{String,OPoint} #contains all the ops
+    stations::Dict{String,Station} #contains all the ops with many tracks, platforms
     nb::Int # nr of blocks
     blocks::Dict{String,Block} #all the blocks
 end
 
 function Network() # default initialization
-    Network(0,Dict{String,OPoint}(),0,Dict{String,Block}())
+    Network(0,Dict{String,Station}(),0,Dict{String,Block}())
 end
 
 # mutable struct Delay # used to keep Transit as immutable

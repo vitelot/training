@@ -86,6 +86,12 @@ function main()
 
     #load the railway net
     RN = loadInfrastructure();
+    @warn "just exit for a test; saving the infrastructure to file RN.txt";
+    open("RN.txt", "w") do OUTtest
+        pprintln(OUTtest, RN);
+    end
+    exit();
+
     FL = loadFleet();
 
     if parsed_args["catch_conflict"]

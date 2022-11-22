@@ -14,7 +14,33 @@ struct exception_blockConflict <: Exception
 Base.showerror(io::IO, e::exception_blockConflict) =
     print(io, "Train $(e.trainid) has conflict in block $(e.block) ");
 
-function initBlock(name::AbstractString, ntracks::Int)
+function initBlock(r::DataFrameRow)
+    # r is a row of the block df containing: block,line,length,direction,ismono
+
+    line = r.line;
+    # now a block is determined by its line too
+    name = string(r.block, "-", line); 
+    dir = r.direction;
+    ismono = r.ismono;
+    # the number of tracks is always 1 since we specify the line number; only in stations we may have many tracks;
+    # one trach may be used both ways if ismono==true
+    ntracks = 1;
+
+    b = Block(
+            name,
+            line,
+            r.length,
+            dir,
+            r.ismono,
+            ntracks,
+            0,
+            Set{String}()
+        );
+
+    return b;
+
+
+    ######### old code follows ##########
     #list of the tracks, for now just 5
     tracks=[5]
     #two directions wrt a track

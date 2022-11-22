@@ -28,19 +28,20 @@ For example, loading the network, the block characteristics, the timetables
 # end
 
 
+"""
+takes the blocks.csv file and builds the network
+"""
 function loadInfrastructure()::Network
-    """
-    takes the blocks.csv file and builds the network
-    """
     #creating and initializing a data struct network
     RN = Network()
 
     fileblock = Opt["block_file"]
     df = DataFrame(CSV.File(fileblock, comment="#"))
 
-    for i = 1:nrow(df)
-        name = df.id[i]; ntracks = df.tracks[i];
-        RN.blocks[name] = initBlock(name, ntracks);
+    for r in eachrow(df)
+        # block,line,length,direction,ismono
+        b = initBlock(r);
+        RN.blocks[b.id] = b; 
         RN.nb += 1
     end
 
