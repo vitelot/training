@@ -35,14 +35,25 @@ function loadInfrastructure()::Network
     #creating and initializing a data struct network
     RN = Network()
 
-    fileblock = Opt["block_file"]
-    df = DataFrame(CSV.File(fileblock, comment="#"))
+    blockfile = Opt["block_file"];
+    stationfile = Opt["station_file"];
+
+    df = DataFrame(CSV.File(blockfile, comment="#"));
 
     for r in eachrow(df)
         # block,line,length,direction,ismono
         b = initBlock(r);
         RN.blocks[b.id] = b; 
         RN.nb += 1
+    end
+
+    df = DataFrame(CSV.File(stationfile, comment="#"));
+
+    for r in eachrow(df)
+        # id,ntracks,nsidings
+        s = initStation(r);
+        RN.stations[s.id] = s; 
+        RN.ns += 1
     end
 
     df = nothing # explicitly free the memory

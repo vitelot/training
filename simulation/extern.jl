@@ -29,14 +29,19 @@ Opt = Dict{String,Any}(); # options read from par.ini
 
 mutable struct Station
     id::String          # each station has got its own name
-    line::String        # the line a block is serving
-    isStation::Bool     # tells if a block is in a station and possibly involves passengers; it can be a junction otherwise
-    length::Int         # length in meters
-    direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
-    ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
-    tracks::Union{Int, Dict{Int,Int}} # number of parallel tracks (multiple trains allowed)
-    nt::Union{Int, Dict{Int,Int}}     # number of trains on the block (size of next set)
-    train::Set{String}                # which train is on it, for platforms: which train is in which of the directions
+    # line::String        # the line a block is serving
+    # isStation::Bool     # tells if a block is in a station and possibly involves passengers; it can be a junction otherwise
+    # length::Int         # length in meters
+    # direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
+    # ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
+    platforms::Dict{Int,Int} # number of platforms per direction key=direction, value=nrtracks
+    nt::Dict{Int,Int}     # number of trains in the station according to direction 
+    train::Set{String}    # which train is on it, for platforms: which train is in which of the directions
+    sidings::Int          # not used for the moment
+end
+
+function Station()
+    Station("",Dict{Int,Int}(),Dict{Int,Int}(), Set{String}(), 0); #the null empty station
 end
 
 mutable struct Block
@@ -55,7 +60,7 @@ function Block()
 end
 
 mutable struct Network
-    n::Int # number of nodes (Operational Points = Betriebstellen)
+    ns::Int # number of stations (Operational Points = Betriebstellen)
     stations::Dict{String,Station} #contains all the ops with many tracks, platforms
     nb::Int # nr of blocks
     blocks::Dict{String,Block} #all the blocks

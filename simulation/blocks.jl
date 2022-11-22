@@ -14,6 +14,29 @@ struct exception_blockConflict <: Exception
 Base.showerror(io::IO, e::exception_blockConflict) =
     print(io, "Train $(e.trainid) has conflict in block $(e.block) ");
 
+function initStation(r::DataFrameRow)
+    # Stations are special blocks
+    nrplatforms = r.ntracks;
+    # we have the same number of platforms per direction
+    # if we have an odd number of platforms, we reserve one for both directions
+    n2 = div(nrplatforms,2);
+    n0 = rem(nrplatforms,2); # remainder
+
+    P = Dict(1 => n2, 2 => n2, 0 => n0);
+    # initial occupations at zero
+    NT = Dict(1 => 0, 2 => 0, 0 => 0);
+
+    s = Station(
+            r.id,
+            P,
+            NT,
+            Set{String}(),
+            r.nsidings
+    );
+    return s;
+end
+
+
 function initBlock(r::DataFrameRow)
     # r is a row of the block df containing: block,line,length,direction,ismono
 
