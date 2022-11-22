@@ -24,6 +24,11 @@ function parse_commandline()
             arg_type = String
             default = ""
 
+        "--station_file", "-s"
+            help = "override the path to the file with station specifications"
+            arg_type = String
+            default = ""
+
         "--speed_test"
             help = "perform a speed test on the simulation core using the @time macro -- disable all outputs"
             action = :store_true

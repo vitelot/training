@@ -27,7 +27,7 @@ function loadOptions(parsed_args::Dict)
         ####################################################################
         elseif(key=="block_file")           Opt[key] = val
         elseif(key=="timetable_file")       Opt[key] = val
-        elseif(key=="station_file")          Opt[key] = val
+        elseif(key=="station_file")         Opt[key] = val
         elseif(key=="trains_info_file")     Opt[key] = val
         elseif(key=="rotation_file")        Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
@@ -114,7 +114,7 @@ Version                 $ProgramVersion # Program's version
 #############################
 timetable_file          ../data/simulation_data/timetable.csv # contains the timetable to simulate
 block_file              ../data/simulation_data/blocks.csv    # contains the nr of tracks for each block
-stations_file           ../data/simulation_data/stations.csv  # contains info on the operational points with platforms and multiple tracks
+station_file            ../data/simulation_data/stations.csv  # contains info on the operational points with platforms and multiple tracks
 rotation_file           None   # list of train dependencies: one train does not start if the other has not arrived
 imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../data/delays/
 #############################
