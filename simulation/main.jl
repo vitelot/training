@@ -88,12 +88,17 @@ function main()
     RN = loadInfrastructure();
 
     FL = loadFleet();
-    @warn "just exit for a test; saving the fleet to file FL.txt";
-    open("../data/simulation_data/FL.txt", "w") do OUTtest
-        pprintln(OUTtest, FL);
-    end
-    exit();
+    # @warn "just exit for a test; saving the fleet to file FL.txt";
+    # open("../data/simulation_data/FL.txt", "w") do OUTtest
+    #     pprintln(OUTtest, FL);
+    # end
+    # exit();
 
+
+    one_sim(RN, FL)
+
+    return;
+    
     if parsed_args["catch_conflict"]
         catch_conflict(RN,FL,parsed_args)
     else

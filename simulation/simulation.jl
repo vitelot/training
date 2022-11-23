@@ -1,6 +1,7 @@
 """
 simulation engine
 """
+
 function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     # get the required options
@@ -43,11 +44,16 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
         println(out_file,"trainid,opid,t_scheduled,t_real");
     end
 
-    S  = Set{String}() # running trains
+    S  = Set{String}(); # running trains
 
-    BK = RN.blocks # Dict{blockid,structure}
+    BK = RN.blocks; # Dict{blockid,structure}
 
-    Event = initEvent(FL) # initialize the events with the departure of new trains
+    Event = initEvent(FL); # initialize the events with the departure of new trains
+    @warn "just exit for a test; saving the initial event table to file Events.txt";
+    open("../data/simulation_data/Events.txt", "w") do OUTtest
+        pprintln(OUTtest, Event);
+    end
+    exit();
 
     totDelay = 0 #####
 
