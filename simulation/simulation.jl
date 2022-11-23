@@ -77,8 +77,9 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 trainid      = transit.trainid;
                 current_opid = transit.opid;
                 kind         = transit.kind;
-                duetime      = transit.duetime;
+                line         = transit.line;
                 direction    = transit.direction;
+                duetime      = transit.duetime;
 
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
@@ -117,7 +118,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 if n_op < length(train.schedule)
                     nop1 = n_op+1;
                     nextopid = train.schedule[nop1].opid;
-                    nextline = train.schedule[nop1].line;
+                    # nextline = train.schedule[nop1].line;
                     # nextdirection = train.schedule[nop1].direction;
                     c = count(i->i=='-', train.dyn.currentBlock);
 
@@ -128,12 +129,14 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     else
                         @warn "Strange block/station id: $(train.dyn.currentBlock)";
                     end
+                    
+                    # println(trainid);
 
                     if current_opid == nextopid
                         nextBlockid = current_opid;
                         nextBlock = ST[nextBlockid]; # it's a station
                     else
-                        nextBlockid = current_opid*"-"*nextopid*"-"*nextline;
+                        nextBlockid = current_opid*"-"*nextopid*"-"*line;
                         nextBlock = BK[nextBlockid];
                     end
 
