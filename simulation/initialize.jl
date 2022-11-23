@@ -33,7 +33,7 @@ takes the blocks.csv file and builds the network
 """
 function loadInfrastructure()::Network
     #creating and initializing a data struct network
-    RN = Network()
+    RN = Network();
 
     blockfile = Opt["block_file"];
     stationfile = Opt["station_file"];
@@ -60,6 +60,7 @@ function loadInfrastructure()::Network
 
     # insert the empty block
     RN.blocks[""] = Block();
+    RN.stations[""] = Station();
 
     Opt["print_flow"] && println("Infrastructure loaded")
     RN

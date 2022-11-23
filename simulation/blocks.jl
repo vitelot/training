@@ -2,6 +2,8 @@
     Block related functions
 """
 
+COMMON_DIRECTION = 0; # index for the platforms used in both ways at stations
+
 ########################################
 ##EXCEPTIONS DEFINING
 ##################################
@@ -129,74 +131,88 @@ function initBlock(r::DataFrameRow)
     return b;
 end
 
-function isBlockFree(train::Train, blk::Block)::Bool
+function isBlockFree(station::Station, direction::Int)::Bool
+    # the direction is found in the blocks, but not for stations, so we need to pass it in the arguments
+    
 
-    COMMON_DIRECTION = 0;
-
-    nr_trains = blk.nt;
-    nr_tracks = blk.tracks;
-
-    # if the block is not in a station
-    if typeof(nr_trains) == Int
-        return (nr_trains < nr_tracks);
-    end
-
-    #track=train.track
-    direction=train.direction
-
-    #check occupancy in that direction
-    return ((get(nr_tracks, COMMON_DIRECTION, 0)>0 && get(nr_trains, COMMON_DIRECTION, 0)==0)
-                || nr_trains[direction] < nr_tracks[direction])
+    return (
+        (station.nt[direction] < station.platforms[direction]) # there is at least one platform available
+                    || 
+        (station.nt[COMMON_DIRECTION] < station.platforms[COMMON_DIRECTION]) # there is at least one platform with a common direction, and there is free space
+    );
 end
 
-function decrease_block_occupancy(train::Train, blk::Block)
-    COMMON_DIRECTION = 0;
-    update = -1;
+function isBlockFree(blk::Block, direction::Int)::Bool
 
-    pop!(blk.train, train.id)
+    return blk.nt < blk.tracks;
 
-    if typeof(blk.nt) == Int
-        blk.nt += update;
-        return;
-    end
+end
+
+function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
+
+    pop!(station.train, train.id);
 
     # if the common track is occupied, free it at first
-    if get(blk.nt, COMMON_DIRECTION, 0) > 0
-        blk.nt[COMMON_DIRECTION] += update;
-        return;
+    if station.nt[COMMON_DIRECTION] > 0
+        station.nt[COMMON_DIRECTION] -= 1;
+    else
+        station.nt[direction] -= 1;
     end
 
-    blk.nt[train.direction] += update
+    return;
+end
+
+function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+
+    pop!(blk.train, train.id);
+
+    blk.nt -= 1;
+
+    return;
+end
+
+function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
+
+    push!(station.train, train.id);
+    
+    # if the tracks dedicated to the direction are free, occupy one at first
+    if station.nt[direction] < station.platforms[direction]
+        station.nt[direction] += 1;
+    
+        # if nothing else is free, occupy the common track
+    elseif station.nt[COMMON_DIRECTION] < station.platforms[COMMON_DIRECTION]
+        station.nt[COMMON_DIRECTION] += 1;
+    
+    else    
+        @warn "We cannot increase the occupancy of station $(station.id).";
+    end
+
+ return;
 
 end
 
-function increase_block_occupancy(train::Train, blk::Block)
-    COMMON_DIRECTION = 0;
-    update = 1;
+function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+    # COMMON_DIRECTION = 0;
 
     push!(blk.train, train.id)
-
-    if typeof(blk.nt) == Int
-        blk.nt += update;
-        return;
-    end
+    blk.nt += 1;
 
     # if the tracks dedicated to the direction are free, occupy one at first
-    direction = train.direction;
-    nr_trains = blk.nt;
-    if nr_trains[direction] < blk.tracks[direction]
-        nr_trains[train.direction] += update;
-        return;
-    end
+    # direction = train.direction;
+    # nr_trains = blk.nt;
+    # if nr_trains[direction] < blk.tracks[direction]
+    #     nr_trains[train.direction] += update;
+    #     return;
+    # end
 
-    # if nothing else is free, occupy the common track
-    if get(blk.tracks, COMMON_DIRECTION, 0) > 0
-        nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
-        return;
-    end
+    # # if nothing else is free, occupy the common track
+    # if get(blk.tracks, COMMON_DIRECTION, 0) > 0
+    #     nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
+    #     return;
+    # end
 
     # it has never to come until here, otherwise something is wrong
-    @warn "We cannot increase the occupancy of block $(blk.id)."
+    # @warn "We cannot increase the occupancy of block $(blk.id)."
 end
 
 #passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation

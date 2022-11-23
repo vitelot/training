@@ -49,31 +49,24 @@ function myRand(min::Float64, max::Float64)::Float64
     return rand(range(min,length=20,stop=max))
 end
 
-function netStatus(S::Set{String}, BK::Dict{String,Block}; hashing::Bool=false)
+"""
+ function that calculates the status of the simulation as a string of blocks
+ and their occupancies in terms of train id;
+ has also a hashing function to try to speed up
+"""
+function netStatus(RN::Network; hashing::Bool=false)
 
-    """function that calculates the status of the simulation as a string of blocks
-     and their occupancies in terms of train id;
-     has also a hashing function to try to speed up
-    """
-    if isempty(S)
-        println("in netstatus S is empty")
-        return ""
-    end
+    BK = RN.blocks;
+    ST = RN.stations;
 
     status = "";
-    for blk_id in sort(collect(keys(BK))) # we might need a sort here because the order of keys may change
-        blk = BK[blk_id];
-        if isa(blk.nt, Int)
-            if blk.nt > 0
-                status *= "$(blk_id):$(blk.train) ";
-            end
-        else
-            status *= "$(blk_id):$(blk.train) ";
-
-        end
+    for blk in values(BK) # we might need a sort here because the order of keys may change
+        status *= "$(blk.id):$(blk.train)\n\n";
     end
-
-    #status *= "\n$S";
+    status *= "###############################\n\n";
+    for station in values(ST) # we might need a sort here because the order of keys may change
+        status *= "$(station.id):$(station.train)\n\n";
+    end
 
     #hashing && return sha256(status) |> bytes2hex; #sha256()->hexadecimal; bytes2hex(sha256())->string
     hashing && return hash(status);

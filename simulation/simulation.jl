@@ -27,6 +27,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
     MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
     MINIMUM_HALT_AT_STATION = 24; # Wait at least this amount of seconds before leaving
+    TIME_TO_CHECK_FOR_FREE_BLOCK = 1; # Shifts the transit this amount of seconds untill the block is free
 
     old_status = status = ""; # trains going around, used to get stuck status
 
@@ -47,17 +48,18 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     S  = Set{String}(); # running trains
 
     BK = RN.blocks; # Dict{blockid,structure}
+    ST = RN.stations; # Dict
 
     Event = initEvent(FL); # initialize the events with the departure of new trains
-    @warn "just exit for a test; saving the initial event table to file Events.txt";
-    open("../data/simulation_data/Events.txt", "w") do OUTtest
-        pprintln(OUTtest, Event);
-    end
-    exit();
+    # @warn "just exit for a test; saving the initial event table to file Events.txt";
+    # open("../data/simulation_data/Events.txt", "w") do OUTtest
+    #     pprintln(OUTtest, Event);
+    # end
+    # exit();
 
-    totDelay = 0 #####
+    totDelay = 0;
 
-    t0 = t = minimum(keys(Event)) - 1
+    t0 = t = minimum(keys(Event)) - 1;
     t_final=t_final_starting = maximum(keys(Event))
 
     print_elapsed_time && println("t final starting is $t_final_starting")
@@ -67,21 +69,21 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
         t += 1
         if haskey(Event, t)
 
-            t_evaluated+=1
-            print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds")
+            t_evaluated += 1;
+            print_elapsed_time && println("Elapsed time $(t-t0) simulated seconds");
 
             for transit in Event[t]
 
-                trainid      = transit.trainid
-                current_opid = transit.opid
-                kind         = transit.kind
-                duetime      = transit.duetime
-
+                trainid      = transit.trainid;
+                current_opid = transit.opid;
+                kind         = transit.kind;
+                duetime      = transit.duetime;
+                direction    = transit.direction;
 
                 #arrived early, appending event for next time and continue,skipping this transit
                 if t<duetime # wow, we arrived earlier
                     print_train_status && println("Train $trainid is $(duetime-t) seconds early at $current_opid ($kind) but has to wait to leave on schedule")
-                    if kind == "Abfahrt" || kind=="Beginn"
+                    if kind == "d" || kind=="b" # departure or beginn
                         # we cannot leave earlier than expected from a station
                         get!(Event, duetime, Transit[])
                         push!(Event[duetime], transit)
@@ -93,67 +95,72 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 print_train_status && (t-duetime>0) &&
                     println("Train $trainid is $(t-duetime) seconds late at $current_opid ($kind)");
 
-                train = FL.train[trainid]
+                train = FL.train[trainid];
 
                 if trainid ∉ S # new train in the current day
                     # if its dependence has not yet arrived, delay the departure
                     if in(train.dependence, S)
-                        get!(Event, t+ROTATION_WAITING_TIME, Transit[])
+                        get!(Event, t+ROTATION_WAITING_TIME, Transit[]);
                         push!(Event[t+ROTATION_WAITING_TIME], train.schedule[1]);
-                        print_rot && println("Train $trainid cannot start because $(train.dependence) did not arrive. $t")
+                        print_rot && println("Train $trainid cannot start because $(train.dependence) did not arrive. $t");
                         continue;
                     end
 
-                    push!(S,trainid)
-                    print_new_train && println("New train $trainid starting at $current_opid at time $t")
+                    push!(S,trainid);
+                    print_new_train && println("New train $trainid starting at $current_opid at time $t");
                 end
 
                 # we are in current_opid and would like to move to nextopid travelling on block "current_opid-nextopid"
-                train.dyn.n_opoints_visited += 1
-                n_op = train.dyn.n_opoints_visited # number of opoints passed
+                train.dyn.n_opoints_visited += 1;
+                n_op = train.dyn.n_opoints_visited; # number of opoints passed
 
                 if n_op < length(train.schedule)
-                    nextopid = train.schedule[n_op+1].opid
+                    nop1 = n_op+1;
+                    nextopid = train.schedule[nop1].opid;
+                    nextline = train.schedule[nop1].line;
+                    # nextdirection = train.schedule[nop1].direction;
+                    c = count(i->i=='-', train.dyn.currentBlock);
 
-                    nextBlockid = current_opid*"-"*nextopid
+                    if c == 2 # it's a block
+                        currentBlock = BK[train.dyn.currentBlock]; # e.g. "HGZ1-HG-22201"
+                    elseif c==0 # it's a station
+                        currentBlock = ST[train.dyn.currentBlock]; # e.g. "WIE"
+                    else
+                        @warn "Strange block/station id: $(train.dyn.currentBlock)";
+                    end
 
-                    nextBlock = BK[nextBlockid]
+                    if current_opid == nextopid
+                        nextBlockid = current_opid;
+                        nextBlock = ST[nextBlockid]; # it's a station
+                    else
+                        nextBlockid = current_opid*"-"*nextopid*"-"*nextline;
+                        nextBlock = BK[nextBlockid];
+                    end
 
-                    currentBlock = BK[train.dyn.currentBlock]
-
-                    # if nextBlockid == "MD H1-MD H1"
-                        # @show t,trainid,nextBlock
-                    # end
-
-                     # if there are less trains than the number of available tracks
-                    if isBlockFree(train, nextBlock)
-
-                        #updating current block, popping
+                    if isBlockFree(nextBlock, direction) # using Julia multiple dispatch
+                        #updating current block
                         if currentBlock.id != ""
-
-                            decrease_block_occupancy(train, currentBlock)
-                            # pop!(currentBlock.train, trainid)
+                            decreaseBlockOccupancy!(train, currentBlock, direction);
                         end
 
-                        #updating next block, adding
+                        #updating next block, adding train
+                        increaseBlockOccupancy!(train, nextBlock, direction);
 
-                        increase_block_occupancy(train, nextBlock)
+                        save_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t");
 
-                        save_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
+                        train.dyn.currentBlock = nextBlockid;
 
-                        train.dyn.currentBlock = nextBlockid
+                        nextBlockDueTime = train.schedule[nop1].duetime - train.schedule[n_op].duetime;
 
-                        nextBlockDueTime = train.schedule[n_op+1].duetime - train.schedule[n_op].duetime
+                            # remove comment to list halting time at stations
+                            # isStation(nextBlockid) && train.schedule[n_op+1].kind == "d" && println("$trainid,$nextBlockid,$nextBlockDueTime");
 
-                        # remove comment to list halting time at stations
-                        # isStation(nextBlockid) && train.schedule[n_op+1].kind == "Abfahrt" && println("$trainid,$nextBlockid,$nextBlockDueTime");
-
-                        # nice way of listing blocks and travelling times by train
-                        #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
+                            # nice way of listing blocks and travelling times by train
+                            #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = nextBlockDueTime
                         # next block is a passenger station and is not supposed to get exo delay
-                        if train.schedule[n_op+1].kind == "Abfahrt" && !haskey(train.delay, nextBlockid)
+                        if train.schedule[nop1].kind == "d" && !haskey(train.delay, nextBlockid)
                         # if we arrive at station inside buffering time, do not wait
                             if nextBlockDueTime > MAXIMUM_HALT_AT_STATION
                                 print_train_status && println("$trainid recovers $(nextBlockDueTime-MAXIMUM_HALT_AT_STATION)s in $nextopid");
@@ -166,7 +173,6 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                                 #println("$trainid recovers in $nextopid");
                             end
                         end
-
                         delay_imposed = get(train.delay, nextBlockid,0);
                         # if delay_imposed>0
                         #     println("$trainid,$nextBlockid,$delay_imposed");
@@ -177,19 +183,19 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         print_train_status && delay_imposed > 0 &&
                             println("An exo-delay to train $trainid is imposed in  block [$nextBlockid]");
 
-                        get!(Event, tt, Transit[])
-                        push!(Event[tt], train.schedule[n_op+1])
-                        t_final = max(tt, t_final) # cures the problem with the last train overnight
-
-                    else
+                        get!(Event, tt, Transit[]);
+                        push!(Event[tt], train.schedule[nop1]);
+                        t_final = max(tt, t_final); # cures the problem with the last train overnight
+                    
+                    else # block/station is full
 
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
 
-                        if catch_conflicts
-                            throw(exception_blockConflict(trainid,nextBlockid,train.direction))
-                        end
+                        # if catch_conflicts
+                        #     throw(exception_blockConflict(trainid,nextBlockid,train.direction))
+                        # end
 
-                        tt = t+1
+                        tt = t+TIME_TO_CHECK_FOR_FREE_BLOCK;
                         get!(Event, tt, Transit[])
                         push!(Event[tt], train.schedule[n_op])
                         train.dyn.n_opoints_visited -= 1
@@ -204,13 +210,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
 
                         #updating the values in the corresponding block, train ended
-                        decrease_block_occupancy(train, BK[train.dyn.currentBlock])
-
-                        #BK[train.dyn.currentBlock].nt -= 1
-
-                        # pop!(BK[train.dyn.currentBlock].train, trainid)
-
-
+                        decreaseBlockOccupancy!(train, currentBlock, direction);
 
                         if t>duetime
                             totDelay += (t-duetime);
@@ -230,7 +230,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
 
             # check stuck func here // Vitus
-            status = netStatus(S,BK,hashing=false);
+            status = netStatus(RN,hashing=false);
 
             if (old_status == status) && (!isempty(status))
 
