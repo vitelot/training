@@ -69,7 +69,6 @@ end
 function loadFleet()::Fleet
 
     file = Opt["timetable_file"];
-    trains_info_file=Opt["trains_info_file"];
     rotation_file = Opt["rotation_file"];
 
     Opt["print_flow"] && println("Loading fleet information")
@@ -77,18 +76,18 @@ function loadFleet()::Fleet
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
 
-    df.duetime = dateToSeconds.(df.duetime)
+    # df.duetime = dateToSeconds.(df.duetime)
 
     Trains = FL.train;
 
     #take direction from the file
-    train2dir = Dict{String,Int}();
-    if isfile(trains_info_file)
-        train2dir = CSV.File(trains_info_file, comment="#") |> Dict
-    elseif !Opt["free_platforms"]
-        println("fixed direction platforms activated but no file found. Add file and restart")
-        exit()
-    end
+    # train2dir = Dict{String,Int}();
+    # if isfile(trains_info_file)
+    #     train2dir = CSV.File(trains_info_file, comment="#") |> Dict
+    # elseif !Opt["free_platforms"]
+    #     println("fixed direction platforms activated but no file found. Add file and restart")
+    #     exit()
+    # end
 
     Rot = Dict{String,String}();
     if isfile(rotation_file)
@@ -97,28 +96,26 @@ function loadFleet()::Fleet
         @info "Rotations loaded.";
     end
 
-    #right now the train track is only n.5
-    track=5
-
     # build the schedule for every train
-    for i = 1:nrow(df)
-        (train, bts, kind, duetime) = df[i,:];
+    for r in eachrow(df)
+        (train, bts, kind, direction, line, distance, duetime) = r[:];
 
         #restore original name from poppers since the direction is associated with the plain name
-        unpopped  = replace(train, r"_pop.*" => "");
-        direction = get(train2dir, unpopped, 0);
+        unpopped  = replace(train, r"_pop_.*" => "");
+        # direction = get(train2dir, unpopped, 0);
 
         str = Transit(
                 train,
                 bts,
                 kind,
+                string(line),
+                direction,
                 duetime
         )
 
         if !haskey(Trains, train)
             Trains[train] = Train(
                                 train,
-                                track,direction,
                                 get(Rot, unpopped, ""),
                                 Transit[],
                                 DynTrain(0,"",""),
@@ -135,15 +132,7 @@ function loadFleet()::Fleet
     for train in keys(Trains)
         # be sure the schedule is sorted
         Schedule = Trains[train].schedule;
-        issorted(Schedule) || sort!(Schedule)
-
-        # for i = 1:length(Schedule)-1
-        #     bts = Schedule[i].opid;
-        #     nextbts = Schedule[i+1].opid;
-        #     block = bts*"-"*nextbts;
-        #
-        #     Trains[train].delay[block] = 0
-        # end
+        issorted(Schedule) || sort!(Schedule);
 
     end
 

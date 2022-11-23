@@ -78,7 +78,7 @@ struct Transit
     trainid::String     # train id going through
     opid::String        # Operational point id
     kind::String        # Type of event: Arrival/Departure/Pass/End/Begin
-    line::Int           # the line the train is serving
+    line::String        # the line the train is serving
     direction::Int      # its direction (1 or 2)
     duetime::Int        # due time in seconds from midnight
     #imposed_delay::Delay # forced delay in seconds - used to test robustness
@@ -100,8 +100,7 @@ end
 
 mutable struct Train
     id::String
-
-    #track::Int # track id in whih the train runs
+    #line::String # track id in whih the train runs
     #direction::Int# direction wrt the origin of the track
     dependence::String # id of train that has to arrive at final destination before this train starts
     schedule::Vector{Transit} # schedule[duetime] = info on stops

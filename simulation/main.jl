@@ -86,13 +86,13 @@ function main()
 
     #load the railway net
     RN = loadInfrastructure();
-    @warn "just exit for a test; saving the infrastructure to file RN.txt";
-    open("RN.txt", "w") do OUTtest
-        pprintln(OUTtest, RN);
-    end
-    exit();
 
     FL = loadFleet();
+    @warn "just exit for a test; saving the fleet to file FL.txt";
+    open("../data/simulation_data/FL.txt", "w") do OUTtest
+        pprintln(OUTtest, FL);
+    end
+    exit();
 
     if parsed_args["catch_conflict"]
         catch_conflict(RN,FL,parsed_args)
