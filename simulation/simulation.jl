@@ -115,22 +115,22 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 train.dyn.n_opoints_visited += 1;
                 n_op = train.dyn.n_opoints_visited; # number of opoints passed
 
+                c = count(i->i=='-', train.dyn.currentBlock);
+                if c == 2 # it's a block
+                    currentBlock = BK[train.dyn.currentBlock]; # e.g. "HGZ1-HG-22201"
+                elseif c==0 # it's a station
+                    currentBlock = ST[train.dyn.currentBlock]; # e.g. "WIE"
+                else
+                    @warn "Strange block/station id: $(train.dyn.currentBlock)";
+                end
+
                 if n_op < length(train.schedule)
                     nop1 = n_op+1;
                     nextopid = train.schedule[nop1].opid;
                     # nextline = train.schedule[nop1].line;
                     # nextdirection = train.schedule[nop1].direction;
-                    c = count(i->i=='-', train.dyn.currentBlock);
-
-                    if c == 2 # it's a block
-                        currentBlock = BK[train.dyn.currentBlock]; # e.g. "HGZ1-HG-22201"
-                    elseif c==0 # it's a station
-                        currentBlock = ST[train.dyn.currentBlock]; # e.g. "WIE"
-                    else
-                        @warn "Strange block/station id: $(train.dyn.currentBlock)";
-                    end
-                    
-                    # println(trainid);
+    
+                    println(trainid);
 
                     if current_opid == nextopid
                         nextBlockid = current_opid;
