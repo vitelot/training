@@ -36,8 +36,8 @@ include("MyDates.jl");
 using .MyGraphs, .MyDates;
 include("parser.jl")
 
-@info "We are going to build the timetable for the simulation.\
-        Since we have lots of trains in Austria and during the day some data are not retrieved,\
+@info "We are going to build the timetable for the simulation.\n\
+        Since we have lots of trains in Austria and during the day some data are not retrieved,\n\
         we need to repair the schedule and this takes some time. Please relax.";
 
 UInt = Union{Int,Missing};
@@ -123,10 +123,8 @@ function loadPAD(file::String)::DataFrame
         [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :train,
         :bst => ByRow(x->replace(x,r"[ _]+"=>"")) => :bst,
         :transittype => ByRow(x->translateGerman(x)) => :transittype,
-        :scheduledtime
+        :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime
         );
-        
-        transform!(bigpad, :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime);
         
         sort(bigpad, [:train, :scheduledtime]);
 end
@@ -269,6 +267,11 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         nextbst = (i<nrowgd) ? gd[i+1, :bst] : bst; # "xxx";
                         blk = string(bst,"-",nextbst);
                         shortestpath = findSequence(G, bst, nextbst);
+                        
+                        # exceptions
+                        if bst=="HFH4" && nextbst=="HF"
+                                shortestpath = ["HFH4", "HFH3", "HFU22", "HFH2", "HFS14", "HFH1", "HF"];
+                        end
 
                         if length(shortestpath) > POPPING_JUMPS
                                 # println("$bst->$nextbst:", length(shortestpath));
