@@ -50,6 +50,9 @@ POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
 FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
 STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
 
+# list of stations not found in the rinf data
+EXTRA_STATION_FILE = "./data/extra-stations.csv";
+
 #CLI parser
 parsed_args = parse_commandline()
 
@@ -416,7 +419,7 @@ function generateBlocks(xmlfile::String,
                         rinfbkfile = "rinf-blocks.csv", 
                         rinfopfile = "rinf-OperationalPoints.csv",
                         outblkfile = "blocks.csv",
-                        outopfile = "stations.csv")   
+                        outopfile  = "stations.csv")   
 
         @info "Building a complete block file and adding onetrack property";
 
@@ -455,15 +458,24 @@ function generateBlocks(xmlfile::String,
     places_type = ["station", "small station", "passenger stop", "junction"];
     filter!(x-> x.type ∈ places_type, rinfop);
     select!(rinfop, [:id, :ntracks, :nsidings]);
+
+    if isfile(EXTRA_STATION_FILE)
+        @info "Appending extra stations found in $EXTRA_STATION_FILE";
+        df = CSV.read(EXTRA_STATION_FILE, DataFrame);
+        append!(rinfop, df);
+    else
+        @warn "No $EXTRA_STATION_FILE file found."
+    end
+
     @info "Saving station information to file \"$outopfile\"";
-    CSV.write(outopfile, rinfop);
+    CSV.write(outopfile, sort(rinfop));
 
 end
 
 function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stationfile="stations.csv")
         @info "Doing a sanity check on the produced files"
 
-        dt = CSV.File(timetablefile, select=[:bst]) |> DataFrame;
+        dt = CSV.File(timetablefile, select=[:train,:bst]) |> DataFrame;
         ds = CSV.File(stationfile, select=[:id]) |> DataFrame;
         db = CSV.File(blkfile, select=[:block]) |> DataFrame;
         select!(db, :block => ByRow(x->split(x,"-")) => [:op1,:op2]);
@@ -476,6 +488,25 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         if length(setdiff(sett,setb)) > 0
                 @warn "There are $(length(setdiff(sett,setb))) operational points that are in the timetable and not in the blocks. This is a problem";
         end
+
+        S = Set{String}();
+        gt = groupby(dt, :train);
+        for g in gt
+                last = "";
+                for r in eachrow(g)
+                        if r.bst == last
+                                push!(S,last);
+                        end
+                        last = r.bst;
+                end
+        end
+
+        Sdiff = setdiff(S,sets);
+        if length(Sdiff) > 0
+                @warn "Some operational points seem to be stations but are not reported in the station file";
+                println("List of operational points that seem to be stations but are not reported in \"$stationfile\":\n$Sdiff");
+        end
+        @info "Sanity check done."
 end
 
 function padfile_from_date(file_base="PAD-Zuglaufdaten-20")::String

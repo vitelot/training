@@ -101,6 +101,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         append!(df, xml2df(f));
     end
 
+    # list of stations out of Austria
+    tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1"];
     if !raw
         @info "The resulting timetable will be cleaned. \
             Set raw=true if you need the raw one.
@@ -116,6 +118,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         filter!(x->!occursin(r"^I\d+$", x.bst), df);
         # remove spaces and underscores from OP names
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
+        # remove tabu` stations
+        filter!(x->x.bst ∉ tabu, df);
     end
 
     @info "Saving the schedule into file \"$outfile\"";
