@@ -36,9 +36,18 @@ include("MyDates.jl");
 using .MyGraphs, .MyDates;
 include("parser.jl")
 
+import Base.pop!;
+function pop!(df::AbstractDataFrame)::NamedTuple
+        r=copy(df[nrow(df),:]); 
+        deleteat!(df, nrow(df)); 
+        return r;
+end
+
+pl = println;
+
 @info "We are going to build the timetable for the simulation.\n\
-        Since we have lots of trains in Austria and during the day some data are not retrieved,\n\
-        we need to repair the schedule and this takes some time. Please relax.";
+        \tSince we have lots of trains in Austria and during the day some data are not retrieved,\n\
+        \twe need to repair the schedule and this takes some time. Please relax.\n";
 
 UInt = Union{Int,Missing};
 UString = Union{String,Missing};
@@ -224,10 +233,9 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
         @info "Building a clean timetable";
         gdpad = groupby(dfpad, :train);
         gdxml = groupby(dfxml, :train);
-        Dxml = Dict{String, DataFrameRow}();
-
+        
         G = loadGraph(copy(dfblk), type="directed");
-
+        
         BlkList = Dict{String, Block}();
         for r in eachrow(dfblk)
                 (name, line, distance, direction) = r[:];
@@ -235,24 +243,27 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                 push!(BlkList[name].line, line); 
                 push!(BlkList[name].length, distance);
         end
-        # return BlkList;
-
+        
+        # based on the scheduled xml data, we build a dictionary with
+        # key = train-bst and value with the info at that bst 
+        Dxml = Dict{String, DataFrameRow}();
         for gd in gdxml
                 train = gd.train[1];
 
-                for i = 1:nrow(gd)
-                        # train = gd.train[1]
-                        key = string(train, "-", gd.bst[i]);
-                        Dxml[key] = gd[i, [:direction, :line, :distance]];
+                for r in eachrow(gd)
+                        key = string(train, "-", r.bst);
+                        Dxml[key] = r[[:direction, :line, :distance]];
                 end
         end
         
+        # this will be our processed schedule
         dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
                 direction=UInt[],
                 line=UString[], distance=UInt[],
                 scheduledtime=UInt[]
                 );
         
+        # we cycle through all trains
         for gd in gdpad
                 nrowgd = nrow(gd);
                 nrowgd>1 || continue; # remove one line trains
@@ -261,27 +272,32 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                 poppy = ""; ispopping=false;
                 cumuldist = distance = 0; iscumul = false;
 
+                # cycling through the scheduled operational points
                 for i = 1:nrowgd
                         (bst, transittype, scheduledtime)  = gd[i,2:end];
+
+                        # this key allows us to access the info we stored in Dxml[], i.e., direction,line,distance_from_start
                         key = string(train, "-", bst);
+                        
+                        # build the block
                         nextbst = (i<nrowgd) ? gd[i+1, :bst] : bst; # "xxx";
                         blk = string(bst,"-",nextbst);
+                   
+                        # find the shortest path between bst and nextbst to see if some bst were missed 
                         shortestpath = findSequence(G, bst, nextbst);
                         
-                        # exceptions
+                        # notable exceptions: sometimes the shortest path is not the right one
                         if bst=="HFH4" && nextbst=="HF"
                                 shortestpath = ["HFH4", "HFH3", "HFU22", "HFH2", "HFS14", "HFH1", "HF"];
                         end
-
+                        # if the train misses a lot of bst we cannot tell where it passed from; therefore we teleport it in the new location.
                         if length(shortestpath) > POPPING_JUMPS
-                                # println("$bst->$nextbst:", length(shortestpath));
                                 ispopping = true;
                         end
 
                         if !haskey(Dxml, key) # the train is not supposed to be in this bst...
-                                # push!(dfout, (train, bst, transittype, missing, missing, missing, scheduledtime));
-                                # continue;
 
+                                pl("#1# $key -- $blk" );
 
                                 DEBUG ≥ 4 && @info "Train $train is not supposed to be in $bst according to the schedule. Trying to fix."
                                 # lets look at the next block if it is in the block list
@@ -289,16 +305,19 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                 line = missing;
                                 distance = 0;
 
+                                # if the block exists
                                 if haskey(BlkList, blk)
                                         direction = BlkList[blk].direction;
+
+                                        # some blocks have more lines on them; we only consider the first one for the moment
                                         line = BlkList[blk].line[1]; # fix what happens if more lines exist here
                                         distance = BlkList[blk].length[1]; # fix what happens if more lines exist here
 
                                         DEBUG ≥ 3 && length(BlkList[blk].line)>1 && @warn "Line ambiguity for train $key in block $blk";
 
+                                        # its length will be added
                                         iscumul = true;
-                                        #@warn "must add the length";
-                                elseif bst==nextbst
+                                elseif bst==nextbst # if these two are the same in the PAD, we are arriving and departing from a stationwe
                                         distance = 0;
                                         (direction, line) = dfout[end, [:direction, :line]];
                                 end
@@ -310,16 +329,19 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         end
                         
                         if ismissing(direction)
+                                pl("#2a# $key");
                                 direction = dfout[end, :direction];
                         end
                         if ismissing(line)
+                                pl("#2b# $key");
                                 line = dfout[end, :line];
                         end
 
+                        pl("#3# ", (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
                         push!(dfout, (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
 
                         
-                        if 2 < length(shortestpath) <= POPPING_JUMPS+2
+                        if 0 < length(shortestpath)-2 <= POPPING_JUMPS
                                 DEBUG ≥ 1 && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
                                 # println("$bst->$nextbst:", length(shortestpath));
                                 totlen = 0;
@@ -334,7 +356,10 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                 for w = 1:length(shortestpath)-2
                                         block = string(shortestpath[w],"-",shortestpath[w+1]);
                                         cumullen += BlkList[block].length[1];
-
+                                        if line ∉ BlkList[block].line
+                                                line = BlkList[block].line[1];
+                                                direction = BlkList[block].direction;
+                                        end
                                         DEBUG ≥ 3 && length(BlkList[block].length)>1 && @warn "Length ambiguity for train $train in block $block";
                                         
                                         t = starttime + floor(Int, (endtime-starttime)/totlen*cumullen);
