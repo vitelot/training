@@ -153,8 +153,8 @@ function loadXML(file::String)::DataFrame
         # filter!(x->!startswith(x.bst,"KM "), xml);
         # filter!(x->!occursin(r"^I\d+$", x.bst), xml);
         # transform!(xml, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
-        # remove OP at the border
-        filter!(x->!startswith(x.bstname,"Staatsgrenze"), xml);
+        # # remove OP at the border
+        # filter!(x->!startswith(x.bstname,"Staatsgrenze"), xml);
 
         return(xml);
 end
@@ -240,26 +240,6 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
 
         # select all trains in pad that are in xml
         trainlist = filter(x-> x ∈ xmltrainlist, padtrainlist);
-
-        BlkList = Dict{String, Block}();
-        for r in eachrow(dfblk)
-                (name, line, distance, direction) = r[:];
-                get!(BlkList, name, Block(name, String[], Int[], direction));
-                push!(BlkList[name].line, line); 
-                push!(BlkList[name].length, distance);
-        end
-        
-        # based on the scheduled xml data, we build a dictionary with
-        # key = train-bst and value with the info at that bst 
-        Dxml = Dict{String, DataFrameRow}();
-        for gd in gdxml
-                train = gd.train[1];
-
-                for r in eachrow(gd)
-                        key = string(train, "-", r.bst);
-                        Dxml[key] = r[[:direction, :line, :distance]];
-                end
-        end
         
         # this will be our processed schedule
         dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
@@ -298,7 +278,11 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
                         elseif r.type == "stop"
                                 if arrival==0 || departure==0
-                                        println("Arrival or departure time are zero: $train,$bst");
+                                        # consider it as a pass
+                                        # println("Arrival or departure time are zero: $train,$bst");
+                                        scheduledtime = max(arrival,departure);
+                                        push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
+                                        continue;
                                 end
                                 push!(dfout, (train, bst, "a", direction, line, cumuldist, arrival));
                                 push!(dfout, (train, bst, "d", direction, line, cumuldist, departure));
@@ -325,9 +309,28 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                 for i in 1:nrowgd
                         t = gd[i, :scheduledtime];
                         d = gd[i, :distance];
+
+                        # find avrg speed
+                        i1 = 1; ie=nrowgd;
+                        for j = 1:nrowgd
+                                if gd.distance[j]>0 && gd.scheduledtime[j]>0
+                                        i1 = j;
+                                        break;
+                                end
+                        end
+                        for j = nrowgd:-1:1
+                                if gd.distance[j]>0 && gd.scheduledtime[j]>0
+                                        ie = j;
+                                        break;
+                                end
+                        end
+                        avrgspeed = (gd[ie,:distance]-gd[i1,:distance])/(gd[ie,:scheduledtime]-gd[i1,:scheduledtime]);
+                        println("Avrg speed $avrgspeed");
+
                         if t == 0
                                 if i == 1
                                         println("First point has zero time: $(gd[i,:train]),$(gd[i,:bst])");
+
                                         continue;
                                 end
                                 # get info from previous time and distance
@@ -700,6 +703,7 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         if length(Sdiff) > 0
                 @warn "Some operational points seem to be stations but are not reported in the station file";
                 println("List of operational points that seem to be stations but are not reported in \"$stationfile\":\n$Sdiff");
+                println("Add them in the tabu list in preprocessing/scanxml.jl or in the extra-stations.csv")
         end
         @info "Sanity check done."
 end

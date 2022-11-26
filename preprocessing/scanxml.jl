@@ -120,6 +120,9 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
         # remove tabu` stations
         filter!(x->x.bst ∉ tabu, df);
+        # remove OP at the border
+        filter!(x->!startswith(x.bstname,"Staatsgrenze"), df);
+
     end
 
     @info "Saving the schedule into file \"$outfile\"";
