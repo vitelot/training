@@ -102,7 +102,7 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
     end
 
     # list of stations out of Austria
-    tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1"];
+    tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1", "GH"];
     if !raw
         @info "The resulting timetable will be cleaned. \
             Set raw=true if you need the raw one.

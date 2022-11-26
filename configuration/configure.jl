@@ -235,7 +235,11 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         gdxml = groupby(dfxml, :train);
         
         # these are the trains we shall consider
-        trainlist = unique(dfpad.train);
+        padtrainlist = unique(dfpad.train);
+        xmltrainlist = unique(dfxml.train);
+
+        # select all trains in pad that are in xml
+        trainlist = filter(x-> x ∈ xmltrainlist, padtrainlist);
 
         BlkList = Dict{String, Block}();
         for r in eachrow(dfblk)
@@ -294,7 +298,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
                         elseif r.type == "stop"
                                 if arrival==0 || departure==0
-                                        @warn "Arrival or departure time are zero";
+                                        println("Arrival or departure time are zero: $train,$bst");
                                 end
                                 push!(dfout, (train, bst, "a", direction, line, cumuldist, arrival));
                                 push!(dfout, (train, bst, "d", direction, line, cumuldist, departure));
@@ -317,16 +321,26 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         gdxml = groupby(dfout, :train);
 
         for gd in gdxml
-                for i in 1:nrow(gd)
+                nrowgd = nrow(gd);
+                for i in 1:nrowgd
                         t = gd[i, :scheduledtime];
                         d = gd[i, :distance];
                         if t == 0
+                                if i == 1
+                                        println("First point has zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        continue;
+                                end
                                 # get info from previous time and distance
                                 t0 = gd[i-1, :scheduledtime];
                                 d0 = gd[i-1, :distance];
-                                # find next non zero time
+                                
                                 i1 = i+1
-                                for j = i+1 : nrow(gd)
+                                if i1 > nrowgd
+                                        println("Last point has zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        continue;
+                                end
+                                # find next non zero time
+                                for j = i+1 : nrowgd
                                         if gd[j,:scheduledtime] > 0
                                                 i1 = j;
                                                 break;
@@ -334,12 +348,20 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 end
                                 t1 = gd[i1, :scheduledtime];
                                 d1 = gd[i1, :distance];
+                                # linear regression
                                 t = floor(Int, t0 + (t1-t0)/(d1-d0)*(d-d0));
                                 
                                 gd[i, :scheduledtime] = t;
                         end
+                        # curing missing direction and line:
+                        # we assume that they are the same of previous bst
+                        if ismissing(gd[i, :direction])
+                                gd[i,:direction] = gd[i-1, :direction];
+                        end
+                        if ismissing(gd[i, :line])
+                                gd[i,:line] = gd[i-1, :line];
+                        end                    
                 end
-                # curing missing direction and line            
         end
 
         dfout
