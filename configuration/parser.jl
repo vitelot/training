@@ -31,10 +31,14 @@ function parse_commandline()
         #     default = 0
 
         "--use_real_time"
-            help = "Use the real time column of the timetable instead of the scheduled time."
+            help = "Use the real time column of the PAD timetable instead of the scheduled time."
             action = :store_true
 
-        # "--split_transits"
+        "--xml-schedule"
+            help = "Use the scheduled time in the XML file instead of the scheduled time found in PAD; Fetch trains from PAD."
+            action = :store_true
+
+            # "--split_transits"
         #     help = "Splits a Durchfahrt into two events by adding a durchfahrt_out few seconds later."
         #     action = :store_true
 
