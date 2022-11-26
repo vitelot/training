@@ -311,9 +311,37 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         # push!(dfout, (train, bst, transittype, direction, line, cumuldist, scheduledtime));
                 end
   
-
         end
- 
+        
+        # now we fix the zeros in the scheduled time
+        gdxml = groupby(dfout, :train);
+
+        for gd in gdxml
+                for i in 1:nrow(gd)
+                        t = gd[i, :scheduledtime];
+                        d = gd[i, :distance];
+                        if t == 0
+                                # get info from previous time and distance
+                                t0 = gd[i-1, :scheduledtime];
+                                d0 = gd[i-1, :distance];
+                                # find next non zero time
+                                i1 = i+1
+                                for j = i+1 : nrow(gd)
+                                        if gd[j,:scheduledtime] > 0
+                                                i1 = j;
+                                                break;
+                                        end
+                                end
+                                t1 = gd[i1, :scheduledtime];
+                                d1 = gd[i1, :distance];
+                                t = floor(Int, t0 + (t1-t0)/(d1-d0)*(d-d0));
+                                
+                                gd[i, :scheduledtime] = t;
+                        end
+                end
+                # curing missing direction and line            
+        end
+
         dfout
 end
 
@@ -513,7 +541,7 @@ function passingStation!(df::DataFrame, dfsta::DataFrame)::DataFrame
                         end
                 end
         end
-        sort!(df, [:train, :scheduledtime, :distance])
+        df
 end
 
 function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
@@ -534,6 +562,7 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         passingStation!(dfout,dfsta);
 
         @info "Saving timetable on file \"$outfile\"";
+        sort!(dfout, [:train, :scheduledtime, :distance])
         CSV.write(outfile, dfout);
 end
 
@@ -554,10 +583,8 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
 
         passingStation!(dfout,dfsta);
 
-        @info "Saving timetable on file \"$outfile\"";
-        
-        sort!(dfout, [:train, :distance]); # temporary
-
+        @info "Saving timetable on file \"$outfile\"";   
+        sort!(dfout, [:train, :distance]); 
         CSV.write(outfile, dfout);
 end
 
