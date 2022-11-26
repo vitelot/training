@@ -34,7 +34,7 @@ function parse_commandline()
             help = "Use the real time column of the PAD timetable instead of the scheduled time."
             action = :store_true
 
-        "--xml-schedule"
+        "--xml_schedule"
             help = "Use the scheduled time in the XML file instead of the scheduled time found in PAD; Fetch trains from PAD."
             action = :store_true
 

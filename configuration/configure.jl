@@ -34,7 +34,7 @@ using CSV, DataFrames;
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
-include("parser.jl")
+include("parser.jl");
 
 import Base.pop!;
 function pop!(df::AbstractDataFrame)::NamedTuple
@@ -65,13 +65,14 @@ EXTRA_STATION_FILE = "./data/extra-stations.csv";
 #CLI parser
 parsed_args = parse_commandline()
 
-date          = parsed_args["date"]
+date          = parsed_args["date"] # default = "09.05.18"
 in_file       = parsed_args["file"]
 source_path   = parsed_args["source_data_path"]
 target_path   = parsed_args["target_data_path"]
 # nr_exo_delays = parsed_args["exo_delays"];
 use_real_time = parsed_args["use_real_time"];
 find_rotations= parsed_args["rotations"];
+xml_schedule  = parsed_args["xml_schedule"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -223,6 +224,99 @@ function findBlocks(df::DataFrame, outfile="")::DataFrame
 
         D
 end
+
+"""
+    trainMatchXML(dfpad::DataFrame, dfxml::DataFrame)::DataFrame
+
+TBW
+"""
+function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
+        @info "Building a timetable from the XML schedule";
+        gdxml = groupby(dfxml, :train);
+        
+        # these are the trains we shall consider
+        trainlist = unique(dfpad.train);
+
+        BlkList = Dict{String, Block}();
+        for r in eachrow(dfblk)
+                (name, line, distance, direction) = r[:];
+                get!(BlkList, name, Block(name, String[], Int[], direction));
+                push!(BlkList[name].line, line); 
+                push!(BlkList[name].length, distance);
+        end
+        
+        # based on the scheduled xml data, we build a dictionary with
+        # key = train-bst and value with the info at that bst 
+        Dxml = Dict{String, DataFrameRow}();
+        for gd in gdxml
+                train = gd.train[1];
+
+                for r in eachrow(gd)
+                        key = string(train, "-", r.bst);
+                        Dxml[key] = r[[:direction, :line, :distance]];
+                end
+        end
+        
+        # this will be our processed schedule
+        dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
+                direction=UInt[],
+                line=UString[], distance=UInt[],
+                scheduledtime=UInt[]
+                );
+
+        # add 20xx to the year format
+        datef = replace(date, r"\.(\d\d)$" => s".20\1");
+        
+        # we cycle through all trains
+        for train in trainlist
+                gd = gdxml[(train=train,)];
+
+                # scan the schedule
+                for r in eachrow(gd)
+                        bst = r.bst;
+                        direction = r.direction;
+                        cumuldist = r.distance;
+                        line = r.line;
+                        if ismissing(r.arrival)
+                                arrival = 0;
+                        else
+                                arrival = dateToSeconds("$datef $(r.arrival)");
+                        end
+                        if ismissing(r.departure)
+                                departure = 0;
+                        else
+                                departure = dateToSeconds("$datef $(r.departure)");
+                        end
+
+                        if r.type == "pass"
+                                # one of the two can be non zero. We cure zeros later.
+                                scheduledtime = max(arrival,departure);
+                                push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
+                        elseif r.type == "stop"
+                                if arrival==0 || departure==0
+                                        @warn "Arrival or departure time are zero";
+                                end
+                                push!(dfout, (train, bst, "a", direction, line, cumuldist, arrival));
+                                push!(dfout, (train, bst, "d", direction, line, cumuldist, departure));
+                        elseif r.type == "begin"
+                                scheduledtime = max(arrival,departure);
+                                push!(dfout, (train, bst, "b", direction, line, cumuldist, scheduledtime));
+                        elseif r.type=="end"
+                                scheduledtime = max(arrival,departure);
+                                push!(dfout, (train, bst, "e", direction, line, cumuldist, scheduledtime));
+                        else
+                                @warn "Transit type $(r.type) not recognised"
+                        end
+
+                        # push!(dfout, (train, bst, transittype, direction, line, cumuldist, scheduledtime));
+                end
+  
+
+        end
+ 
+        dfout
+end
+
 
 """
     trainMatch(dfpad::DataFrame, dfxml::DataFrame)::DataFrame
@@ -443,6 +537,30 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         CSV.write(outfile, dfout);
 end
 
+function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
+        @info "Composing the timetable using XML and the trains listed in PAD";
+
+        dfpad = loadPAD(padfile);
+        dfxml = loadXML(xmlfile);
+        dfsta = CSV.read(stationfile, DataFrame);
+
+        # (file, _) = splitext(xmlfile);
+        # outblkfile = "blocks-$file.csv";
+        dfblk = findBlocks(dfxml); #, outblkfile);
+        
+        cleanBstPADXML!(dfpad,dfxml);
+        
+        dfout = trainMatchXML(dfpad,dfxml,dfblk);
+
+        passingStation!(dfout,dfsta);
+
+        @info "Saving timetable on file \"$outfile\"";
+        
+        sort!(dfout, [:train, :distance]); # temporary
+
+        CSV.write(outfile, dfout);
+end
+
 function generateBlocks(xmlfile::String, 
                         rinfbkfile = "rinf-blocks.csv", 
                         rinfopfile = "rinf-OperationalPoints.csv",
@@ -570,7 +688,11 @@ function configure()
 
         generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
-        composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        if xml_schedule
+                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
+        else
+                composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        end
 
         # (file, _) = splitext(xmlfile);
         # xmlbkfile = "blocks-$file.csv";
