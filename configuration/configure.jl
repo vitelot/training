@@ -180,9 +180,11 @@ function cleanBstPADXML!(dfpad::DataFrame, dfxml::DataFrame)
         aj = antijoin(bstpad,bstxlm, on=:bst);
         filter!(x->(x.bst ∉ aj.bst), dfpad);
         
-        aj = antijoin(bstxlm,bstpad, on=:bst);
-        filter!(x->(x.bst ∉ aj.bst), dfxml);
-        
+        if !xml_schedule 
+                aj = antijoin(bstxlm,bstpad, on=:bst);
+                filter!(x->(x.bst ∉ aj.bst), dfxml);
+        end
+
         nothing
 end
 
@@ -233,7 +235,20 @@ TBW
 function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
         @info "Building a timetable from the XML schedule";
         gdxml = groupby(dfxml, :train);
-        
+        gdpad = groupby(dfpad, :train);
+ 
+        # based on the scheduled PAD data, we build a dictionary with
+        # key = train-bst and value with the scheduled time at that bst; to be used to fill the voids in the xml. 
+        Dpad = Dict{String, Int}();
+        for gd in gdpad
+                train = gd.train[1];
+
+                for r in eachrow(gd)
+                        key = string(train, "-", r.bst,"-", r.transittype);
+                        Dpad[key] = r.scheduledtime;
+                end
+        end
+         
         # these are the trains we shall consider
         padtrainlist = unique(dfpad.train);
         xmltrainlist = unique(dfxml.train);
@@ -273,24 +288,45 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         end
 
                         if r.type == "pass"
-                                # one of the two can be non zero. We cure zeros later.
+                                # one of the two can be non zero. We cure the remaining zeros later.
                                 scheduledtime = max(arrival,departure);
+                                rn = rownumber(r);
+                                if scheduledtime == 0 && (rn==1 || rn==length(gd.bst))
+                                        key = string(train,"-",bst,"-p");
+                                        scheduledtime = get(Dpad, key, 0);
+                                end
                                 push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
                         elseif r.type == "stop"
-                                if arrival==0 || departure==0
-                                        # consider it as a pass
-                                        # println("Arrival or departure time are zero: $train,$bst");
-                                        scheduledtime = max(arrival,departure);
-                                        push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
-                                        continue;
+
+                                # if arrival == 0
+                                #         key = string(train,"-",bst,"-a");
+                                #         arrival = get(Dpad, key, 0);
+                                # end
+                                # if departure==0
+                                #         key = string(train,"-",bst,"-d");
+                                #         departure = get(Dpad, key, 0);
+                                # end
+                                if arrival==0 && departure>0
+                                        arrival = departure-30;
+                                end
+                                if arrival>0 && departure==0
+                                        departure = arrival+30;
                                 end
                                 push!(dfout, (train, bst, "a", direction, line, cumuldist, arrival));
                                 push!(dfout, (train, bst, "d", direction, line, cumuldist, departure));
                         elseif r.type == "begin"
                                 scheduledtime = max(arrival,departure);
+                                if scheduledtime == 0 
+                                        key = string(train,"-",bst,"-b");
+                                        scheduledtime = get(Dpad, key, 0);
+                                end
                                 push!(dfout, (train, bst, "b", direction, line, cumuldist, scheduledtime));
                         elseif r.type=="end"
                                 scheduledtime = max(arrival,departure);
+                                if scheduledtime == 0 
+                                        key = string(train,"-",bst,"-e");
+                                        scheduledtime = get(Dpad, key, 0);
+                                end
                                 push!(dfout, (train, bst, "e", direction, line, cumuldist, scheduledtime));
                         else
                                 @warn "Transit type $(r.type) not recognised"
@@ -301,36 +337,35 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
   
         end
         
+        # return dfout;
+
+
         # now we fix the zeros in the scheduled time
         gdxml = groupby(dfout, :train);
-
+        ToDelete = String[];
         for gd in gdxml
                 nrowgd = nrow(gd);
+                train = gd.train[1];
+
+                # index of the first non zero scheduled time
+                f = findfirst(x->x>0, gd.scheduledtime);
+                for i = 1:f-1
+                        push!(ToDelete, string(train,"-",gd.bst[i]));
+                end
+                f = findlast(x->x>0, gd.scheduledtime);
+                for i = f+1:length(gd.scheduledtime)
+                        push!(ToDelete, string(train,"-",gd.bst[i]));
+                end
+
                 for i in 1:nrowgd
+
                         t = gd[i, :scheduledtime];
                         d = gd[i, :distance];
 
-                        # find avrg speed
-                        i1 = 1; ie=nrowgd;
-                        for j = 1:nrowgd
-                                if gd.distance[j]>0 && gd.scheduledtime[j]>0
-                                        i1 = j;
-                                        break;
-                                end
-                        end
-                        for j = nrowgd:-1:1
-                                if gd.distance[j]>0 && gd.scheduledtime[j]>0
-                                        ie = j;
-                                        break;
-                                end
-                        end
-                        avrgspeed = (gd[ie,:distance]-gd[i1,:distance])/(gd[ie,:scheduledtime]-gd[i1,:scheduledtime]);
-                        println("Avrg speed $avrgspeed");
 
                         if t == 0
                                 if i == 1
-                                        println("First point has zero time: $(gd[i,:train]),$(gd[i,:bst])");
-
+                                        println("First point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # get info from previous time and distance
@@ -339,7 +374,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 
                                 i1 = i+1
                                 if i1 > nrowgd
-                                        println("Last point has zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        println("Last point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # find next non zero time
@@ -350,6 +385,9 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                         end
                                 end
                                 t1 = gd[i1, :scheduledtime];
+                                if t0>t1+10000 # next day
+                                        t1 += 86400;
+                                end
                                 d1 = gd[i1, :distance];
                                 # linear regression
                                 t = floor(Int, t0 + (t1-t0)/(d1-d0)*(d-d0));
@@ -364,6 +402,17 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         if ismissing(gd[i, :line])
                                 gd[i,:line] = gd[i-1, :line];
                         end                    
+                end
+        end
+        println("Deleting $ToDelete");
+        filter!(x-> string(x.train,"-",x.bst) ∉ ToDelete, dfout);
+        
+        gdxml = groupby(dfout, :train);
+        for gd in gdxml
+                for i = 2:nrow(gd)
+                        if gd.scheduledtime[i-1] - gd.scheduledtime[i] > 10000
+                                gd.scheduledtime[i] += 86400;
+                        end
                 end
         end
 
