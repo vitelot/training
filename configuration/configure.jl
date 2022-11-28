@@ -230,7 +230,12 @@ end
 """
     trainMatchXML(dfpad::DataFrame, dfxml::DataFrame)::DataFrame
 
-TBW
+Uses the XML file to build a timetable with the trains travelling in a specific day.
+We collect those trains from the PAD file.
+Missing time is interpolated based on the travelled distance.
+Only the missing times at the start and end of the travel are fetched from PAD.
+We do not fetch all missing times from PAD since the scheduled time in PAD may 
+change a bit wrt the scheduled time in XML.
 """
 function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
         @info "Building a timetable from the XML schedule";
@@ -290,22 +295,16 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         if r.type == "pass"
                                 # one of the two can be non zero. We cure the remaining zeros later.
                                 scheduledtime = max(arrival,departure);
-                                rn = rownumber(r);
+                                # only the first and last missing valued are taken from PAD
+                                rn = rownumber(r); # gives the index of r in gd
                                 if scheduledtime == 0 && (rn==1 || rn==length(gd.bst))
                                         key = string(train,"-",bst,"-p");
                                         scheduledtime = get(Dpad, key, 0);
                                 end
                                 push!(dfout, (train, bst, "p", direction, line, cumuldist, scheduledtime));
                         elseif r.type == "stop"
-
-                                # if arrival == 0
-                                #         key = string(train,"-",bst,"-a");
-                                #         arrival = get(Dpad, key, 0);
-                                # end
-                                # if departure==0
-                                #         key = string(train,"-",bst,"-d");
-                                #         departure = get(Dpad, key, 0);
-                                # end
+                                # when a stop is reported but only one time is available
+                                # assume 30 sec of stopping time
                                 if arrival==0 && departure>0
                                         arrival = departure-30;
                                 end
@@ -337,11 +336,12 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
   
         end
         
-        # return dfout;
-
-
-        # now we fix the zeros in the scheduled time
+        # now we fix the remaining zeros in the scheduled time
         gdxml = groupby(dfout, :train);
+
+        # The remaining time gaps are just a few, so we decide to delete them.
+        # Julia does not allow the deletion from a subdataframe
+        # so we fill a array and will delete at the end in another sweep.
         ToDelete = String[];
         for gd in gdxml
                 nrowgd = nrow(gd);
@@ -385,6 +385,9 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                         end
                                 end
                                 t1 = gd[i1, :scheduledtime];
+                                # in the XML there is no day, so the time can refer to the next day
+                                # we detect these anomalies and correct here:
+                                # If the previous time is larger than the following one, we had a day crossing.
                                 if t0>t1+10000 # next day
                                         t1 += 86400;
                                 end
@@ -410,6 +413,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         gdxml = groupby(dfout, :train);
         for gd in gdxml
                 for i = 2:nrow(gd)
+                        # last correction for the day jump
                         if gd.scheduledtime[i-1] - gd.scheduledtime[i] > 10000
                                 gd.scheduledtime[i] += 86400;
                         end

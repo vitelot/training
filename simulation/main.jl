@@ -95,10 +95,6 @@ function main()
     # exit();
 
 
-    one_sim(RN, FL)
-
-    return;
-    
     if parsed_args["catch_conflict"]
         catch_conflict(RN,FL,parsed_args)
     else
