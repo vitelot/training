@@ -695,11 +695,13 @@ function generateBlocks(xmlfile::String,
             Bk[blk] = ismono;
     end
 
+    xmlbk.tracks = Vector{Int}(undef, nrow(xmlbk));
     xmlbk.ismono = Vector{Int}(undef, nrow(xmlbk));
     for r in eachrow(xmlbk)
         block,line,_length,_direction = r[:];
         blk = string(block,"-",line);
         r[:ismono] = get(Bk, blk, UNASSIGNED) |> Int; # -1 == unassigned
+        r[:tracks] = 1; # nr of tracks is 1 for every block but may change with the try and catch
     end
 
     @info "Saving complete block information on file \"$outblkfile\"";

@@ -1,24 +1,24 @@
 
-"""
-functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
-"""
+# """
+# functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
+# """
 
-function dateToSeconds(d::AbstractString)::Int
-"""
-Given a string in the format "yyyy-mm-dd HH:MM:SS"
-returns the number of seconds elapsed from the epoch
-"""
-    dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-    return Int(floor(datetime2unix(dt)))
-    #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
-end
-function dateToSeconds(d::Int)::Int
-"""
-If the input is an Int do nothing
-assuming that it is already the number of seconds elapsed from the epoch
-"""
-    return d
-end
+# function dateToSeconds(d::AbstractString)::Int
+# """
+# Given a string in the format "yyyy-mm-dd HH:MM:SS"
+# returns the number of seconds elapsed from the epoch
+# """
+#     dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
+#     return Int(floor(datetime2unix(dt)))
+#     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
+# end
+# function dateToSeconds(d::Int)::Int
+# """
+# If the input is an Int do nothing
+# assuming that it is already the number of seconds elapsed from the epoch
+# """
+#     return d
+# end
 
 ############################################################################################################
 function read_non_hidden_files(repo::AbstractString)::Vector{String}
@@ -30,9 +30,10 @@ function read_non_hidden_files(repo::AbstractString)::Vector{String}
     return filter(x->!startswith(x, r"\.|_"), filelist)
 end
 
+"""
+If test mode is enabled, runs speed test without printing simulation results on std out
+"""
 function runTest(RN::Network, FL::Fleet)
-    """If test mode is enabled, runs speed test without printing simulation results on std out
-    """
 
 #    print("\nPerforming speed test with no output. Please be patient.\r")
     # if Opt["test"] == 2
@@ -44,10 +45,10 @@ function runTest(RN::Network, FL::Fleet)
     # end
 end
 
-function myRand(min::Float64, max::Float64)::Float64
-    """ranged random number generator"""
-    return rand(range(min,length=20,stop=max))
-end
+# """ranged random number generator"""
+# function myRand(min::Float64, max::Float64)::Float64
+#     return rand(range(min,length=20,stop=max))
+# end
 
 """
  function that calculates the status of the simulation as a string of blocks

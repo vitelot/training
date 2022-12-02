@@ -40,94 +40,27 @@ end
 
 
 function initBlock(r::DataFrameRow)
-    # r is a row of the block df containing: block,line,length,direction,ismono
+    # r is a row of the block df containing: block,line,length,direction,tracks,ismono
 
-    line = r.line;
     # now a block is determined by its line too
-    name = string(r.block, "-", line); 
-    dir = r.direction;
-    ismono = r.ismono;
-    # the number of tracks is always 1 since we specify the line number; only in stations we may have many tracks;
-    # one trach may be used both ways if ismono==true
-    ntracks = 1;
+    name = string(r.block, "-", r.line); 
 
+    # the number of tracks is always 1 since we specify the line number; 
+    # unless ricalculated with try and catch;
+    # only in stations we may have many tracks;
+    # one track may be used both ways if ismono==true
+    
     b = Block(
             name,
-            line,
+            r.line,
             r.length,
-            dir,
+            r.direction,
             r.ismono,
-            ntracks,
+            r.tracks,
             0,
             Set{String}()
         );
 
-    return b;
-
-
-    ######### old code follows ##########
-    #list of the tracks, for now just 5
-    tracks=[5]
-    #two directions wrt a track
-    DIRECTIONS=[-1,1];
-    COMMON_DIRECTION = 0;
-
-    if isStation(name)
-        if (ntracks==1)
-            # println("$bts has 1 platform,update to 2")
-            printstyled("WARNING: station $name has only one platform.\n", bold=true)
-            # ntracks+=1
-        end
-
-        if !Opt["free_platforms"] # directionality
-            #number of directions taken into account
-            n_dir = length(DIRECTIONS)
-
-            #integer number of plats per direction
-            n_plat = div(ntracks,n_dir)
-
-            #remaining plat in common
-            common = ntracks%n_dir
-
-            dir2platforms   = Dict{Int,Int}()
-            dir2trainscount = Dict{Int,Int}()
-
-            #dictionaries for occupancy for every direction
-            for direction in DIRECTIONS
-                dir2platforms[direction]=n_plat
-                dir2trainscount[direction]=0
-            end
-
-            #update of simulation: use also common plats.
-            dir2platforms[COMMON_DIRECTION]=common
-
-            b = Block(
-                    name,
-                    true,
-                    dir2platforms,
-                    dir2trainscount,
-                    Set{String}()
-            )
-
-
-        else # station but directionality not required
-            b = Block(
-                    name,
-                    true,
-                    ntracks,
-                    0,
-                    Set{String}()
-            )
-        end
-    else # directionality not required
-        b = Block(
-                name,
-                false,
-                ntracks,
-                0,
-                Set{String}()
-        )
-    end
     return b;
 end
 
@@ -197,22 +130,6 @@ function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
     push!(blk.train, train.id)
     blk.nt += 1;
 
-    # if the tracks dedicated to the direction are free, occupy one at first
-    # direction = train.direction;
-    # nr_trains = blk.nt;
-    # if nr_trains[direction] < blk.tracks[direction]
-    #     nr_trains[train.direction] += update;
-    #     return;
-    # end
-
-    # # if nothing else is free, occupy the common track
-    # if get(blk.tracks, COMMON_DIRECTION, 0) > 0
-    #     nr_trains[COMMON_DIRECTION] = get(nr_trains, COMMON_DIRECTION, 0) + update
-    #     return;
-    # end
-
-    # it has never to come until here, otherwise something is wrong
-    # @warn "We cannot increase the occupancy of block $(blk.id)."
 end
 
 #passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
@@ -278,13 +195,12 @@ end
 
 function catch_conflict(RN,FL,parsed_args)
 
-    DIRECTIONS=[-1,1];
-
     timetable_file = Opt["timetable_file"];
+
     while true
         try
-            one_sim(RN, FL)
-            break
+            one_sim(RN, FL);
+            break;
         catch err
 
             if isa(err, KeyError) # if the error comes from non existing blocks:
@@ -293,16 +209,21 @@ function catch_conflict(RN,FL,parsed_args)
                 name=err.key
 
                 if isStation(name)
-                    b = initBlock(name,length(DIRECTIONS))
+                    # b = initBlock(name,length(DIRECTIONS))
+                    s = split(name, "-")[1];
+                    @warn "Station $s not found. Please add its info in ../configuration/data/extra-stations.csv";
                 else
-                    b = initBlock(name,1)
+                    @warn "Block $name not found. Please add its info in ../data/simulation_data/blocks.csv";
+                    # b = initBlock(name,1)
                 end
 
-                RN.nb += 1
-                RN.blocks[name]=b
-#@show RN.nb
-                resetSimulation(FL);
-                resetDynblock(RN);
+                # RN.nb += 1
+                # RN.blocks[name]=b
+                # #@show RN.nb
+                # resetSimulation(FL);
+                # resetDynblock(RN);
+                @warn "\tExiting.";
+                exit(1);
 
             else # if the error comes from try&catch:
 
@@ -342,5 +263,5 @@ end
 
 function isStation(bst_name::AbstractString)
      a = split(bst_name, "-");
-     return a[1] == a[2]
+     return a[1] == a[2];
 end
