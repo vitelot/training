@@ -1,26 +1,8 @@
 
-# """
-# functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
-# """
+"""
+functions.jl : contains the definition of functions that are NOT needed for initializing our system on the infrastructure
+"""
 
-# function dateToSeconds(d::AbstractString)::Int
-# """
-# Given a string in the format "yyyy-mm-dd HH:MM:SS"
-# returns the number of seconds elapsed from the epoch
-# """
-#     dt::DateTime = Dates.DateTime(d, "dd.mm.yyyy HH:MM:SS")
-#     return Int(floor(datetime2unix(dt)))
-#     #return (Dates.hour(dt)*60+Dates.minute(dt))*60+Dates.second(dt)
-# end
-# function dateToSeconds(d::Int)::Int
-# """
-# If the input is an Int do nothing
-# assuming that it is already the number of seconds elapsed from the epoch
-# """
-#     return d
-# end
-
-############################################################################################################
 function read_non_hidden_files(repo::AbstractString)::Vector{String}
     filelist = readdir(repo, join=true);
     filter!(!isdir, filelist);
@@ -75,11 +57,11 @@ function netStatus(RN::Network; hashing::Bool=false)
     return status
 end
 
-function resetSimulation(FL::Fleet)#,RN::Network
 """
 Resets the dynamical variables of trains in case of multiple simulation runs
 """
-    #println("resetting Fleet")
+function resetSimulation(FL::Fleet)#,RN::Network
+    Opt["print_flow"] && @info "Resetting Fleet dynamical properties before restarting."
     for Train in values(FL.train)
         Train.dyn = DynTrain(0,"","");
     end

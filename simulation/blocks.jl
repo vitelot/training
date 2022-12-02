@@ -4,18 +4,6 @@
 
 COMMON_DIRECTION = 0; # index for the platforms used in both ways at stations
 
-########################################
-##EXCEPTIONS DEFINING
-##################################
-struct exception_blockConflict <: Exception
-        trainid::String
-        block::String
-        direction::Int
-    end
-
-Base.showerror(io::IO, e::exception_blockConflict) =
-    print(io, "Train $(e.trainid) has conflict in block $(e.block) ");
-
 function initStation(r::DataFrameRow)
     # Stations are special blocks
     nrplatforms = r.ntracks;
@@ -31,9 +19,9 @@ function initStation(r::DataFrameRow)
     s = Station(
             r.id,
             P,
+            r.nsidings,
             NT,
-            Set{String}(),
-            r.nsidings
+            Set{String}()
     );
     return s;
 end
@@ -132,65 +120,70 @@ function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
 
 end
 
-#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
-function print_infra(RN::Network,out_file_name::String)#,
 """
 printing blocks to file
 """
-    open(out_file_name, "w") do OUT
+function print_infra(RN::Network, out_block_file_name::String, out_station_file_name::String)
 
-        println(OUT, "id,tracks")
+    
+    open(out_block_file_name, "w") do OUT
 
-        block2track=Dict{String,Int}()
+        println(OUT, "block,line,length,direction,tracks,ismono");
 
-        for block in keys(RN.blocks)
+        for blockName in sort(keys(RN.blocks))
 
-            RN.blocks[block].id == "" && continue;
+            blk = RN.blocks[blockName];
 
-            ntracks=RN.blocks[block].tracks
-            if typeof(ntracks) == Int
-                n = ntracks
-            else
-                n = sum(values(ntracks))
-            end
+            # skip the empty block
+            blk.id == "" && continue;
 
-            block2track[block] = n
+            (op1, op2, line) = split(blockName, "-");
+            
+            blk = string(op1,"-",op2);
+            dir = blk.direction;
+            length = blk.length;
+            ntracks = blk.tracks;
+            ismono = blk.ismono;
+
+            println(OUT, "$blk,$line,$length,$dir,$ntracks,$ismono");
+
         end
+    end
 
-        K = sort(collect(block2track), by= x-> x[2], rev=true)
-        # println(OUT, K)
-        for b in K
-            println(OUT, b[1],",",b[2])
+    open(out_station_file_name, "w") do OUT
+        println(OUT, "id,ntracks,nsidings");
+        for stationName in sort(keys(RN.stations))
+
+            s = RN.stations[stationName];
+
+            # skip the empty station
+            s.id == "" && continue;
+
+            ntracks = sum(values(s.platforms));
+            nsidings = s.sidings;
+            println(OUT, "$stationName,$ntracks,$nsidings");
         end
-
     end
 end
 
-#passing the valuea of RN to modify it before restarting the simulation in the try and catch, resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
-function resetDynblock(RN::Network)#,
 """
 Resets the dynamical variables of the blocks (trains running on them) in case of using the macro for the try-catch
 """
+function resetDynblock(RN::Network)
+    # passing the valuea of RN to modify it before restarting the simulation in the try and catch, 
+    # resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
 
-    DIRECTIONS = [-1,0,1]
-    dir2trainscount = Dict{Int,Int}()
+    Opt["print_flow"] && @info "Resetting the occupation of blocks in order to restart.";
 
-    for direction in DIRECTIONS
-        dir2trainscount[direction] = 0
-    end
-
-    #println("resetting Blocks")
     for b in values(RN.blocks)
-        ntracks=b.tracks
-
-        if typeof(ntracks)==Int
-            b.nt = 0;
-        else
-            b.nt = copy(dir2trainscount);
-        end
+        b.nt = 0;
         b.train = Set{String}();
     end
-#@show get(RN.blocks, "WBFS12-WBFS22", Block())
+    for s in values(RN.stations)
+        s.train = Set{String}();
+        s.nt = Dict(1 => 0, 2 => 0, 0 => 0);
+    end
+
 end
 
 function catch_conflict(RN,FL,parsed_args)
@@ -227,21 +220,24 @@ function catch_conflict(RN,FL,parsed_args)
 
             else # if the error comes from try&catch:
 
-                train=(err.trainid)
-                block=err.block
-                b = RN.blocks[block];
+                # b::Block;
+                # s::Station;
 
-                println("Nr of tracks before at $block: ", b.tracks)
+                train = (err.trainid)
+                blockName = err.block
+                dir = err.direction;
 
-                if typeof(b.tracks)==Int
-                    b.tracks += 1
-                    # b.nt = 0
-                else
-                    dir = err.direction
-                    b.tracks[dir] += 1
+                if occursin("-", blockName) # it's a block
+                    b = RN.blocks[blockName];
+                    println("Nr of tracks before at $blockName: ", b.tracks);
+                    b.tracks += 1;
+                    println("Nr of tracks after  at $blockName: ", b.tracks)
+                else # it's a station
+                    s = RN.stations[blockName];
+                    println("Nr of platforms before at $blockName: ", s.platforms);
+                    s.platforms[dir] += 1;
+                    println("Nr of platforms after  at $blockName: ", s.platforms);
                 end
-
-                println("Nr of tracks after  at $block: ",b.tracks)
 
                 resetSimulation(FL);
                 resetDynblock(RN);
@@ -252,11 +248,13 @@ function catch_conflict(RN,FL,parsed_args)
     #insert here function for saving the blocks list
     if occursin("-", timetable_file)
         _,date=split(timetable_file,"-")
-        out_file_name="../data/simulation_data/blocks_catch-$date.csv"
+        out_block_file_name="../data/simulation_data/blocks_catch-$date.csv"
+        out_station_file_name="../data/simulation_data/stations_catch-$date.csv"
     else
-        out_file_name = "../data/simulation_data/blocks_catch.csv";
+        out_block_file_name = "../data/simulation_data/blocks_catch.csv";
+        out_station_file_name = "../data/simulation_data/stations_catch.csv";
     end
-    print_infra(RN,out_file_name)
+    print_infra(RN, out_block_file_name, out_station_file_name);
 
 end
 

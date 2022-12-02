@@ -36,13 +36,14 @@ mutable struct Station
     # direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
     # ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     platforms::Dict{Int,Int} # number of platforms per direction key=direction, value=nrtracks
+    sidings::Int          # not used for the moment
+    # dynamical part:
     nt::Dict{Int,Int}     # number of trains in the station according to direction 
     train::Set{String}    # which train is on it, for platforms: which train is in which of the directions
-    sidings::Int          # not used for the moment
 end
 
 function Station()
-    Station("",Dict{Int,Int}(),Dict{Int,Int}(), Set{String}(), 0); #the null empty station
+    Station("",Dict{Int,Int}(),0,Dict{Int,Int}(), Set{String}()); #the null empty station
 end
 
 mutable struct Block
@@ -52,6 +53,7 @@ mutable struct Block
     direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
     ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     tracks::Int         # number of parallel tracks (multiple trains allowed)
+    # dynamical part:
     nt::Int             # number of trains on the block (size of next set)
     train::Set{String}  # which train is on it, for platforms: which train is in which of the directions
 end
@@ -118,3 +120,17 @@ struct RailwayNetwork
     network::Network # the network where trains move
     # trains
 end
+
+########################################
+## Define the exception for an occupied block
+## to use in the try and catch
+##################################
+struct exception_blockConflict <: Exception
+    trainid::String
+    block::String
+    direction::Int
+end
+##################################
+
+Base.showerror(io::IO, e::exception_blockConflict) =
+    print(io, "Train $(e.trainid) has conflict in block $(e.block) ");

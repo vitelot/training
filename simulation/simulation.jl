@@ -194,9 +194,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
 
-                        # if catch_conflicts
-                        #     throw(exception_blockConflict(trainid,nextBlockid,train.direction))
-                        # end
+                        # raise an error if the block is too small and we are looking to enlarge it
+                        if catch_conflicts
+                            throw(exception_blockConflict(trainid,nextBlockid,direction))
+                        end
 
                         tt = t+TIME_TO_CHECK_FOR_FREE_BLOCK;
                         get!(Event, tt, Transit[])
