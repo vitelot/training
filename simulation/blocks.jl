@@ -130,7 +130,7 @@ function print_infra(RN::Network, out_block_file_name::String, out_station_file_
 
         println(OUT, "block,line,length,direction,tracks,ismono");
 
-        for blockName in sort(keys(RN.blocks))
+        for blockName in sort(collect(keys(RN.blocks)))
 
             blk = RN.blocks[blockName];
 
@@ -152,7 +152,7 @@ function print_infra(RN::Network, out_block_file_name::String, out_station_file_
 
     open(out_station_file_name, "w") do OUT
         println(OUT, "id,ntracks,nsidings");
-        for stationName in sort(keys(RN.stations))
+        for stationName in sort(collect(keys(RN.stations)))
 
             s = RN.stations[stationName];
 
