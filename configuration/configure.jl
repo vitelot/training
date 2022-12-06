@@ -650,11 +650,16 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
     
         # consider trains joined if their events coincide more than 4 times
         filter!(p->last(p)>4, J);
-    
-        # list of events referring to the joined trains
-        toRemove = Vector{Tuple{String, String, String}}();
-    
+        
+        # open("joined.csv", "w") do OUT
+        #         for (k,v) in J
+        #                 println(OUT, "$k,$v");
+        #         end
+        # end
+
+        # the train field gets larger than 15 bytes
         df.train = String31.(df.train);
+
         # after detaching trains are sent to dfnew
         dfnew = similar(df, 0); # empty similar dataframe
         
@@ -664,8 +669,6 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
             
             dft = similar(df,0);
             dflocal = similar(df,0);
-            # dfnew = similar(df,0);
-            # dfnew.train = String31.(dfnew.train);
             
             for train in trains
                 append!(dft,  df[df.train .== train, :]);
@@ -700,7 +703,8 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
             append!(dfnew, dflocal);
             
         end
-        
+        unique!(dfnew);
+
         # find the affected trains
         S = Set{String}();
         for k in keys(J)
@@ -710,7 +714,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         # remove them from the total schedule
         filter!(x->x.train ∉ S, df);
     
-        # append the new trains
+        # append the new convoys and trains
         append!(df, dfnew);
     
         sort!(df, [:train,:scheduledtime]);
