@@ -622,6 +622,101 @@ function passingStation!(df::DataFrame, dfsta::DataFrame)::DataFrame
         df
 end
 
+"""
+Find joined trains and create a unique train
+"""
+function handleJoinedTrains!(df::DataFrame)::DataFrame
+
+        sort!(df, [:train,:scheduledtime]);
+    
+        @info "Handling joined trains."
+        # return df;
+        # build the events at operational points, e.g.,  Dict("1525886940-B" => ["EC_164", "REX_5585"])
+        D = Dict{String,Set{String}}();
+        for r in eachrow(df)
+                key = string(r.scheduledtime,"-",r.bst);
+                get!(D,key,Set{String}());
+                push!(D[key], r.train);
+        end
+    
+        # remove events with only one train. p[2] or last(p) accesses the values of dictionaries.
+        filter!(p-> length(p[2])>1, D);
+    
+        # Build co-occurrences of trains, e.g., Dict( Set(["IC_502", "IC_512"]) => 95)
+        J = Dict{Set{String},Int}();
+        for s in values(D)
+                J[s] = get(J, s, 0) + 1;
+        end
+    
+        # consider trains joined if their events coincide more than 4 times
+        filter!(p->last(p)>4, J);
+    
+        # list of events referring to the joined trains
+        toRemove = Vector{Tuple{String, String, String}}();
+    
+        df.train = String31.(df.train);
+        # after detaching trains are sent to dfnew
+        dfnew = similar(df, 0); # empty similar dataframe
+        
+        for k in keys(J)
+            # k = Set(["REX_2639","R_7939","R_9993"]);
+            trains = sort(collect(k));
+            
+            dft = similar(df,0);
+            dflocal = similar(df,0);
+            # dfnew = similar(df,0);
+            # dfnew.train = String31.(dfnew.train);
+            
+            for train in trains
+                append!(dft,  df[df.train .== train, :]);
+            end
+            
+            gd = groupby(dft, [:bst,:scheduledtime]);
+            
+            for d in gd
+                du = unique(d);
+                convoy = join(sort(du.train),"+");
+                push!(dflocal, (convoy, du[1,2:end]...));
+            end
+            
+            sort!(dflocal, [:scheduledtime]);
+    
+            dtc = "";
+            for r in eachrow(dflocal)
+                train = r.train;
+    
+                # if it's a convoy
+                if occursin("+", train)
+                    dtc = "_dtc";
+                end
+    
+                # if it is a detached train
+                if !occursin("+", train)
+                    r.train *= dtc;
+                end
+                
+            end
+            
+            append!(dfnew, dflocal);
+            
+        end
+        
+        # find the affected trains
+        S = Set{String}();
+        for k in keys(J)
+                S = union(S,k);
+        end
+    
+        # remove them from the total schedule
+        filter!(x->x.train ∉ S, df);
+    
+        # append the new trains
+        append!(df, dfnew);
+    
+        sort!(df, [:train,:scheduledtime]);
+        return df;
+end
+
 function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
         @info "Composing the timetable";
 
@@ -638,6 +733,8 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         dfout = trainMatch(dfpad,dfxml,dfblk);
 
         passingStation!(dfout,dfsta);
+
+        handleJoinedTrains!(dfout);
 
         @info "Saving timetable on file \"$outfile\"";
         sort!(dfout, [:train, :scheduledtime, :distance])
@@ -661,8 +758,10 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
 
         passingStation!(dfout,dfsta);
 
+        handleJoinedTrains!(dfout);
+        
         @info "Saving timetable on file \"$outfile\"";   
-        sort!(dfout, [:train, :distance]); 
+        sort!(dfout, [:train, :scheduledtime]); 
         CSV.write(outfile, dfout);
 end
 
