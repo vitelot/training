@@ -11,7 +11,7 @@ function parse_commandline()
             default = "09.05.18"
 
         "--file", "-f"
-            help = "File with the timetable to process."
+            help = "PAD file with the timetable to process."
             arg_type = String
             default = ""
 

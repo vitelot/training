@@ -651,6 +651,14 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         # consider trains joined if their events coincide more than 4 times
         filter!(p->last(p)>4, J);
         
+        # remove overlapping subsets
+        for s in keys(J)
+                for p in keys(J)
+                s == p && continue;
+                issubset(p,s) && delete!(J,p);
+                end
+        end
+
         # open("joined.csv", "w") do OUT
         #         for (k,v) in J
         #                 println(OUT, "$k,$v");
@@ -666,7 +674,8 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         for k in keys(J)
             # k = Set(["REX_2639","R_7939","R_9993"]);
             trains = sort(collect(k));
-            
+            ntrains = length(trains);
+
             dft = similar(df,0);
             dflocal = similar(df,0);
             
@@ -684,23 +693,39 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
             
             sort!(dflocal, [:scheduledtime]);
     
-            dtc = "";
+            dflocalnew = similar(dflocal,0);
+
+            dtc = "_dtc";
+            # IsDetached = Set{String}();
+            was_attached = already_detached = false;
             for r in eachrow(dflocal)
                 train = r.train;
     
                 # if it's a convoy
                 if occursin("+", train)
-                    dtc = "_dtc";
+                    if already_detached && ntrains == 2
+                        trains = split(train,"+");
+                        for t in trains
+                            push!(dflocalnew, (t*dtc, r[2:end]...));
+                            # println((t*dtc, r[2:end]...));
+                        end
+                        continue;
+                    end
+    
+                    was_attached = true;
+                    push!(dflocalnew, r);
+                    # continue;
+                else
+                    if was_attached
+                        push!(dflocalnew, (r.train*dtc, r[2:end]...));
+                        already_detached = true;
+                    end
                 end
     
-                # if it is a detached train
-                if !occursin("+", train)
-                    r.train *= dtc;
-                end
-                
+    
             end
             
-            append!(dfnew, dflocal);
+            append!(dfnew, dflocalnew);
             
         end
         unique!(dfnew);
