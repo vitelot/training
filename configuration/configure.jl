@@ -719,6 +719,8 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
                     if was_attached
                         push!(dflocalnew, (r.train*dtc, r[2:end]...));
                         already_detached = true;
+                    else
+                        push!(dflocalnew, r);
                     end
                 end
     
