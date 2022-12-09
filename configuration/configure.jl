@@ -52,12 +52,12 @@ pl = println;
 UInt = Union{Int,Missing};
 UString = Union{String,Missing};
 
-DEBUG = 1; # five levels of debugging
+const DEBUG = 1; # five levels of debugging
 
-ACCEPTED_TRAJ_CODE        = ["Z","E"];
-POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
-FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
-STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
+const ACCEPTED_TRAJ_CODE        = ["Z","E"];
+const POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
+const FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
+const STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
 
 # list of stations not found in the rinf data
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
@@ -792,7 +792,7 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
         handleJoinedTrains!(dfout);
         
         @info "Saving timetable on file \"$outfile\"";   
-        sort!(dfout, [:train, :scheduledtime]); 
+        sort!(dfout, [:train, :scheduledtime, :distance]); 
         CSV.write(outfile, dfout);
 end
 

@@ -18,11 +18,11 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another
-    t_evaluated=0
+    t_evaluated = 0;
     #minimum number of t for evaluating
-    min_t_evaluated=10
+    min_t_evaluated = 10;
     #time interval in seconds between an evaluation of stuck and another
-    stuck_interval=3000
+    stuck_interval = 3000;
 
     ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
     MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
