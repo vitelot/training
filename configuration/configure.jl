@@ -407,7 +407,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         end                    
                 end
         end
-        println("Deleting $ToDelete");
+        length(ToDelete) > 0 && println("Deleting $ToDelete since their initial and final scheduled time cannot be inferred");
         filter!(x-> string(x.train,"-",x.bst) ∉ ToDelete, dfout);
         
         gdxml = groupby(dfout, :train);
@@ -629,7 +629,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
 
         sort!(df, [:train,:scheduledtime]);
     
-        @info "Handling joined trains."
+        @info "Handling joined trains"
         # return df;
         # build the events at operational points, e.g.,  Dict("1525886940-B" => ["EC_164", "REX_5585"])
         D = Dict{String,Set{String}}();
