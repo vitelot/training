@@ -29,6 +29,7 @@ function xml2df(file::String)::DataFrame
     trains = get_elements_by_tagname(timetable[1], "trains");
     train = get_elements_by_tagname(trains[1],     "train");
 
+    free(data);
     data = timetable = trains = xroot = nothing;
 
     UString = Union{String, Nothing};
