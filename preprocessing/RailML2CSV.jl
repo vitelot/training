@@ -92,8 +92,6 @@ xdoc = parse_file(infile);
 
 # get the root element
 xroot = root(xdoc);  # an instance of XMLElement: <railml>
-# print its name
-println(name(xroot))  # this should print: bookstore
 
 dfinfra = getInfra(xroot);
 # CSV.write("data/infra.csv", dfinfra);
@@ -104,6 +102,12 @@ dfvehicles = getVehicles(xroot);
 dflocos = getLocos(xroot, dfvehicles);
 # CSV.write("data/locos.csv", dflocos);
 
+
+timetable = xroot["timetable"][1];
+
+categories = timetable["categories"][1]["category"];
+trainparts = timetable["trainParts"][1]["trainPart"];
+trains = timetable["trains"][1]["train"];
 
 
 # # traverse all its child nodes and print element names
