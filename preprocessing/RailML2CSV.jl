@@ -36,7 +36,7 @@ end
 
 function getVehicles(xroot::XMLElement)::DataFrame
     vehicles = xroot["rollingstock"][1]["vehicles"][1]["vehicle"];
-
+    
     df = DataFrame(id=UString[], code=UString[], description=UString[], name=UString[], category=UString[]);
     for v in vehicles
         # id::UString=missing;
@@ -59,6 +59,35 @@ function getVehicles(xroot::XMLElement)::DataFrame
     return df;
 end
 
+function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
+    Locos = Dict{String,String}();
+    for r in eachrow(dfvehicles)
+        ismissing(r.name) && continue;
+        Locos[r.id] = r.name;
+    end
+
+    formations = xroot["rollingstock"][1]["formations"][1]["formation"];
+    D = Dict{String,Vector{String}}();
+    for f in formations
+        id = attribute(f,"id");
+        elements = f["trainOrder"][1]["vehicleRef"];
+        get!(D, id, String[]);
+        for e in elements
+            ref = attribute(e, "vehicleRef");
+            push!(D[id], ref);
+        end    
+    end
+    # maxnrlocos = maximum(length.(collect(values(D)))); # it was 14
+
+    df = DataFrame(formation=String[], locoref=UString[], loco=String[]);
+    for (formation, locorefs) in D
+        for locoref in locorefs
+            haskey(Locos, locoref) && push!(df, (formation,locoref, Locos[locoref]));
+        end
+    end
+    return df;
+end
+
 xdoc = parse_file(infile);
 
 # get the root element
@@ -72,15 +101,19 @@ dfinfra = getInfra(xroot);
 dfvehicles = getVehicles(xroot);
 # CSV.write("data/vehicles.csv", dfvehicles);
 
+dflocos = getLocos(xroot, dfvehicles);
+# CSV.write("data/locos.csv", dflocos);
 
-# traverse all its child nodes and print element names
-for c in child_nodes(xroot)  # c is an instance of XMLNode
-    println(nodetype(c))
-    if is_elementnode(c)
-        e = XMLElement(c)  # this makes an XMLElement instance
-        println(name(e))
-    end
-end
+
+
+# # traverse all its child nodes and print element names
+# for c in child_nodes(xroot)  # c is an instance of XMLNode
+#     println(nodetype(c))
+#     if is_elementnode(c)
+#         e = XMLElement(c)  # this makes an XMLElement instance
+#         println(name(e))
+#     end
+# end
 
 
 free(xdoc);
