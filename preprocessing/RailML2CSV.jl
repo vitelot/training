@@ -77,6 +77,7 @@ function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
             push!(D[id], ref);
         end    
     end
+    
     # maxnrlocos = maximum(length.(collect(values(D)))); # it was 14
 
     df = DataFrame(formation=String[], locoref=UString[], loco=String[]);
@@ -109,6 +110,71 @@ categories = timetable["categories"][1]["category"];
 trainparts = timetable["trainParts"][1]["trainPart"];
 trains = timetable["trains"][1]["train"];
 
+dfcat = DataFrame(id=String[], code=String[], name=String[], usage=String[]);
+for cat in categories
+    D = attributes_dict(cat);
+    push!(dfcat, (D["id"], D["code"], D["name"], D["trainUsage"]));
+end
+
+maxparts = 0;
+for t in trains
+    maxparts = max(maxparts, length(t["trainPartSequence"]));
+end
+println(maxparts);
+
+dftrain = DataFrame(id=String[], number=String[], type=String[]);
+# add the necessary clumns to hold the references to train's parts
+pp = [string("partref",i)=>UString[] for i = 1:maxparts];
+insertcols!(dftrain, pp...); 
+
+parts = Vector{UString}(undef,maxparts);
+for t in trains
+    parts .= missing;
+    D = attributes_dict(t);
+    id = D["id"]; type = D["type"]; n = D["trainNumber"];
+    tps = t["trainPartSequence"];
+    for i = 1:length(tps);
+        parts[i] = attribute(tps[i]["trainPartRef"][1],"ref");
+    end
+    push!(dftrain, (id, n, type, parts...));
+end
+# CSV.write("data/trains.csv", dftrain);
+
+# for part in trainparts
+#     id = attribute(part, "id");
+#     catref = attribute(part, "categoryRef");
+#     formref = attribute(part["formationTT"][1], "formationRef");
+#     ops = part["ocpsTT"][1]["ocpTT"];
+#     for op in ops
+#         oref = attribute(op, "ocpRef");
+#         type = attribute(op, "ocpType");
+#         times = op["times"];
+#         for t in times
+#             scope = attribute(t, "scope");
+#             if scope == "actual"
+#                 realtime = 
+#             scope = attribute(t, "scope");
+#             .........
+#     end
+# end
+
+
+println();
+
+# <ocpTT ocpRef="ocp_ZL_S12_2021-12-11_230000" sequence="8" ocpType="pass">
+#   <times scope="actual" arrival="14:12:32" arrivalDay="0" departure="14:12:32" departureDay="0"/>
+#   <times scope="scheduled" arrival="14:12:54" arrivalDay="0" departure="14:12:54" departureDay="0"/>
+#   <times scope="published" arrival="14:12:54" arrivalDay="0" departure="14:12:54" departureDay="0"/>
+# </ocpTT>
+# <ocpTT ocpRef="ocp_ZL_H1_2021-12-11_230000" sequence="9" ocpType="stop">
+#   <times scope="actual" arrival="14:13:08" arrivalDay="0" departure="14:13:38" departureDay="0"/>
+#   <times scope="scheduled" arrival="14:13:30" arrivalDay="0" departure="14:14:00" departureDay="0"/>
+#   <times scope="published" arrival="14:13:30" arrivalDay="0" departure="14:14:00" departureDay="0"/>
+# </ocpTT>
+
+
+# p=[ string("pippo",i) => String[] for i in a];
+# insertcols!(D, p...);
 
 # # traverse all its child nodes and print element names
 # for c in child_nodes(xroot)  # c is an instance of XMLNode
@@ -120,5 +186,5 @@ trains = timetable["trains"][1]["train"];
 # end
 
 
-free(xdoc);
+# free(xdoc);
 
