@@ -1,9 +1,9 @@
 using CSV, DataFrames, LightXML;
 
+UString = Union{String,Missing};
+
 cd("preprocessing");
 infile = "data/railml_2022-08-05.xml";
-
-UString = Union{String,Missing};
 
 function getInfra(xroot::XMLElement)::DataFrame
     ##### INFRASTRUCTURE SCHEMA #####
@@ -89,6 +89,162 @@ function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
     return df;
 end
 
+function getCategories(xroot::XMLElement)::DataFrame
+    timetable = xroot["timetable"][1];
+
+    categories = timetable["categories"][1]["category"];
+
+    dfcat = DataFrame(id=String[], code=String[], name=String[], usage=String[]);
+    for cat in categories
+        D = attributes_dict(cat);
+        push!(dfcat, (D["id"], D["code"], D["name"], D["trainUsage"]));
+    end
+    return dfcat;
+end
+
+function getTrains(xroot::XMLElement)::DataFrame
+    timetable = xroot["timetable"][1];
+    trains = timetable["trains"][1]["train"];
+    
+    maxparts = 0;
+    for t in trains
+        maxparts = max(maxparts, length(t["trainPartSequence"]));
+    end
+    println(maxparts);
+
+    dftrain = DataFrame(id=String[], number=String[], type=String[]);
+    # add the necessary clumns to hold the references to train's parts
+    pp = [string("partref",i)=>UString[] for i = 1:maxparts];
+    insertcols!(dftrain, pp...); 
+
+    parts = Vector{UString}(undef,maxparts);
+    for t in trains
+        parts .= missing;
+        D = attributes_dict(t);
+        id = D["id"]; type = D["type"]; n = D["trainNumber"];
+        tps = t["trainPartSequence"];
+        for i = 1:length(tps);
+            parts[i] = attribute(tps[i]["trainPartRef"][1],"ref");
+        end
+        push!(dftrain, (id, n, type, parts...));
+    end
+    return dftrain;
+end
+
+function getSchedule(xroot::XMLElement)::DataFrame
+    timetable = xroot["timetable"][1];
+
+    trainparts = timetable["trainParts"][1]["trainPart"];
+
+    dfpart = DataFrame();
+    pp = [s=>UString[] for s in ["id","catref","formref","oref","type","scheduledtime","realtime"]];
+    insertcols!(dfpart, pp...);
+
+    for part in trainparts
+        id = attribute(part, "id");
+        catref = attribute(part, "categoryRef");
+        formref = attribute(part["formationTT"][1], "formationRef");
+        if isnothing(formref)
+            formref = missing;
+        end
+        ops = part["ocpsTT"][1]["ocpTT"];
+        
+        arrival::UString = missing; 
+        scheduled_arrival::UString = missing; 
+        realtime_arrival::UString = missing; 
+        departure::UString = missing; 
+        scheduled_departure::UString = missing; 
+        realtime_departure::UString = missing; 
+
+        for op in ops
+            oref = attribute(op, "ocpRef");
+            type = attribute(op, "ocpType");
+            remarks = attribute(op, "remarks");
+            times = op["times"];
+
+            scheduled_arrival = missing; 
+            realtime_arrival = missing; 
+            scheduled_departure = missing; 
+            realtime_departure = missing; 
+
+            if type == "pass"
+
+                for t in times
+                    D = attributes_dict(t);
+                    scope = D["scope"];
+                    arrival = D["arrival"];
+                    arrival_nextday = ifelse(D["arrivalDay"]=="0", false, true);
+                    departure_nextday = ifelse(D["departureDay"]=="0", false, true);
+                    departure = D["departure"];
+                    if arrival != departure
+                        @warn "Arrival time is not equal to departure time in type pass ($id, $oref, $scope)";
+                    end
+                    
+                    nd = "";
+                    if scope == "actual"
+                        arrival_nextday && (nd="+1 ");
+                        realtime_arrival = string(nd,arrival);
+                    end
+                    if scope == "scheduled"
+                        arrival_nextday && (nd="+1 ");
+                        scheduled_arrival = string(nd,arrival);
+                    end
+                end
+                # println("$id ### $oref");
+                push!(dfpart, (id,catref,formref,oref,type,scheduled_arrival,realtime_arrival));
+            end
+            if type == "stop"
+                for t in times
+                    D = attributes_dict(t);
+                    scope = D["scope"];
+                    # println("$id ### $oref");
+                    arrival   = get(D, "arrival",   missing);
+                    departure = get(D, "departure", missing);
+                    arrival_nextday   = ifelse(get(D, "arrivalDay",   "0")=="0", false, true);
+                    departure_nextday = ifelse(get(D, "departureDay", "0")=="0", false, true);
+                    
+                    nda = ndd = "";
+                    
+                    if scope == "actual"
+                        arrival_nextday   && (nda="+1 ");
+                        departure_nextday && (ndd="+1 ");
+                        realtime_arrival   = ifelse(ismissing(arrival),   missing, string(nda,arrival));
+                        realtime_departure = ifelse(ismissing(departure), missing, string(ndd,departure));
+                    end
+
+                    if scope == "scheduled"
+                        arrival_nextday   && (nda="+1 ");
+                        departure_nextday && (ndd="+1 ");
+                        scheduled_arrival   = ifelse(ismissing(arrival),   missing, string(nda,arrival));
+                        scheduled_departure = ifelse(ismissing(departure), missing, string(ndd,departure));
+                    end
+                end
+                if !ismissing(scheduled_arrival) || !ismissing(realtime_arrival)
+                    if isnothing(remarks)  
+                        ttype = "arrival";
+                    elseif remarks == "Bereitstellung"
+                        ttype = "start";
+                    elseif remarks == "Abstellung"
+                        ttype = "end"
+                    end
+                    push!(dfpart, (id,catref,formref,oref,ttype,scheduled_arrival,realtime_arrival));
+                end
+                if !ismissing(scheduled_departure) || !ismissing(realtime_departure)
+                    if isnothing(remarks)  
+                        ttype = "departure";
+                    elseif remarks == "Bereitstellung"
+                        ttype = "start";
+                    elseif remarks == "Abstellung"
+                        ttype = "end"
+                    end
+                    push!(dfpart, (id,catref,formref,oref,"departure",scheduled_departure,realtime_departure));
+                end
+            end
+        end
+    end
+    return dfpart;
+end
+
 xdoc = parse_file(infile);
 
 # get the root element
@@ -103,117 +259,18 @@ dfvehicles = getVehicles(xroot);
 dflocos = getLocos(xroot, dfvehicles);
 # CSV.write("data/locos.csv", dflocos);
 
+dfcat = getCategories(xroot);
+# CSV.write("data/categories.csv", dfcat);
 
-timetable = xroot["timetable"][1];
-
-categories = timetable["categories"][1]["category"];
-trainparts = timetable["trainParts"][1]["trainPart"];
-trains = timetable["trains"][1]["train"];
-
-dfcat = DataFrame(id=String[], code=String[], name=String[], usage=String[]);
-for cat in categories
-    D = attributes_dict(cat);
-    push!(dfcat, (D["id"], D["code"], D["name"], D["trainUsage"]));
-end
-
-maxparts = 0;
-for t in trains
-    maxparts = max(maxparts, length(t["trainPartSequence"]));
-end
-println(maxparts);
-
-dftrain = DataFrame(id=String[], number=String[], type=String[]);
-# add the necessary clumns to hold the references to train's parts
-pp = [string("partref",i)=>UString[] for i = 1:maxparts];
-insertcols!(dftrain, pp...); 
-
-parts = Vector{UString}(undef,maxparts);
-for t in trains
-    parts .= missing;
-    D = attributes_dict(t);
-    id = D["id"]; type = D["type"]; n = D["trainNumber"];
-    tps = t["trainPartSequence"];
-    for i = 1:length(tps);
-        parts[i] = attribute(tps[i]["trainPartRef"][1],"ref");
-    end
-    push!(dftrain, (id, n, type, parts...));
-end
+dftrain = getTrains(xroot);
 # CSV.write("data/trains.csv", dftrain);
 
-dfpart = DataFrame();
-pp = [s=>UString[] for s in ["id","catref","formref","oref","type","scheduledtime","realtime"]];
-insertcols!(dfpart, pp...);
+dfschedule = getSchedule(xroot);
+# CSV.write("data/schedule.csv", dfschedule);
 
-for part in trainparts
-    id = attribute(part, "id");
-    catref = attribute(part, "categoryRef");
-    formref = attribute(part["formationTT"][1], "formationRef");
-    if isnothing(formref)
-        formref = missing;
-    end
-    ops = part["ocpsTT"][1]["ocpTT"];
-    for op in ops
-        oref = attribute(op, "ocpRef");
-        type = attribute(op, "ocpType");
-        times = op["times"];
-        if type == "pass"
-            scheduled_arrival::UString = missing; 
-            realtime_arrival::UString = missing; 
-            for t in times
-                D = attributes_dict(t);
-                scope = D["scope"];
-                arrival = D["arrival"];
-                arrival_nextday = ifelse(D["arrivalDay"]=="0", false, true);
-                departure_nextday = ifelse(D["departureDay"]=="0", false, true);
-                departure = D["departure"];
-                if arrival != departure
-                    @warn "Arrival time is not equal to departure time in type pass ($id, $oref, $scope)";
-                end
-                arrivalday = D["arrivalDay"];
-                nd = "";
-                if scope == "actual"
-                    arrival_nextday && (nd="+1 ");
-                    realtime_arrival = string(nd,arrival);
-                end
-                if scope == "scheduled"
-                    arrival_nextday && (nd="+1 ");
-                    scheduled_arrival = string(nd,arrival);
-                end
-            end
-            # println("$id ### $oref");
-            push!(dfpart, (id,catref,formref,oref,type,scheduled_arrival,realtime_arrival));
-        end
-            # scope = attribute(t, "scope");
-            # .........
-    end
-end
 
 
 println();
-
-# <ocpTT ocpRef="ocp_ZL_S12_2021-12-11_230000" sequence="8" ocpType="pass">
-#   <times scope="actual" arrival="14:12:32" arrivalDay="0" departure="14:12:32" departureDay="0"/>
-#   <times scope="scheduled" arrival="14:12:54" arrivalDay="0" departure="14:12:54" departureDay="0"/>
-#   <times scope="published" arrival="14:12:54" arrivalDay="0" departure="14:12:54" departureDay="0"/>
-# </ocpTT>
-# <ocpTT ocpRef="ocp_ZL_H1_2021-12-11_230000" sequence="9" ocpType="stop">
-#   <times scope="actual" arrival="14:13:08" arrivalDay="0" departure="14:13:38" departureDay="0"/>
-#   <times scope="scheduled" arrival="14:13:30" arrivalDay="0" departure="14:14:00" departureDay="0"/>
-#   <times scope="published" arrival="14:13:30" arrivalDay="0" departure="14:14:00" departureDay="0"/>
-# </ocpTT>
-
-
-# p=[ string("pippo",i) => String[] for i in a];
-# insertcols!(D, p...);
-
-# # traverse all its child nodes and print element names
-# for c in child_nodes(xroot)  # c is an instance of XMLNode
-#     println(nodetype(c))
-#     if is_elementnode(c)
-#         e = XMLElement(c)  # this makes an XMLElement instance
-#         println(name(e))
-#     end
-# end
 
 
 # free(xdoc);
