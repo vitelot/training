@@ -140,23 +140,53 @@ for t in trains
 end
 # CSV.write("data/trains.csv", dftrain);
 
-# for part in trainparts
-#     id = attribute(part, "id");
-#     catref = attribute(part, "categoryRef");
-#     formref = attribute(part["formationTT"][1], "formationRef");
-#     ops = part["ocpsTT"][1]["ocpTT"];
-#     for op in ops
-#         oref = attribute(op, "ocpRef");
-#         type = attribute(op, "ocpType");
-#         times = op["times"];
-#         for t in times
-#             scope = attribute(t, "scope");
-#             if scope == "actual"
-#                 realtime = 
-#             scope = attribute(t, "scope");
-#             .........
-#     end
-# end
+dfpart = DataFrame();
+pp = [s=>UString[] for s in ["id","catref","formref","oref","type","scheduledtime","realtime"]];
+insertcols!(dfpart, pp...);
+
+for part in trainparts
+    id = attribute(part, "id");
+    catref = attribute(part, "categoryRef");
+    formref = attribute(part["formationTT"][1], "formationRef");
+    if isnothing(formref)
+        formref = missing;
+    end
+    ops = part["ocpsTT"][1]["ocpTT"];
+    for op in ops
+        oref = attribute(op, "ocpRef");
+        type = attribute(op, "ocpType");
+        times = op["times"];
+        if type == "pass"
+            scheduled_arrival::UString = missing; 
+            realtime_arrival::UString = missing; 
+            for t in times
+                D = attributes_dict(t);
+                scope = D["scope"];
+                arrival = D["arrival"];
+                arrival_nextday = ifelse(D["arrivalDay"]=="0", false, true);
+                departure_nextday = ifelse(D["departureDay"]=="0", false, true);
+                departure = D["departure"];
+                if arrival != departure
+                    @warn "Arrival time is not equal to departure time in type pass ($id, $oref, $scope)";
+                end
+                arrivalday = D["arrivalDay"];
+                nd = "";
+                if scope == "actual"
+                    arrival_nextday && (nd="+1 ");
+                    realtime_arrival = string(nd,arrival);
+                end
+                if scope == "scheduled"
+                    arrival_nextday && (nd="+1 ");
+                    scheduled_arrival = string(nd,arrival);
+                end
+            end
+            # println("$id ### $oref");
+            push!(dfpart, (id,catref,formref,oref,type,scheduled_arrival,realtime_arrival));
+        end
+            # scope = attribute(t, "scope");
+            # .........
+    end
+end
 
 
 println();
