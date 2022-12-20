@@ -1,9 +1,6 @@
-using CSV, DataFrames, LightXML;
+using CSV, DataFrames, LightXML, Dates;
 
 UString = Union{String,Missing};
-
-cd("preprocessing");
-infile = "data/railml_2022-08-05.xml";
 
 function getInfra(xroot::XMLElement)::DataFrame
     ##### INFRASTRUCTURE SCHEMA #####
@@ -94,7 +91,7 @@ function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
     
     # maxnrlocos = maximum(length.(collect(values(D)))); # it was 14
 
-    df = DataFrame(formation=String[], locoref=UString[], loco=String[]);
+    df = DataFrame(formation=String[], locoref=UString[], loco=UString[]);
     # pp = [string("loco",i)=>UString[] for i = 1:maxnrlocos];
     # insertcols!(df, pp...); 
 
@@ -104,14 +101,15 @@ function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
         end
     end
     # remove locos with no serial number
-    filter!(x->occursin(".", x.loco), df);
-    
+    # filter!(x->occursin(".", x.loco), df);
+    replace!(x->occursin(".",x) ? x : missing, df.loco);
+
     @info "\tFound $(length(unique(df.loco))) traction vehicles";
 
     return df;
 end
 
-function getCategories(xroot::XMLElement, only_passenger_trains=true)::DataFrame
+function getCategories(xroot::XMLElement)::DataFrame
 
     @info "Extracting train categories (REX, EC, SB, etc.)"
 
@@ -123,10 +121,6 @@ function getCategories(xroot::XMLElement, only_passenger_trains=true)::DataFrame
     for cat in categories
         D = attributes_dict(cat);
         push!(dfcat, (D["id"], D["code"], D["name"], D["trainUsage"]));
-    end
-    
-    if only_passenger_trains
-        filter!(x->x.usage=="passenger", dfcat);
     end
 
     return dfcat;
@@ -285,33 +279,102 @@ function getSchedule(xroot::XMLElement)::DataFrame
     return dfpart;
 end
 
-xdoc = parse_file(infile);
+function generatePAD(dfs::DataFrame, 
+                    dfcat::DataFrame, dfinfra::DataFrame, 
+                    dftrain::DataFrame, dflocos::DataFrame; 
+                    only_passenger_trains=true)::DataFrame
 
-# get the root element
-xroot = root(xdoc);  # an instance of XMLElement: <railml>
+    @info "Generating the schedule (PAD-Zuglauf format)"
 
-dfinfra = getInfra(xroot);
-# CSV.write("data/infra.csv", dfinfra);
+    if only_passenger_trains
+        filter!(x->x.usage=="passenger", dfcat);
+        passenger_trains_catref = unique(dfcat.id);
 
-dfvehicles = getVehicles(xroot);
-# CSV.write("data/vehicles.csv", dfvehicles);
+        filter!(x->x.catref ∈ passenger_trains_catref, dfs);
+    end
 
-dflocos = getLocos(xroot, dfvehicles);
-# CSV.write("data/locos.csv", dflocos);
+    Dops = Dict{String,String}();
+    for r in eachrow(dfinfra)
+        Dops[r.id] = r.name;
+    end
+    Dcat =  Dict{String,String}();
+    for r in eachrow(dfcat)
+        Dcat[r.id] = r.code;
+    end
+    Dtrain = Dict{String,String}();
+    for r in eachrow(dftrain)
+        for i = 4:length(r)
+            ismissing(r[i]) && continue;
+            Dtrain[r[i]] = r.number;
+        end
+    end
+    Dlocos = Dict{UString,Set{String}}();
+    Dlocos[missing] = Set{String}();
+    for r in eachrow(dflocos)
+        get!(Dlocos, r.formation, Set{String}());
+        ismissing(r.loco) || push!(Dlocos[r.formation], r.loco);
+    end
+    maxlocos = maximum(length.(values(Dlocos)));
+    locosymbol = [Symbol("loco",i) for i =1:maxlocos];
+    function fillLocos(S::Set{String}, n::Int)::Vector{UString}
+        v = Vector{UString}(missing, n);
+        i = 1;
+        for loco in S
+            v[i] = loco;
+            i += 1;
+        end
+        return v;
+    end
 
-dfcat = getCategories(xroot);
-# CSV.write("data/categories.csv", dfcat);
+    select(dfs,
+            :catref => ByRow(x->Dcat[x])    => :category,
+            :id     => ByRow(x->Dtrain[x])  => :number,
+            :oref   => ByRow(x->Dops[x])    => :op,
+            :type,
+            :scheduledtime,
+            :realtime,
+            :formref => ByRow(x->fillLocos(Dlocos[x],maxlocos)) => locosymbol
+            )
+end
 
-dftrain = getTrains(xroot);
-# CSV.write("data/trains.csv", dftrain);
+function railml2csv(infile = "data/railml_2022-08-05.xml")::DataFrame
 
-dfschedule = getSchedule(xroot);
-# CSV.write("data/schedule.csv", dfschedule);
+    day = match(r"\d+-\d+-\d+", infile).match;
 
+    @info "Reading file $infile";
+    xdoc = parse_file(infile);
 
+    # get the root element
+    xroot = root(xdoc);  # an instance of XMLElement: <railml>
 
-println();
+    dfinfra = getInfra(xroot);
+    # CSV.write("data/infra.csv", dfinfra);
 
+    dfvehicles = getVehicles(xroot);
+    # CSV.write("data/vehicles.csv", dfvehicles);
+
+    dflocos = getLocos(xroot, dfvehicles);
+    # CSV.write("data/locos.csv", dflocos);
+
+    dfcat = getCategories(xroot);
+    # CSV.write("data/categories.csv", dfcat);
+
+    dftrain = getTrains(xroot);
+    # CSV.write("data/trains.csv", dftrain);
+
+    dfschedule = getSchedule(xroot);
+    # CSV.write("data/schedule.csv", dfschedule);
+
+    DF = generatePAD(dfschedule, dfcat, dfinfra, dftrain, dflocos);
+    outfile = "data/PAD-$(day).csv";
+
+    @info "\t Saving the schedule onto file $outfile";
+    CSV.write(outfile, DF);
+
+    return DF;
+end
+
+railml2csv("data/railml_2022-08-05.xml");
 
 # free(xdoc);
 
