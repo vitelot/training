@@ -358,13 +358,15 @@ function railml2csv(infile = "data/railml_2022-08-05.xml")::DataFrame
 
     dfcat = getCategories(xroot);
     # CSV.write("data/categories.csv", dfcat);
-
+    
     dftrain = getTrains(xroot);
     # CSV.write("data/trains.csv", dftrain);
-
+    
     dfschedule = getSchedule(xroot);
     # CSV.write("data/schedule.csv", dfschedule);
-
+    
+    free(xdoc);
+    
     DF = generatePAD(dfschedule, dfcat, dfinfra, dftrain, dflocos);
     outfile = "data/PAD-$(day).csv";
 
@@ -376,5 +378,4 @@ end
 
 railml2csv("data/railml_2022-08-05.xml");
 
-# free(xdoc);
 

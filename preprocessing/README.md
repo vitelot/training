@@ -9,4 +9,4 @@ The raw data files are:
 
 2. `Yearly schedules`. These data are provided by OeBB, are not public, and cover the scheduled timetables of all the trains travelling in Austria. These data are in a xml format. We use these data as a reference to build the timetables. The script taking care of this is ```scanxml.jl```.
 
-3. `Daily transits`. These data are not public and contain the effective operations in one day. Some trains travel in one day even if they have not been scheduled. Some others are canceled. These data account for all of that. Unfortunately, there are some holes due to minor recording infrastructure failures, so that they must be processed by using the information collected from the RINF and the yearly schedules. The script taking care of these data is ```compose.jl``` (moved now in the configuration section).
+3. `RailML ARAMIS data`. These data are not public and contain the effective operations in one day.
