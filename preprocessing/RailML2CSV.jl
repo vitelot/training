@@ -17,6 +17,9 @@ function getInfra(xroot::XMLElement)::DataFrame
     #     </ocp>
     #   </operationControlPoints>
     # </infrastructure>
+
+    @info "Extracting information on operational points";
+
     Infra = xroot["infrastructure"];
     Ops = Infra[1]["operationControlPoints"][1]["ocp"];
 
@@ -31,10 +34,16 @@ function getInfra(xroot::XMLElement)::DataFrame
         
         push!(df, (id,name,descr,coord));
     end
+
+    @info "\tFound $(length(unique(df.name))) operational points";
+
     return df;
 end
 
 function getVehicles(xroot::XMLElement)::DataFrame
+
+    @info "Extracting information on the rolling stock";
+
     vehicles = xroot["rollingstock"][1]["vehicles"][1]["vehicle"];
     
     df = DataFrame(id=UString[], code=UString[], description=UString[], name=UString[], category=UString[]);
@@ -56,10 +65,15 @@ function getVehicles(xroot::XMLElement)::DataFrame
         push!(df, (D["id"], code, descr, name, cat));
 
     end
+    @info "\tFound $(length(unique(df.code))) vehicles";
+
     return df;
 end
 
 function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
+
+    @info "Extracting information on traction vehicles";
+
     Locos = Dict{String,String}();
     for r in eachrow(dfvehicles)
         ismissing(r.name) && continue;
@@ -81,15 +95,26 @@ function getLocos(xroot::XMLElement, dfvehicles::DataFrame)::DataFrame
     # maxnrlocos = maximum(length.(collect(values(D)))); # it was 14
 
     df = DataFrame(formation=String[], locoref=UString[], loco=String[]);
+    # pp = [string("loco",i)=>UString[] for i = 1:maxnrlocos];
+    # insertcols!(df, pp...); 
+
     for (formation, locorefs) in D
         for locoref in locorefs
             haskey(Locos, locoref) && push!(df, (formation,locoref, Locos[locoref]));
         end
     end
+    # remove locos with no serial number
+    filter!(x->occursin(".", x.loco), df);
+    
+    @info "\tFound $(length(unique(df.loco))) traction vehicles";
+
     return df;
 end
 
-function getCategories(xroot::XMLElement)::DataFrame
+function getCategories(xroot::XMLElement, only_passenger_trains=true)::DataFrame
+
+    @info "Extracting train categories (REX, EC, SB, etc.)"
+
     timetable = xroot["timetable"][1];
 
     categories = timetable["categories"][1]["category"];
@@ -99,10 +124,18 @@ function getCategories(xroot::XMLElement)::DataFrame
         D = attributes_dict(cat);
         push!(dfcat, (D["id"], D["code"], D["name"], D["trainUsage"]));
     end
+    
+    if only_passenger_trains
+        filter!(x->x.usage=="passenger", dfcat);
+    end
+
     return dfcat;
 end
 
 function getTrains(xroot::XMLElement)::DataFrame
+
+    @info "Extracting train parts and id number";
+
     timetable = xroot["timetable"][1];
     trains = timetable["trains"][1]["train"];
     
@@ -110,7 +143,7 @@ function getTrains(xroot::XMLElement)::DataFrame
     for t in trains
         maxparts = max(maxparts, length(t["trainPartSequence"]));
     end
-    println(maxparts);
+    # println(maxparts);
 
     dftrain = DataFrame(id=String[], number=String[], type=String[]);
     # add the necessary clumns to hold the references to train's parts
@@ -128,10 +161,15 @@ function getTrains(xroot::XMLElement)::DataFrame
         end
         push!(dftrain, (id, n, type, parts...));
     end
+
+    @info "\tFound $(length(unique(dftrain.number))) train services";
+
     return dftrain;
 end
 
 function getSchedule(xroot::XMLElement)::DataFrame
+    @info "Extracting a raw timetable"
+
     timetable = xroot["timetable"][1];
 
     trainparts = timetable["trainParts"][1]["trainPart"];
@@ -242,6 +280,8 @@ function getSchedule(xroot::XMLElement)::DataFrame
             end
         end
     end
+    @info "\tFound $(nrow(dfpart)) events";
+
     return dfpart;
 end
 
