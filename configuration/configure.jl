@@ -1,5 +1,5 @@
 """
-compose.jl
+configure.jl
 
 Input: 
         1) a csv file with the daily PAD Zuglaufdaten as provided by OeBB
@@ -28,13 +28,17 @@ Description:
         removed from the network and popped directly into its new location.
 """
 
+include("parser.jl");
+#CLI parser
+parsed_args = parse_commandline()
+
 @info "Loading libraries";
 
 using CSV, DataFrames;
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
-include("parser.jl");
+# include("parser.jl");
 
 import Base.pop!;
 function pop!(df::AbstractDataFrame)::NamedTuple
@@ -62,8 +66,8 @@ const STATION_LENGTH = 200; # average length of stations in meters; used to esti
 # list of stations not found in the rinf data
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
 
-#CLI parser
-parsed_args = parse_commandline()
+# #CLI parser
+# parsed_args = parse_commandline()
 
 date          = parsed_args["date"] # default = "09.05.18"
 in_file       = parsed_args["file"]
@@ -220,7 +224,7 @@ function findBlocks(df::DataFrame, outfile="")::DataFrame
         unique!(D);
 
         if outfile !== "" 
-                @info "Saving blocks on file \"$outfile\"";
+                @info "\tSaving blocks on file \"$outfile\"";
                 CSV.write(outfile, sort(D,:block));
         end
 
@@ -365,7 +369,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
 
                         if t == 0
                                 if i == 1
-                                        println("First point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tFirst point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # get info from previous time and distance
@@ -374,7 +378,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 
                                 i1 = i+1
                                 if i1 > nrowgd
-                                        println("Last point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tLast point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # find next non zero time
@@ -407,7 +411,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                         end                    
                 end
         end
-        length(ToDelete) > 0 && println("Deleting $ToDelete since their initial and final scheduled time cannot be inferred");
+        length(ToDelete) > 0 && @info("\tDeleting $ToDelete since their initial and final scheduled time cannot be inferred");
         filter!(x-> string(x.train,"-",x.bst) ∉ ToDelete, dfout);
         
         gdxml = groupby(dfout, :train);
@@ -767,7 +771,7 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
 
         handleJoinedTrains!(dfout);
 
-        @info "Saving timetable on file \"$outfile\"";
+        @info "\tSaving timetable on file \"$outfile\"";
         sort!(dfout, [:train, :scheduledtime, :distance])
         CSV.write(outfile, dfout);
 end
@@ -791,7 +795,7 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
 
         handleJoinedTrains!(dfout);
         
-        @info "Saving timetable on file \"$outfile\"";   
+        @info "\tSaving timetable on file \"$outfile\"";   
         sort!(dfout, [:train, :scheduledtime, :distance]); 
         CSV.write(outfile, dfout);
 end
@@ -834,7 +838,7 @@ function generateBlocks(xmlfile::String,
         r[:tracks] = 1; # nr of tracks is 1 for every block but may change with the try and catch
     end
 
-    @info "Saving complete block information on file \"$outblkfile\"";
+    @info "\tSaving complete block information on file \"$outblkfile\"";
     CSV.write(outblkfile, sort(xmlbk, :block));
 
     @info "Looking for stations and places with more usable tracks";
@@ -850,7 +854,7 @@ function generateBlocks(xmlfile::String,
         @warn "No $EXTRA_STATION_FILE file found."
     end
 
-    @info "Saving station information to file \"$outopfile\"";
+    @info "\tSaving station information to file \"$outopfile\"";
     CSV.write(outopfile, sort(rinfop));
 
 end
@@ -867,7 +871,7 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         sets = Set(unique(ds.id));
         setb = Set(unique(vcat(db.op1,db.op2)));
 
-        @info "There are $(length(setdiff(sets,sett))) stations not appearing in the timetable. This is not a problem since they do not appear in the PAD data.";
+        @info "There are $(length(setdiff(sets,sett))) stations not appearing in the timetable.\n\tThis is not a problem since they do not appear in the PAD data.";
         if length(setdiff(sett,setb)) > 0
                 @warn "There are $(length(setdiff(sett,setb))) operational points that are in the timetable and not in the blocks. This is a problem";
         end

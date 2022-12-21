@@ -23,7 +23,7 @@ function runTest(RN::Network, FL::Fleet)
     #     @btime simulation($RN, $FL)
     # else
         @time simulation(RN, FL)
-        print("Macro @time was used.\n")
+        # @info("Macro @time was used.\n")
     # end
 end
 

@@ -75,7 +75,7 @@ function loadOptions(parsed_args::Dict)
 
     if Opt["test"]
 
-        print("\nPerforming speed test with no output.\nPlease be patient. ")
+        @info("Performing multiple speed tests of the simulation core with no output.\n")
 
         for k in keys(Opt)
             if startswith(k, r"print|save")

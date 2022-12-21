@@ -1,9 +1,5 @@
-"""
-This file contains all the functions that have to initialize the system.
-For example, loading the network, the block characteristics, the timetables
-"""
-
-
+# This file contains all the functions that have to initialize the system.
+# For example, loading the network, the block characteristics, the timetables
 
 # function loadOPoints!(file::String, RN::Network)
 #
