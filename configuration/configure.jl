@@ -137,7 +137,8 @@ function loadPAD(file::String)::DataFrame
         [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :train,
         :bst => ByRow(x->replace(x,r"[ _]+"=>"")) => :bst,
         :transittype => ByRow(x->translateGerman(x)) => :transittype,
-        :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime
+        :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime,
+        :loco1, :loco2, :loco3, :loco4, :loco5
         );
         
         sort(bigpad, [:train, :scheduledtime]);
@@ -752,6 +753,57 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         return df;
 end
 
+function Rotations(dfpad::DataFrame, outfile::String)
+        @info "Generating train reassignements";
+        
+        df = select(dfpad, 
+                :train => :trainid,
+                :scheduledtime => :stime, 
+                r"loco");
+
+        sort!(df, :stime)
+
+        LokoTrain = Dict{String, Vector{String}}();
+        S = Set{String}();
+
+        locosymbols = filter(x->occursin("loco",x), names(df));
+        # associate locos with their trains
+        for r in eachrow(df)
+                train = r.trainid;
+                in(train, S) && continue;
+
+                L = String[];
+                for li in locosymbols
+                    ismissing(r[li]) || push!(L, string(r[li]));
+                end
+                push!(S,train);
+                for l in L
+                        get!(LokoTrain, l, String[]);
+                        push!(LokoTrain[l], train);
+                end
+        end
+
+        D = Dict{String,String}();
+        for l in keys(LokoTrain)
+                V = LokoTrain[l]
+                length(V) < 2 && continue; # the loco serves one train only
+                for i = 2:length(V)
+                        # V[i]=="R_2357" && @show V[i-1], l;
+                        D[V[i]] = V[i-1];
+                end
+        end
+
+        # for l in keys(LokoTrain)
+        #     "SB_29890" in LokoTrain[l] && println("$l ", LokoTrain[l]);
+        # end
+        # exit();
+
+        dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
+        # file = "../data/simulation_data/rotations.csv";
+        CSV.write(outfile, dd);
+        @info("\tSaving rotations to file $outfile");
+end
+        
 function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
         @info "Composing the timetable";
 
@@ -776,7 +828,7 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         CSV.write(outfile, dfout);
 end
 
-function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
+function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, rotationfile::String, outfile="timetable.csv")
         @info "Composing the timetable using XML and the trains listed in PAD";
 
         dfpad = loadPAD(padfile);
@@ -798,6 +850,12 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
         @info "\tSaving timetable on file \"$outfile\"";   
         sort!(dfout, [:train, :scheduledtime, :distance]); 
         CSV.write(outfile, dfout);
+
+        if find_rotations
+                Rotations(dfpad, rotationfile);
+        end
+
+        nothing;
 end
 
 function generateBlocks(xmlfile::String, 
@@ -927,11 +985,12 @@ function configure()
         rinfopfile  = source_path*"rinf-OperationalPoints.csv";
         outblkfile  = target_path*"blocks.csv";
         stationfile = target_path*"stations.csv";
+        rotationfile= target_path*"rotations.csv";
 
         generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
         if xml_schedule
-                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
+                composeXMLTimetable(padfile,xmlfile, stationfile, rotationfile, timetablefile);
         else
                 composeTimetable(padfile,xmlfile, stationfile, timetablefile);
         end
