@@ -15,6 +15,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     save_timetable          = Opt["save_timetable"]
     print_rot               = Opt["print_rotations"]
     catch_conflicts         = Opt["catch_conflict"]
+    use_buffering_time      = false;
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another
@@ -162,18 +163,20 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                             #println("#$(train.dyn.nextBlock),$(train.dyn.nextBlockDueTime),$trainid")
 
                         nextBlockRealTime = nextBlockDueTime
-                        # next block is a passenger station and is not supposed to get exo delay
-                        if train.schedule[nop1].kind == "d" && !haskey(train.delay, nextBlockid)
-                        # if we arrive at station inside buffering time, do not wait
-                            if nextBlockDueTime > MAXIMUM_HALT_AT_STATION
-                                print_train_status && println("$trainid recovers $(nextBlockDueTime-MAXIMUM_HALT_AT_STATION)s in $nextopid");
-                                nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
-                                #println("$trainid recovers in $nextopid");
-                            end
-                            if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1)
-                                nextBlockRealTime = MINIMUM_HALT_AT_STATION;
-                                print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
-                                #println("$trainid recovers in $nextopid");
+                        if use_buffering_time # 
+                            # next block is a passenger station and is not supposed to get exo delay
+                            if train.schedule[nop1].kind == "d" && !haskey(train.delay, nextBlockid)
+                            # if we arrive at station inside buffering time, do not wait
+                                if nextBlockDueTime > MAXIMUM_HALT_AT_STATION
+                                    print_train_status && println("$trainid recovers $(nextBlockDueTime-MAXIMUM_HALT_AT_STATION)s in $nextopid");
+                                    nextBlockRealTime = MAXIMUM_HALT_AT_STATION;
+                                    #println("$trainid recovers in $nextopid");
+                                end
+                                if (nextBlockDueTime < MINIMUM_HALT_AT_STATION) && (n_op>1)
+                                    nextBlockRealTime = MINIMUM_HALT_AT_STATION;
+                                    print_train_status && println("$trainid has to wait at least $(MINIMUM_HALT_AT_STATION)s in $nextopid");
+                                    #println("$trainid recovers in $nextopid");
+                                end
                             end
                         end
                         delay_imposed = get(train.delay, nextBlockid,0);
@@ -211,7 +214,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 #train ended his schedule
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
-                        print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at time $t seconds"))
+                        print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at unix time $t"))
 
                         #updating the values in the corresponding block, train ended
                         decreaseBlockOccupancy!(train, currentBlock, direction);
