@@ -763,6 +763,19 @@ function Rotations(padfile::String, outfile::String)
                 :scheduledtime => :stime, 
                 r"loco");
 
+        # Find start and end time of trains
+        gd = groupby(df, :trainid);
+        TrainStartTime = Dict{String,Int}();
+        TrainEndTime = Dict{String,Int}();
+        for dd in gd
+                if !issorted(dd.stime)
+                        @warn "In Rotations(), train's transits are not sorted";
+                end
+                train = dd.trainid[1];
+                TrainStartTime[train] = dd.stime[1];
+                TrainEndTime[train]   = dd.stime[end];
+        end
+
         sort!(df, :stime)
 
         LokoTrain = Dict{String, Vector{String}}();
@@ -791,7 +804,10 @@ function Rotations(padfile::String, outfile::String)
                 length(V) < 2 && continue; # the loco serves one train only
                 for i = 2:length(V)
                         # V[i]=="R_2357" && @show V[i-1], l;
-                        D[V[i]] = V[i-1];
+                        # create a dependency if train schedule do not overlap
+                        if TrainStartTime[V[i]] > TrainEndTime[V[i-1]]
+                                D[V[i]] = V[i-1];
+                        end
                 end
         end
 
@@ -799,6 +815,7 @@ function Rotations(padfile::String, outfile::String)
         #     "SB_29890" in LokoTrain[l] && println("$l ", LokoTrain[l]);
         # end
         # exit();
+
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
         # file = "../data/simulation_data/rotations.csv";
