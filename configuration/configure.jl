@@ -753,10 +753,12 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         return df;
 end
 
-function Rotations(dfpad::DataFrame, outfile::String)
+function Rotations(padfile::String, outfile::String)
         @info "Generating train reassignements";
         
-        df = select(dfpad, 
+        df = loadPAD(padfile);
+
+        select!(df, 
                 :train => :trainid,
                 :scheduledtime => :stime, 
                 r"loco");
@@ -828,7 +830,7 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         CSV.write(outfile, dfout);
 end
 
-function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, rotationfile::String, outfile="timetable.csv")
+function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
         @info "Composing the timetable using XML and the trains listed in PAD";
 
         dfpad = loadPAD(padfile);
@@ -850,10 +852,6 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
         @info "\tSaving timetable on file \"$outfile\"";   
         sort!(dfout, [:train, :scheduledtime, :distance]); 
         CSV.write(outfile, dfout);
-
-        if find_rotations
-                Rotations(dfpad, rotationfile);
-        end
 
         nothing;
 end
@@ -990,9 +988,13 @@ function configure()
         generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
         if xml_schedule
-                composeXMLTimetable(padfile,xmlfile, stationfile, rotationfile, timetablefile);
+                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
         else
                 composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        end
+        
+        if find_rotations
+                Rotations(padfile, rotationfile);
         end
 
         # (file, _) = splitext(xmlfile);
