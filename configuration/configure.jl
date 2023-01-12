@@ -65,6 +65,7 @@ const STATION_LENGTH = 200; # average length of stations in meters; used to esti
 
 # list of stations not found in the rinf data
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
+STATION_EXCEPTION_FILE = "./data/station-exceptions.csv";
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -918,6 +919,16 @@ function generateBlocks(xmlfile::String,
     places_type = ["station", "small station", "passenger stop", "junction"];
     filter!(x-> x.type ∈ places_type, rinfop);
     select!(rinfop, [:id, :ntracks, :nsidings]);
+    
+    # add station exceptions that are wrong in the rinf 
+    if isfile(STATION_EXCEPTION_FILE)
+        @info "Processing station exceptions found in $STATION_EXCEPTION_FILE";
+        df = CSV.read(STATION_EXCEPTION_FILE, DataFrame);
+        for r in eachrow(df)
+                idx = findfirst(rinfop.id .== r.id);
+                rinfop[idx, :] = r;
+        end
+    end
 
     if isfile(EXTRA_STATION_FILE)
         @info "Appending extra stations found in $EXTRA_STATION_FILE";
