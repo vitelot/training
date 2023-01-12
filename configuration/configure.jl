@@ -82,7 +82,7 @@ target_path   = parsed_args["target_data_path"]
 # nr_exo_delays = parsed_args["exo_delays"];
 use_real_time = parsed_args["use_real_time"];
 find_rotations= parsed_args["rotations"];
-xml_schedule  = parsed_args["xml_schedule"];
+pad_schedule  = parsed_args["pad_schedule"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -191,7 +191,7 @@ function cleanBstPADXML!(dfpad::DataFrame, dfxml::DataFrame)
         aj = antijoin(bstpad,bstxlm, on=:bst);
         filter!(x->(x.bst ∉ aj.bst), dfpad);
         
-        if !xml_schedule 
+        if pad_schedule 
                 aj = antijoin(bstxlm,bstpad, on=:bst);
                 filter!(x->(x.bst ∉ aj.bst), dfxml);
         end
@@ -1037,10 +1037,10 @@ function configure()
 
         generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
-        if xml_schedule
-                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
-        else
+        if pad_schedule
                 composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        else
+                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
         end
         
         if find_rotations
