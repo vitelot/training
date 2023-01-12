@@ -65,7 +65,10 @@ const STATION_LENGTH = 200; # average length of stations in meters; used to esti
 
 # list of stations not found in the rinf data
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
+# list of stations that are incorrect in rinf
 STATION_EXCEPTION_FILE = "./data/station-exceptions.csv";
+# list of trains to remove because are redundant (overlap with others and generate conflicts)
+TRAINS_TO_REMOVE_FILE = "./data/trains-to-remove.csv";
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -260,12 +263,18 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                 end
         end
          
+        if isfile(TRAINS_TO_REMOVE_FILE)
+                @info "Processing trains to remove in file $TRAINS_TO_REMOVE_FILE";
+                df = CSV.read(TRAINS_TO_REMOVE_FILE, DataFrame);
+                removetrainlist = df.trainid;
+        end
+
         # these are the trains we shall consider
         padtrainlist = unique(dfpad.train);
         xmltrainlist = unique(dfxml.train);
 
         # select all trains in pad that are in xml
-        trainlist = filter(x-> x ∈ xmltrainlist, padtrainlist);
+        trainlist = filter(x-> x ∈ xmltrainlist && x ∉ removetrainlist, padtrainlist);
         
         # this will be our processed schedule
         dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
@@ -855,8 +864,6 @@ function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::Stri
         dfxml = loadXML(xmlfile);
         dfsta = CSV.read(stationfile, DataFrame);
 
-        # (file, _) = splitext(xmlfile);
-        # outblkfile = "blocks-$file.csv";
         dfblk = findBlocks(dfxml); #, outblkfile);
         
         cleanBstPADXML!(dfpad,dfxml);
