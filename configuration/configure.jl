@@ -67,6 +67,8 @@ const STATION_LENGTH = 200; # average length of stations in meters; used to esti
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
 # list of stations that are incorrect in rinf
 STATION_EXCEPTION_FILE = "./data/station-exceptions.csv";
+# list of blocks that are incorrect in rinf
+BLOCK_EXCEPTION_FILE = "./data/block-exceptions.csv";
 # list of trains to remove because are redundant (overlap with others and generate conflicts)
 TRAINS_TO_REMOVE_FILE = "./data/trains-to-remove.csv";
 
@@ -917,6 +919,19 @@ function generateBlocks(xmlfile::String,
         blk = string(block,"-",line);
         r[:ismono] = get(Bk, blk, UNASSIGNED) |> Int; # -1 == unassigned
         r[:tracks] = 1; # nr of tracks is 1 for every block but may change with the try and catch
+    end
+
+    if isfile(BLOCK_EXCEPTION_FILE)
+        @info "Reading block exceptions from file $BLOCK_EXCEPTION_FILE";
+        df = CSV.read(BLOCK_EXCEPTION_FILE, types=[String,String,Int], DataFrame);
+        for r in eachrow(df)
+                idx = findfirst(xmlbk.block .== r.block .&& xmlbk.line .== r.line);
+                if isnothing(idx)
+                        @warn "Block listed in the exceptions is not found: $(r.block),$(r.line)";
+                        continue;
+                end
+                xmlbk[idx, :tracks] = r.tracks;
+        end
     end
 
     @info "\tSaving complete block information on file \"$outblkfile\"";
