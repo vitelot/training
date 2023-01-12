@@ -948,6 +948,10 @@ function generateBlocks(xmlfile::String,
         df = CSV.read(STATION_EXCEPTION_FILE, DataFrame);
         for r in eachrow(df)
                 idx = findfirst(rinfop.id .== r.id);
+                if isnothing(idx)
+                        @warn "Exception station $(r.id) not found";
+                        continue;
+                end
                 rinfop[idx, :] = r;
         end
     end
