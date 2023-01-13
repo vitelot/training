@@ -93,7 +93,7 @@ end
 
 Perform a BFS on a graph structure.
 Returns (one of) the shortest paths from node "from" to node "to" as a vector of strings.
-Returns ["from", "no-path"] if the nodes are not connected. 
+Returns one element ["from"] if the nodes are not connected. 
 Low level function. Please use findSequence().
 """
 function BFS(G::Graph, from::AbstractString, to::AbstractString)::Vector{String}
@@ -116,8 +116,8 @@ function BFS(G::Graph, from::AbstractString, to::AbstractString)::Vector{String}
             end
         end
     end
-    get!(Path,to,["no-path"]); #op are not connected
-    [from; Path[to]]
+    get!(Path,to,[]); #op are not connected
+    return [from; Path[to]]
 end
 
 """
@@ -125,7 +125,7 @@ end
 
 Perform a BFS on a graph structure.
 Returns (one of) the shortest paths from node "from" to node "to" as a vector of strings.
-Returns ["from", "no-path"] if the nodes are not connected. 
+Returns one element vector ["from"] if the nodes are not connected. 
 """
 function findSequence(G::Graph, from::AbstractString, to::AbstractString)::Vector{String}
     if !haskey(G.nodelist, from)

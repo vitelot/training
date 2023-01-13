@@ -842,8 +842,6 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         dfxml = loadXML(xmlfile);
         dfsta = CSV.read(stationfile, DataFrame);
 
-        # (file, _) = splitext(xmlfile);
-        # outblkfile = "blocks-$file.csv";
         dfblk = findBlocks(dfxml); #, outblkfile);
         
         cleanBstPADXML!(dfpad,dfxml);
@@ -1004,7 +1002,8 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
                 println("List of operational points that seem to be stations but are not reported in \"$stationfile\":\n$Sdiff");
                 println("Add them in the tabu list in preprocessing/scanxml.jl or in the extra-stations.csv")
         end
-        @info "Sanity check done."
+        @info "Sanity check done.";
+        nothing;
 end
 
 function padfile_from_date(file_base="PAD-Zuglaufdaten-20")::String
@@ -1050,10 +1049,6 @@ function configure()
         if find_rotations
                 Rotations(padfile, rotationfile);
         end
-
-        # (file, _) = splitext(xmlfile);
-        # xmlbkfile = "blocks-$file.csv";
-
 
         sanityCheck(timetablefile, outblkfile, stationfile);
 end
