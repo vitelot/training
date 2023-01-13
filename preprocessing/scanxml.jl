@@ -21,7 +21,7 @@ train, posID, posName, dir, secid, distance, km, arrival, departure, type
 """
 function xml2df(file::String)::DataFrame
     data = parse_file(file);
-
+    
     # save_file(data, "dataf.xml") # save in a readable format
 
     xroot=root(data);
@@ -29,7 +29,7 @@ function xml2df(file::String)::DataFrame
     trains = get_elements_by_tagname(timetable[1], "trains");
     train = get_elements_by_tagname(trains[1],     "train");
 
-    free(data);
+    # free(data);
     data = timetable = trains = xroot = nothing;
 
     UString = Union{String, Nothing};
@@ -42,6 +42,7 @@ function xml2df(file::String)::DataFrame
                     type=UString[]);
 
     for t in train
+        # @show t;
 
         kind =   attribute(t, "kind");
         number = attribute(t, "trainNumber");
@@ -93,8 +94,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
     end
     
     filelist = filter(x->startswith(x,"$inputdir/EBU_Reise"), readdir(inputdir, join=true));
-    
-    f1 = popfirst!(filelist);
+
+    f1 = popfirst!(filelist);    
     df = xml2df(f1);
 
     for f in filelist
@@ -102,15 +103,17 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         append!(df, xml2df(f));
     end
 
-    # list of stations out of Austria
-    tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1", "GH"];
     if !raw
         @info "The resulting timetable will be cleaned. \
-            Set raw=true if you need the raw one.
+        Set raw=true if you need the raw one.
             We remove lines with empty operational point,\
             those with signals at km x,
             the pseudo operational points right after the border.";
-
+  
+            
+        # list of stations out of Austria
+        tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1", "GH"];
+  
         # remove lines with no operational point (OP)
         filter!(x->!isnothing(x.bst), df);
         # remove lines with OP of type KM + number
