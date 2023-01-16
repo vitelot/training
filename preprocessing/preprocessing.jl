@@ -265,7 +265,7 @@ function preprocessing()
         SampleExoDelays(
             "../data/hidden_data/NumberOfDelays.csv",
             "../data/simulation_data/timetable.csv",
-            "../data/hidden_data/DelayList.csv",
+            "../data/hidden_data/DelayList_good.csv",
             "../data/delays/imposed_exo_delay.csv",
             nr_exo_delays)
     end
