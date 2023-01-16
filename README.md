@@ -148,19 +148,14 @@ Procedure to locally set up the directory
 ## Usage
 
 
-1. extract data/data.zip
-2. in preprocessing/ , run
-   ```sh
-   ./run_preprocessing.sh
-   ```
-   this will move the unzipped data into the correct directory(data/simulation_data/), create /data/simulation_data/trains_beginning.ini for the starting of trains, create preprocessing/trainIni.in if not present (selection of trains to be delayed), and create the delay files in data/delays/
-
-3. to run the simulation, in /run/ , run
-   ```sh
-   ./run.sh
-   ```
-
-
+1. Provide Zuglaufdaten data in /data/hidden_data/ folder. Data may not be shared. You have to provide them on your own.
+2. in the script/ folder, run
+    ```phelp```
+    and
+    ```help```
+    to have a hint on the accepted options for the preprocessing and the simulation.
+3. run the preprocessing first. Use the script ```p``` for ease
+4. run the simulation with the script ```r``` for ease   
 
 
 useful examples of how the project can be used. Additional screenshots, code examples and demos work well in this space.
@@ -300,7 +295,7 @@ Project Link: [https://github.com/vitelot/training](https://github.com/vitelot/t
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin
 [linkedin-url]: https://www.linkedin.com/in/vservedio/
 
-[julia-shield]: https://img.shields.io/badge/Julia_vers-1.7.1-green?style=plastic&logo=julia
+[julia-shield]: https://img.shields.io/badge/Julia_vers-1.7.3-green?style=plastic&logo=julia
 [julia-url]: https://julialang.org/downloads/
 
 [product-screenshot]: images/screenshot.png

@@ -28,7 +28,7 @@ function initBlock(name::AbstractString, ntracks::Int)
             # ntracks+=1
         end
 
-        if Opt["multi_stations"] # directionality
+        if !Opt["free_platforms"] # directionality
             #number of directions taken into account
             n_dir = length(DIRECTIONS)
 

@@ -11,7 +11,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_train_fossile     = Opt["print_train_fossile"]
     print_elapsed_time      = Opt["print_elapsed_time"]
     print_tot_delay         = Opt["print_tot_delay"]
-    print_timetable         = Opt["print_timetable"]
+    save_timetable          = Opt["save_timetable"]
     print_rot               = Opt["print_rotations"]
     catch_conflicts         = Opt["catch_conflict"]
     ##variabili
@@ -30,7 +30,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     old_status = status = ""; # trains going around, used to get stuck status
 
 
-    if print_timetable
+    if save_timetable
         if sim_id == 0
             outfilename = "../data/simulation_data/timetable_simulation.csv";
         else
@@ -133,7 +133,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                         increase_block_occupancy(train, nextBlock)
 
-                        print_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
+                        save_timetable && println(out_file,"$trainid,$nextopid,$duetime,$t")
 
                         train.dyn.currentBlock = nextBlockid
 
@@ -242,7 +242,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
         delete!(Event, t); # we finished all the tasks at time t and free up memory.
     end
     #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
-    print_timetable && close(out_file)
+    save_timetable && close(out_file)
     Opt["print_flow"] && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     # resetSimulation(FL); # set trains dynamical variables to zero
