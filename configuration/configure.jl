@@ -514,7 +514,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
 
                         if !haskey(Dxml, key) # the train is not supposed to be in this bst...
 
-                                pl("#1# $key -- $blk" );
+                                # pl("#1# $key -- $blk" );
 
                                 DEBUG ≥ 4 && @info "Train $train is not supposed to be in $bst according to the schedule. Trying to fix."
                                 # lets look at the next block if it is in the block list
@@ -546,15 +546,15 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         end
                         
                         if ismissing(direction)
-                                pl("#2a# $key");
+                                # pl("#2a# $key");
                                 direction = dfout[end, :direction];
                         end
                         if ismissing(line)
-                                pl("#2b# $key");
+                                # pl("#2b# $key");
                                 line = dfout[end, :line];
                         end
 
-                        pl("#3# ", (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
+                        # pl("#3# ", (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
                         push!(dfout, (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
 
                         
@@ -603,40 +603,68 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
         dfout
 end
 
-function passingStation!(df::DataFrame, dfsta::DataFrame)::DataFrame
+function passingStation!(dftab::DataFrame, dfsta::DataFrame)::DataFrame
 
         @info "Estimating passing time through stations";
         
-        sort!(df, [:train, :scheduledtime]);
+        # sort!(df, [:train, :scheduledtime]);
 
-        for i in 1:nrow(df)
-                r = df[i,:];
-                train = r[:train];
-                if r[:bst] ∈ dfsta.id && r[:transittype] == "p" # passing through station
+        dfplus = similar(dftab, 0);
+
+        gd = groupby(dftab, :train);
+
+        for df in gd
+                issorted(df.scheduledtime) || sort!(df, :scheduledtime);
+                train = df.train[1];
+                nrowdf = nrow(df);
+                # cure the arrival and pass at stations that must be arrival+departure
+                for i in 1:nrowdf-1
+                        r = df[i,:];
                         nextr = df[i+1,:];
-                        if train==nextr[:train]
+                        # after an arrive there must be a departure, not a pass
+                        if r.bst == nextr.bst && r.transittype=="a" && nextr.transittype=="p"
+                                nextr.transittype = "d";
+                                continue;
+                        end
+                end
+
+                for i in 1:nrowdf-1
+                        r = df[i,:];
+                        if r[:bst] ∈ dfsta.id && r[:transittype] == "p" # passing through station
+                                nextr = df[i+1,:];
                                 d1 = r[:distance]; d2 = nextr[:distance];
                                 t1 = r[:scheduledtime]; t2 = nextr[:scheduledtime];
                                 Δt = t2-t1;
                                 if d2 - d1 <= STATION_LENGTH
-                                        push!(df, (train, r[:bst], "P", r[:direction], r[:line], d1, floor(Int, (t1+t2)/2)));
+                                        push!(dfplus, (train, r[:bst], "P", r[:direction], r[:line], d1, floor(Int, (t1+t2)/2)));
                                         continue;
                                 end
                                 v = (d2-d1)/Δt;
                                 t = floor(Int, t1 + STATION_LENGTH/v);
                                 d = d1 + STATION_LENGTH;
-                                push!(df, (train, r[:bst], "P", r[:direction], r[:line], d, t));
-                                #r[:transittype] = "p1";
-                        else
-                                #@warn "Passing train $train is not the same as $(nextr[:train]) on next line";
-                                d = r[:distance] + STATION_LENGTH;
-                                t = FAST_STATION_TRANSIT_TIME + r[:scheduledtime];
-                                push!(df, (train, r[:bst], "P", r[:direction], r[:line], d, t));
-                                
+                                push!(dfplus, (train, r[:bst], "P", r[:direction], r[:line], d, t));
+
+                                # if train==nextr[:train]
+                                #         #r[:transittype] = "p1";
+                                # else
+                                #         #@warn "Passing train $train is not the same as $(nextr[:train]) on next line";
+                                #         d = r[:distance] + STATION_LENGTH;
+                                #         t = FAST_STATION_TRANSIT_TIME + r[:scheduledtime];
+                                #         push!(df, (train, r[:bst], "P", r[:direction], r[:line], d, t));
+                                        
+                                # end
                         end
                 end
+                r = df[nrowdf,:]; # last row in the schedule
+                if r[:bst] ∈ dfsta.id && r[:transittype] == "p" # passing through station
+                        d = r[:distance] + STATION_LENGTH;
+                        t = FAST_STATION_TRANSIT_TIME + r[:scheduledtime];
+                        push!(dfplus, (train, r[:bst], "P", r[:direction], r[:line], d, t));
+
+                end
         end
-        df
+        append!(dftab, dfplus);
+        sort!(dftab, [:train, :scheduledtime])
 end
 
 """
