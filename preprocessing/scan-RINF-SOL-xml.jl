@@ -63,6 +63,12 @@ function xml2soldfl(file::String)
 
         # block = string(bst1,"-",bst2) |> uppercase;
         # block = replace(block, r"[ _]+" => "");
+
+        # resolving Homonym "BG" and "B  G"
+        bst1 = replace(bst1, r"^B +G" => "BXG");
+        bst2 = replace(bst2, r"^B +G" => "BXG");
+
+        # removing spaces
         bst1 = replace(bst1, r"[ _]+" => "");
         bst2 = replace(bst2, r"[ _]+" => "");
         push!(df, (bst1,bst2, line, ntracks, len));
@@ -83,7 +89,9 @@ function xml2optdf(file::String)
 
     for o in op;
 
-        id = thevalue(o, "UniqueOPID")[3:end] |> uppercase |> x->replace(x, r"[ ]+"=>"");
+        id = thevalue(o, "UniqueOPID")[3:end] |> uppercase;
+        id = replace(id, r"^B +G"=>"BXG");
+        id = replace(id, r"[ ]+"=>"");
         opname = thevalue(o,"OPName"); #attribute(get_elements_by_tagname(o, "OPName")[1], "Value");
         optype = theoptionalvalue(o, "OPType");
         ntracks = thelength(o, "OPTrack");

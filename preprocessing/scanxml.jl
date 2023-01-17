@@ -102,6 +102,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         println("Processing file $f");
         append!(df, xml2df(f));
     end
+    
+    # println(filter(x->x.train=="REX_5553", df));
 
     if !raw
         @info "The resulting timetable will be cleaned. \
@@ -112,7 +114,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
   
             
         # list of stations out of Austria
-        tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL", "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1", "GH"];
+        tabu = ["PA", "BA", "BC", "BE", "HE", "JS", "L", "MFL",
+                "MT", "MW", "PAMK2", "SC", "SOP", "TBV", "SCH1", "GH"];
   
         # remove lines with no operational point (OP)
         filter!(x->!isnothing(x.bst), df);
@@ -120,6 +123,8 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         filter!(x->!startswith(x.bst,"KM "), df);
         # remove OP with no conventional name and of type Ixxx (OP at border)
         filter!(x->!occursin(r"^I\d+$", x.bst), df);
+        # resolving homonym BG and "B  G"
+        transform!(df, :bst => ByRow(x->replace(x, r"^B +G" => "BXG")) => :bst);
         # remove spaces and underscores from OP names
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
         # remove tabu` stations
