@@ -118,17 +118,17 @@ function loadPAD(file::String)::DataFrame
         @info "Loading the PAD file \"$file\" "
 
         bigpad = CSV.File(file,
-        header =
-        [:day,
-        :typecode,
-        :traintype, :trainnr,
-        :bst, :bstname,
-        :runningtype,
-        :transittype,
-        :scheduledtime, :realtime,
-        :delay,
-        :loco1, :loco2, :loco3, :loco4, :loco5],
-        skipto = 2) |> DataFrame;
+                header =
+                        [:day,
+                        :typecode,
+                        :traintype, :trainnr,
+                        :bst, :bstname,
+                        :runningtype,
+                        :transittype,
+                        :scheduledtime, :realtime,
+                        :delay,
+                        :loco1, :loco2, :loco3, :loco4, :loco5],
+                skipto = 2) |> DataFrame;
         
         dropmissing!(bigpad, :scheduledtime);
         filter!(x->length(x.scheduledtime)>0, bigpad );
@@ -139,12 +139,17 @@ function loadPAD(file::String)::DataFrame
         # remove OP at the border
         filter!(x->!startswith(x.bstname,"Staatsgrenze"), bigpad);
         
+        # remove strange bst "B  G" homonym of "BG"
+        # println(filter(x->x.bst=="BG", bigpad));
+        # println(bigpad);
+        # filter!(x->!==(x.bst,"B  G"), bigpad);
+        
         select!(bigpad,
-        [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :train,
-        :bst => ByRow(x->replace(x,r"[ _]+"=>"")) => :bst,
-        :transittype => ByRow(x->translateGerman(x)) => :transittype,
-        :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime,
-        :loco1, :loco2, :loco3, :loco4, :loco5
+                [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :train,
+                :bst => ByRow(x->replace(x,r"[ _]+"=>"")) => :bst,
+                :transittype => ByRow(x->translateGerman(x)) => :transittype,
+                :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime,
+                :loco1, :loco2, :loco3, :loco4, :loco5
         );
         
         sort(bigpad, [:train, :scheduledtime]);
@@ -267,7 +272,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
          
         if isfile(TRAINS_TO_REMOVE_FILE)
                 @info "Processing trains to remove in file $TRAINS_TO_REMOVE_FILE";
-                df = CSV.read(TRAINS_TO_REMOVE_FILE, DataFrame);
+                df = CSV.read(TRAINS_TO_REMOVE_FILE, comment="#", DataFrame);
                 removetrainlist = df.trainid;
         end
 
@@ -949,14 +954,16 @@ function generateBlocks(xmlfile::String,
 
     if isfile(BLOCK_EXCEPTION_FILE)
         @info "Reading block exceptions from file $BLOCK_EXCEPTION_FILE";
-        df = CSV.read(BLOCK_EXCEPTION_FILE, types=[String,String,Int], DataFrame);
+        df = CSV.read(BLOCK_EXCEPTION_FILE, types=[String,String,Int,Int,Int,Int], comment="#", DataFrame);
         for r in eachrow(df)
                 idx = findfirst(xmlbk.block .== r.block .&& xmlbk.line .== r.line);
                 if isnothing(idx)
-                        @warn "Block listed in the exceptions is not found: $(r.block),$(r.line)";
-                        continue;
+                        # @warn "Block listed in the exceptions is not found: $(r.block),$(r.line)";
+                        @info "\tNew block $(r.block)-$(r.line) found."
+                        push!(xmlbk, r);
+                else
+                        xmlbk[idx, :tracks] = r.tracks;
                 end
-                xmlbk[idx, :tracks] = r.tracks;
         end
     end
 
@@ -971,7 +978,7 @@ function generateBlocks(xmlfile::String,
     # add station exceptions that are wrong in the rinf 
     if isfile(STATION_EXCEPTION_FILE)
         @info "Processing station exceptions found in $STATION_EXCEPTION_FILE";
-        df = CSV.read(STATION_EXCEPTION_FILE, DataFrame);
+        df = CSV.read(STATION_EXCEPTION_FILE, comment="#", DataFrame);
         for r in eachrow(df)
                 idx = findfirst(rinfop.id .== r.id);
                 if isnothing(idx)
@@ -984,7 +991,7 @@ function generateBlocks(xmlfile::String,
 
     if isfile(EXTRA_STATION_FILE)
         @info "Appending extra stations found in $EXTRA_STATION_FILE";
-        df = CSV.read(EXTRA_STATION_FILE, DataFrame);
+        df = CSV.read(EXTRA_STATION_FILE, comment="#", DataFrame);
         append!(rinfop, df);
     else
         @warn "No $EXTRA_STATION_FILE file found."

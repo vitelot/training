@@ -131,7 +131,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     # nextline = train.schedule[nop1].line;
                     # nextdirection = train.schedule[nop1].direction;
     
-                    # println(trainid);
+                    println(trainid);
 
                     if current_opid == nextopid
                         nextBlockid = current_opid;
