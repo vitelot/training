@@ -529,6 +529,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
 
                                 # if the block exists
                                 if haskey(BlkList, blk)
+
                                         direction = BlkList[blk].direction;
 
                                         # some blocks have more lines on them; we only consider the first one for the moment
@@ -536,7 +537,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                         distance = BlkList[blk].length[1]; # fix what happens if more lines exist here
 
                                         DEBUG ≥ 3 && length(BlkList[blk].line)>1 && @warn "Line ambiguity for train $key in block $blk";
-
+                                        
                                         # its length will be added
                                         iscumul = true;
                                 elseif bst==nextbst # if these two are the same in the PAD, we are arriving and departing from a stationwe
@@ -551,12 +552,21 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         end
                         
                         if ismissing(direction)
-                                # pl("#2a# $key");
                                 direction = dfout[end, :direction];
                         end
                         if ismissing(line)
-                                # pl("#2b# $key");
+                                blk = string(dfout.bst[end], "-", bst);
+                                # pl("#2a# $key $bst $blk $(dfout.bst)");
+
+                                # trains may change their path and go onto another line
+                                # we need to ensure the block is the correct one referring to the new path
                                 line = dfout[end, :line];
+                                if haskey(BlkList,blk) && line ∉ BlkList[blk].line # if is not a station and ...
+                                        line = BlkList[blk].line[1];
+                                        direction = BlkList[blk].direction;
+                                        cumuldist += BlkList[blk].length[1];
+                                        dfout.line[end] = line; # in the simul, block's line is that of the initial bst
+                                end
                         end
 
                         # pl("#3# ", (train*poppy, bst, transittype, direction, line, cumuldist, scheduledtime));
@@ -566,7 +576,8 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         if 0 < length(shortestpath)-2 <= POPPING_JUMPS
                                 DEBUG ≥ 1 && @info "Filling $(length(shortestpath)-2) timetable holes between $bst and $nextbst for train $train"
                                 # println("$bst->$nextbst:", length(shortestpath));
-                                totlen = 0;
+
+                                totlen = 0; # used to interpolate the passing time
                                 for w = 1:length(shortestpath)-1
                                         block = string(shortestpath[w],"-",shortestpath[w+1]);
                                         totlen += BlkList[block].length[1];
@@ -575,6 +586,9 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                 starttime = scheduledtime;
                                 endtime = gd[i+1, :scheduledtime];
                                 cumullen = 0;
+
+                                # println(dfout[end,:]);
+                                
                                 for w = 1:length(shortestpath)-2
                                         block = string(shortestpath[w],"-",shortestpath[w+1]);
                                         cumullen += BlkList[block].length[1];
@@ -582,6 +596,8 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                                                 line = BlkList[block].line[1];
                                                 direction = BlkList[block].direction;
                                         end
+                                        # println("$train $block $(BlkList[block])");
+
                                         DEBUG ≥ 3 && length(BlkList[block].length)>1 && @warn "Length ambiguity for train $train in block $block";
                                         
                                         t = starttime + floor(Int, (endtime-starttime)/totlen*cumullen);
