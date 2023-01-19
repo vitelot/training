@@ -108,6 +108,17 @@ function translateGerman(s::AbstractString)::String
         return D[s];
 end
 
+function padfile_from_date(file_base="PAD-Zuglaufdaten-20")::String
+        
+        day = join(reverse(split(date,".")), "-");
+    
+        return source_path*file_base*"$day.csv"; 
+end
+
+function xmlfile_from_date()::String
+        year = split(date, ".")[3];
+        return source_path * "xml-20$year.csv";
+end
 
 """
     loadPAD(file::String)::DataFrame
@@ -620,8 +631,18 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                 end
         end
 
+        @info "Scanning for anomalous sequences at stations";
+        for i in 1:nrow(dfout)-1
+                r   = dfout[i,:];
+                nr  = dfout[i+1,:];
+                # if arrival and departure coincide than the train is passing by
+                if r.train==nr.train && r.bst==nr.bst && r.scheduledtime==nr.scheduledtime
+                        r.train = "delete";
+                        nr.transittype = "p";
+                end
+        end
  
-        dfout
+        filter!(x-> x.train != "delete", dfout)
 end
 
 function passingStation!(dftab::DataFrame, dfsta::DataFrame)::DataFrame
@@ -1055,18 +1076,6 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         end
         @info "Sanity check done.";
         nothing;
-end
-
-function padfile_from_date(file_base="PAD-Zuglaufdaten-20")::String
-        
-        day = join(reverse(split(date,".")), "-");
-    
-        return source_path*file_base*"$day.csv"; 
-end
-
-function xmlfile_from_date()::String
-        year = split(date, ".")[3];
-        return source_path * "xml-20$year.csv";
 end
 
 function configure()
