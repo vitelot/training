@@ -14,14 +14,15 @@ function initStation(r::DataFrameRow)
 
     P = Dict(1 => n2, 2 => n2, 0 => n0);
     # initial occupations at zero
-    NT = Dict(1 => 0, 2 => 0, 0 => 0);
+    # NT = Dict(1 => 0, 2 => 0, 0 => 0);
+    NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
 
     s = Station(
             r.id,
             P,
             r.nsidings,
-            NT,
-            Set{String}()
+            NT
+            # Set{String}()
     );
     return s;
 end
@@ -54,13 +55,18 @@ end
 
 function isBlockFree(station::Station, direction::Int)::Bool
     # the direction is found in the blocks, but not for stations, so we need to pass it in the arguments
-    
 
-    return (
-        (station.nt[direction] < station.platforms[direction]) # there is at least one platform available
-                    || 
-        (station.nt[COMMON_DIRECTION] < station.platforms[COMMON_DIRECTION]) # there is at least one platform with a common direction, and there is free space
-    );
+    # there is at least one platform available
+    if length(station.train[direction]) < station.platforms[direction]
+        return true;
+    end
+
+    # there is at least one platform with a common direction available
+    if length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
+        return true;
+    end
+
+    return false;
 end
 
 function isBlockFree(blk::Block, direction::Int)::Bool
@@ -71,14 +77,22 @@ end
 
 function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
-    pop!(station.train, train.id);
-
-    # if the common track is occupied, free it at first
-    if station.nt[COMMON_DIRECTION] > 0
-        station.nt[COMMON_DIRECTION] -= 1;
-    else
-        station.nt[direction] -= 1;
+    if station.id == "REN"
+            
+        println("#2# #####");
+        println("#2# train: $(train.id) --- direction $direction");
+        println("#2# $station");
+        println("#2# #####");
     end
+
+    for S in values(station.train) # dictionary with set of trains in each direction
+        if train.id ∈ S
+            pop!(S, train.id);
+            return;
+        end
+    end
+
+    @warn "Cannot remove train $(train.id) from station $(station.id)";
 
     return;
 end
@@ -94,15 +108,14 @@ end
 
 function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
-    push!(station.train, train.id);
     
     # if the tracks dedicated to the direction are free, occupy one at first
-    if station.nt[direction] < station.platforms[direction]
-        station.nt[direction] += 1;
-    
+    if length(station.train[direction]) < station.platforms[direction]
+        push!(station.train[direction], train.id);
+        
         # if nothing else is free, occupy the common track
-    elseif station.nt[COMMON_DIRECTION] < station.platforms[COMMON_DIRECTION]
-        station.nt[COMMON_DIRECTION] += 1;
+    elseif length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
+        push!(station.train[COMMON_DIRECTION], train.id);
     
     else    
         @warn "We cannot increase the occupancy of station $(station.id).";

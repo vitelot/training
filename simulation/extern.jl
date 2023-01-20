@@ -37,13 +37,14 @@ mutable struct Station
     # ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     platforms::Dict{Int,Int} # number of platforms per direction key=direction, value=nrtracks
     sidings::Int          # not used for the moment
+    
     # dynamical part:
-    nt::Dict{Int,Int}     # number of trains in the station according to direction 
-    train::Set{String}    # which train is on it, for platforms: which train is in which of the directions
+    # nt::Dict{Int,Int}     # number of trains in the station according to direction 
+    train::Dict{Int,Set{String}}    # which train is on a direction
 end
 
 function Station()
-    Station("",Dict{Int,Int}(),0,Dict{Int,Int}(), Set{String}()); #the null empty station
+    Station("",Dict{Int,Int}(),0,Dict{Int,Set{String}}()); #the null empty station
 end
 
 mutable struct Block
