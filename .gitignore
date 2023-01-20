@@ -31,7 +31,7 @@ out*
 # data/*.gz
 # data/OeBB
 # data/data_password
-p?pp?
+p?pp*
 *.ini
 # hidden_data/
 # scripts/help.txt
