@@ -77,13 +77,13 @@ end
 
 function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
-    if station.id == "REN"
+    # if station.id == "REN"
             
-        println("#2# #####");
-        println("#2# train: $(train.id) --- direction $direction");
-        println("#2# $station");
-        println("#2# #####");
-    end
+    #     println("#2# #####");
+    #     println("#2# train: $(train.id) --- direction $direction");
+    #     println("#2# $station");
+    #     println("#2# #####");
+    # end
 
     for S in values(station.train) # dictionary with set of trains in each direction
         if train.id ∈ S
