@@ -131,13 +131,24 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     # nextline = train.schedule[nop1].line;
                     # nextdirection = train.schedule[nop1].direction;
     
-                    println(trainid);
+                    # println(trainid);
 
                     if current_opid == nextopid
                         nextBlockid = current_opid;
                         nextBlock = ST[nextBlockid]; # it's a station
                     else
                         nextBlockid = current_opid*"-"*nextopid*"-"*line;
+                        # some blocks do not exist on the starting op line and we find one that fits
+                        if !haskey(BK, nextBlockid)
+                            @warn "Block $nextBlockid not found on train $trainid";
+                            (bfrom,bto,bline) = split(nextBlockid, "-");
+                             bblk = string(bfrom,"-",bto);
+                             blkfriend = filter(startswith(bblk), collect(keys(BK)));
+                             if length(blkfriend) == 1
+                                @info "\tNew block $blkfriend assigned";
+                                nextBlockid = blkfriend[1];
+                             end
+                        end
                         nextBlock = BK[nextBlockid];
                     end
 
@@ -196,7 +207,11 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     else # block/station is full
 
                         print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
-
+                        # if trainid=="R_2217"
+                        #     println("#1# $currentBlock");
+                        #     println("#1# $nextBlock");
+                        #     exit(1);
+                        # end
                         # raise an error if the block is too small and we are looking to enlarge it
                         if catch_conflicts
                             throw(exception_blockConflict(trainid,nextBlockid,direction))
