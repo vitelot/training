@@ -514,10 +514,26 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                         
                         # build the block
                         nextbst = (i<nrowgd) ? gd[i+1, :bst] : bst; # "xxx";
-                        blk = string(bst,"-",nextbst);
-                   
+                        nextschedtime = (i<nrowgd) ? gd[i+1, :scheduledtime] : scheduledtime+3; # "xxx";
+
                         # find the shortest path between bst and nextbst to see if some bst were missed 
                         shortestpath = findSequence(G, bst, nextbst);
+                        
+                        if scheduledtime == nextschedtime
+                                if length(shortestpath)>2
+                                        DEBUG > 1 && @info("Same transit time at two consecutive ops: $train $bst $nextbst");
+                                        # we would like to swap this row and the next but requires more coding.
+                                        # therefore we skip this row and let the following algo interpolate the missing station
+                                        # as if it was not there.
+                                        # we also need to remove the last row in the dfout since it has
+                                        # filled an inexistent gap. 
+                                        DEBUG==1 && @info "Removing last added transit since it filled an inexistent gap."
+                                        deleteat!(dfout, nrow(dfout)); 
+                                        continue;
+                                end
+                        end
+
+                        blk = string(bst,"-",nextbst);
                         
                         # notable exceptions: sometimes the shortest path is not the right one
                         if bst=="HFH4" && nextbst=="HF"
