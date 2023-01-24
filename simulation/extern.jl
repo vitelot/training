@@ -10,6 +10,7 @@ using DataFrames, CSV;
 # using PrettyPrint;
 # using Profile
 # using InteractiveUtils
+import Base.show;
 
 ###################################
 ###       Global variables      ###
@@ -135,3 +136,14 @@ end
 
 Base.showerror(io::IO, e::exception_blockConflict) =
     print(io, "Train $(e.trainid) has conflict in block $(e.block) ");
+
+function show(io::IO, D::Dict{Int64, Set{String}})
+    for (k,v) in D
+        print(io, "$k:(");
+        for i in v
+            print(io, "$i,");
+        end
+        print(io, ") ");
+    end
+    # println();
+end

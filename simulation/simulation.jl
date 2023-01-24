@@ -28,7 +28,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     ROTATION_WAITING_TIME   = 120; # time to wait for a dependent rotation
     MAXIMUM_HALT_AT_STATION = 120; # Wait at most this amount of seconds before leaving
     MINIMUM_HALT_AT_STATION = 24; # Wait at least this amount of seconds before leaving
-    TIME_TO_CHECK_FOR_FREE_BLOCK = 1; # Shifts the transit this amount of seconds untill the block is free
+    TIME_TO_CHECK_FOR_FREE_BLOCK = 10; # Shifts the transit this amount of seconds untill the block is free
 
     old_status = status = ""; # trains going around, used to get stuck status
 
