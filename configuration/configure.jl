@@ -851,10 +851,12 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         return df;
 end
 
-function Rotations(padfile::String, outfile::String)
+function Rotations(padfile::String, timetablefile::String, outfile::String)
         @info "Generating train reassignements";
         
         df = loadPAD(padfile);
+        dftab = CSV.read(timetablefile, select=[:train], comment="#", DataFrame);
+        alltrains = unique(dftab.train);
 
         select!(df, 
                 :train => :trainid,
@@ -913,6 +915,31 @@ function Rotations(padfile::String, outfile::String)
         #     "SB_29890" in LokoTrain[l] && println("$l ", LokoTrain[l]);
         # end
         # exit();
+
+        @info "Handling popping trains' reassignements";
+        # if A waits for B and there is a popper of B, we let A wait for the last popper of B
+        for (t,v) in D
+                poppers = filter(startswith(v), alltrains);
+                length(poppers) <= 1 && continue;
+                (m,idx) = findmax(length, poppers);
+                D[t] = poppers[idx];
+        end
+
+        # we link the poppers of A together
+        poppers = filter(x->occursin("_pop_",x), alltrains);
+        for p in poppers
+                parts = split(p,"_pop_");
+                l = length(parts);
+                # do nothing if t does not pop
+                l == 1 && continue;
+                s = [parts[1]];
+                # X_pop_zzz_pop_www waits for X_pop_zzz that waits for X
+                for i = 2:l
+                        push!(s, join(vcat(s[i-1],parts[i]), "_pop_"));
+                        D[s[i]] = s[i-1];
+                end
+        end
+        
 
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
@@ -1123,7 +1150,7 @@ function configure()
         end
         
         if find_rotations
-                Rotations(padfile, rotationfile);
+                Rotations(padfile, timetablefile, rotationfile);
         end
 
         sanityCheck(timetablefile, outblkfile, stationfile);
