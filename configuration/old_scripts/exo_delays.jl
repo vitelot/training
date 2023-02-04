@@ -45,10 +45,10 @@ It first samples the number of delays per day to be injected,
 then it samples the trains, blocks and respective delay from another file.
 """
 function SampleExoDelays(
-    fileNdelay    = "../data/hidden_data/NumberOfDelays.csv",
-    fileTimetable = "../data/simulation_data/timetable.csv",
-    fileDelayList = "../data/hidden_data/DelayList.csv",
-    outfile       = "../data/delays/imposed_exo_delay.csv",
+    fileNdelay    = "../simulation/data/hidden_data/NumberOfDelays.csv",
+    fileTimetable = "../simulation/data/timetable.csv",
+    fileDelayList = "../simulation/data/hidden_data/DelayList.csv",
+    outfile       = "../simulation/data/delays/imposed_exo_delay.csv",
     nsamples::Int=1;
     cleanfolder=true)
 

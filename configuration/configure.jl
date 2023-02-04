@@ -943,7 +943,7 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
 
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
-        # file = "../data/simulation_data/rotations.csv";
+        # file = "../simulation/data/rotations.csv";
         CSV.write(outfile, dd);
         @info("\tSaving rotations to file $outfile");
 end
@@ -1125,6 +1125,11 @@ function configure()
         # padfile = "rex5803pad.csv";
         # xmlfile = "xml-2018.csv";
         
+        if !isdir(target_path) 
+                mkdir(target_path);
+                @info "Folder $target_path has been created."
+        end
+
         if in_file == ""
                 timetablefile = target_path*"timetable-$date.csv"
                 padfile=padfile_from_date();

@@ -112,6 +112,8 @@ Simulating one day timetable for a Railway Network of trains
 
 
 <!-- GETTING STARTED -->
+# Please ignore all of this: we must write the readme again
+
 ## Getting Started
 
 
@@ -221,7 +223,7 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
     - function `initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}` : Creates the Event dict, having times as keys and events in that time as values
 
   - [main.jl](/simulation/main.jl)
-  - [parameters.jl](/simulation/parameters.jl) : This file contains the functions to load the simulation options from /data/simulation_data/par.ini; If not existing, creates one as default
+  - [parameters.jl](/simulation/parameters.jl) : This file contains the functions to load the simulation options from /data/par.ini; If not existing, creates one as default
   - [parser.jl](/simulation/parser.jl) : CLI parser
   - [simulation.jl](/simulation/simulation.jl) : core part of the simulation; it is called in main.jl; returns false if the simulation doesn't get stuck, true otherwise
 

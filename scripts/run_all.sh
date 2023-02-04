@@ -25,7 +25,7 @@ cd ../simulation
 echo "julia --project=../environment main.jl --catch_conflict"
 julia --project=../environment main.jl --catch_conflict
 
-mv -f ../data/simulation_data/blocks_catch.csv ../data/simulation_data/blocks.csv
+mv -f ../simulation/data/blocks_catch.csv ../simulation/data/blocks.csv
 
 echo "\n#####################################\n"
 echo "Starting the simulation phase."

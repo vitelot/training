@@ -219,7 +219,7 @@ function catch_conflict(RN,FL,parsed_args)
                     s = split(name, "-")[1];
                     @warn "Station $s not found. Please add its info in ../configuration/data/extra-stations.csv";
                 else
-                    @warn "Block $name not found. Please add its info in ../data/simulation_data/blocks.csv";
+                    @warn "Block $name not found. Please add its info in ../simulation/data/blocks.csv";
                     # b = initBlock(name,1)
                 end
 
@@ -261,11 +261,11 @@ function catch_conflict(RN,FL,parsed_args)
     #insert here function for saving the blocks list
     if occursin("-", timetable_file)
         _,date=split(timetable_file,"-")
-        out_block_file_name="../data/simulation_data/blocks_catch-$date.csv"
-        out_station_file_name="../data/simulation_data/stations_catch-$date.csv"
+        out_block_file_name="../simulation/data/blocks_catch-$date.csv"
+        out_station_file_name="../simulation/data/stations_catch-$date.csv"
     else
-        out_block_file_name = "../data/simulation_data/blocks_catch.csv";
-        out_station_file_name = "../data/simulation_data/stations_catch.csv";
+        out_block_file_name = "../simulation/data/blocks_catch.csv";
+        out_station_file_name = "../simulation/data/stations_catch.csv";
     end
     print_infra(RN, out_block_file_name, out_station_file_name);
 

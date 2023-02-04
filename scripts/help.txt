@@ -5,7 +5,7 @@ usage: main.jl [-v] [-i INI] [-t TIMETABLE_FILE] [-b BLOCK_FILE]
 optional arguments:
   -v, --version         show the simulation's version
   -i, --ini INI         path for the .ini file (default:
-                        "../data/simulation_data/par.ini")
+                        "../simulation/data/par.ini")
   -t, --timetable_file TIMETABLE_FILE
                         override the path to the timetable file
                         (default: "")

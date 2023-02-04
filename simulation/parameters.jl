@@ -1,6 +1,6 @@
 """
 This file contains the functions to load the simulation options from
-/data/simulation_data/par.ini
+/simulation/data/par.ini
 If not existing, creates one as default
 """
 function loadOptions(parsed_args::Dict)
@@ -112,11 +112,11 @@ function createIniFile(file::String)
 #############################
 Version                 $ProgramVersion # Program's version
 #############################
-timetable_file          ../data/simulation_data/timetable.csv # contains the timetable to simulate
-block_file              ../data/simulation_data/blocks.csv    # contains the nr of tracks for each block
-station_file            ../data/simulation_data/stations.csv  # contains info on the operational points with platforms and multiple tracks
+timetable_file          ../simulation/data/timetable.csv # contains the timetable to simulate
+block_file              ../simulation/data/blocks.csv    # contains the nr of tracks for each block
+station_file            ../simulation/data/stations.csv  # contains info on the operational points with platforms and multiple tracks
 rotation_file           None   # list of train dependencies: one train does not start if the other has not arrived
-imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../data/delays/
+imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../simulation/data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 free_platforms          0   # if true, platforms at stations may be used in any direction

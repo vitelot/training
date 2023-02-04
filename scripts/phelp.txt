@@ -11,7 +11,7 @@ optional arguments:
                         "")
   --source_data_path SOURCE_DATA_PATH
                         Source of the pad zuglauf... (default:
-                        "../data/hidden_data/")
+                        "../simulation/data/")
   --exo_delays EXO_DELAYS
                         Number of files with exo delays to be created.
                         (type: Int64, default: 0)

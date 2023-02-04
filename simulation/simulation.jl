@@ -35,10 +35,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     if save_timetable
         if sim_id == 0
-            outfilename = "../data/simulation_data/timetable_simulation.csv";
+            outfilename = "../simulation/data/timetable_simulation.csv";
         else
             paddedsimid = lpad(sim_id,4,"0");
-            outfilename = "../data/simulation_data/timetable_simulation_$(paddedsimid).csv";
+            outfilename = "../simulation/data/timetable_simulation_$(paddedsimid).csv";
         end
 
         out_file = open(outfilename, "w");
@@ -53,7 +53,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     Event = initEvent(FL); # initialize the events with the departure of new trains
     # @warn "just exit for a test; saving the initial event table to file Events.txt";
-    # open("../data/simulation_data/Events.txt", "w") do OUTtest
+    # open("../simulation/data/Events.txt", "w") do OUTtest
     #     pprintln(OUTtest, Event);
     # end
     # exit();

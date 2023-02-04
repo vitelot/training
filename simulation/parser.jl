@@ -12,7 +12,7 @@ function parse_commandline()
         "--ini", "-i"
             help = "path for the .ini file"
             arg_type = String
-            default = "../data/simulation_data/par.ini"
+            default = "../simulation/data/par.ini"
 
         "--timetable_file", "-t"
             help = "override the path to the timetable file"

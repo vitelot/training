@@ -232,9 +232,9 @@ function preprocessing()
     ############################################################################################################
     ##MOVING THE UNZIPPED FILES FROM DATA.ZIP TO THE CORRECT DIRS
     ##############################################################################
-    path_ini=source_path; # "../data/hidden_data/"
+    path_ini=source_path;
 
-    path_end="../data/simulation_data/"
+    path_end="../simulation/data/"
 
     isdir(path_end) || mkdir(path_end)
 
@@ -256,10 +256,10 @@ function preprocessing()
 
     if nr_exo_delays>0
         SampleExoDelays(
-            "../data/hidden_data/NumberOfDelays.csv",
-            "../data/simulation_data/timetable.csv",
-            "../data/hidden_data/DelayList.csv",
-            "../data/delays/imposed_exo_delay.csv",
+            "../simulation/data/NumberOfDelays.csv",
+            "../simulation/data/timetable.csv",
+            "../simulation/data/DelayList.csv",
+            "../simulation/data/delays/imposed_exo_delay.csv",
             nr_exo_delays)
     end
 @info "Ending preprocessing"

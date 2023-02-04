@@ -23,7 +23,7 @@ function parse_commandline()
         "--target_data_path"
             help = "Folder to write processed data for the simulation."
             arg_type = String
-            default = "../data/simulation_data/"
+            default = "../simulation/data/"
 
         # "--exo_delays"
         #     help = "Number of files with exo delays to be created."

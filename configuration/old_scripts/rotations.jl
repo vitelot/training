@@ -56,7 +56,7 @@ function Rotations(df::DataFrame)
     # exit();
 
     dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
-    file = "../data/simulation_data/rotations.csv";
+    file = "../simulation/data/rotations.csv";
     CSV.write(file, dd);
     println("Rotation file $file saved");
 end
