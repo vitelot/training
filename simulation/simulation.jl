@@ -17,7 +17,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     save_timetable          = Opt["save_timetable"];
     print_rot               = Opt["print_rotations"];
     catch_conflicts         = Opt["catch_conflict"];
-    use_buffering_time      = false;
+    use_buffering_time      = Opt["use_buffering_time"];
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another

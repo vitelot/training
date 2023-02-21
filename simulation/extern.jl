@@ -14,7 +14,7 @@ import Base.show;
 
 ###################################
 ###       Global variables      ###
-ProgramVersion = v"0.4.1";
+ProgramVersion = v"0.4.2";
 Opt = Dict{String,Any}(); # options read from par.ini
 ###################################
 
