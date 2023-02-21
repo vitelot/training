@@ -15,6 +15,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_elapsed_time      = Opt["print_elapsed_time"];
     print_tot_delay         = Opt["print_tot_delay"];
     save_timetable          = Opt["save_timetable"];
+    save_timetable_railml   = Opt["save_timetable_railml"];
     print_rot               = Opt["print_rotations"];
     catch_conflicts         = Opt["catch_conflict"];
     use_buffering_time      = Opt["use_buffering_time"];
@@ -280,6 +281,8 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
     # save_timetable && close(out_file)
     save_timetable && CSV.write(outfilename, df_timetable);
+    save_timetable_railml && outputRailML(outfilename, df_timetable);
+
     print_flow && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     # resetSimulation(FL); # set trains dynamical variables to zero

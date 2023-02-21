@@ -72,3 +72,12 @@ sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541
 
 import Base.issorted
 issorted(v::Vector{Transit}) = issorted(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
+
+function outputRailML(outfilename::String, df_timetable::DataFrame)
+
+    @info "RailML export not implemented yet.";
+    return;
+
+
+    
+end
