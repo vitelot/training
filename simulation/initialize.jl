@@ -77,15 +77,6 @@ function loadFleet()::Fleet
 
     Trains = FL.train;
 
-    #take direction from the file
-    # train2dir = Dict{String,Int}();
-    # if isfile(trains_info_file)
-    #     train2dir = CSV.File(trains_info_file, comment="#") |> Dict
-    # elseif !Opt["free_platforms"]
-    #     println("fixed direction platforms activated but no file found. Add file and restart")
-    #     exit()
-    # end
-
     Rot = Dict{String,String}();
     if isfile(rotation_file)
         Rot = Dict(CSV.File(rotation_file, comment="#"));
@@ -95,7 +86,7 @@ function loadFleet()::Fleet
 
     # build the schedule for every train
     for r in eachrow(df)
-        (train, bts, kind, direction, line, distance, duetime) = r[:];
+        (train, bts, kind, direction, line, _distance, duetime) = r[:];
 
         #restore original name from poppers since the direction is associated with the plain name
         unpopped  = replace(train, r"_pop_.*" => "");
