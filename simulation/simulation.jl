@@ -5,16 +5,18 @@ simulation engine
 function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     # get the required options
-    print_train_status      = Opt["print_train_status"]
-    print_new_train         = Opt["print_new_train"]
-    print_train_wait        = Opt["print_train_wait"]
-    print_train_end         = Opt["print_train_end"]
-    print_train_fossile     = Opt["print_train_fossile"]
-    print_elapsed_time      = Opt["print_elapsed_time"]
-    print_tot_delay         = Opt["print_tot_delay"]
-    save_timetable          = Opt["save_timetable"]
-    print_rot               = Opt["print_rotations"]
-    catch_conflicts         = Opt["catch_conflict"]
+    print_flow              = Opt["print_flow"];
+    print_notifications     = Opt["print_notifications"];
+    print_train_status      = Opt["print_train_status"];
+    print_new_train         = Opt["print_new_train"];
+    print_train_wait        = Opt["print_train_wait"];
+    print_train_end         = Opt["print_train_end"];
+    print_train_fossile     = Opt["print_train_fossile"];
+    print_elapsed_time      = Opt["print_elapsed_time"];
+    print_tot_delay         = Opt["print_tot_delay"];
+    save_timetable          = Opt["save_timetable"];
+    print_rot               = Opt["print_rotations"];
+    catch_conflicts         = Opt["catch_conflict"];
     use_buffering_time      = false;
     ##variabili
 
@@ -140,12 +142,12 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         nextBlockid = current_opid*"-"*nextopid*"-"*line;
                         # some blocks do not exist on the starting op line and we find one that fits
                         if !haskey(BK, nextBlockid)
-                            @warn "Block $nextBlockid not found on train $trainid";
+                            print_notifications && @info "\tBlock $nextBlockid not found on train $trainid";
                             (bfrom,bto,bline) = split(nextBlockid, "-");
                              bblk = string(bfrom,"-",bto);
                              blkfriend = filter(startswith(bblk), collect(keys(BK)));
                              if length(blkfriend) == 1
-                                @info "\tNew block $blkfriend assigned";
+                                print_notifications && @info "\tNew block $blkfriend assigned";
                                 nextBlockid = blkfriend[1];
                              end
                         end
@@ -258,7 +260,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
             if (old_status == status) && (!isempty(status))
 
-                Opt["print_flow"] && println("Simulation is stuck with times t_finals $t_final and $t_final_starting,
+                print_flow && println("Simulation is stuck with times t_finals $t_final and $t_final_starting,
                                             t is $t ; status is  $status")
 
                 #Event = nothing; #don't need to do that. it will be garbage collected.
@@ -273,7 +275,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     end
     #Event = Dict{Int,Vector{Transit}}(); #don't need to do that. it will be garbage collected.
     save_timetable && close(out_file)
-    Opt["print_flow"] && println("Simulation ended.")
+    print_flow && println("Simulation ended.")
     print_tot_delay && println("Total delay at the end of simulation is $totDelay")
     # resetSimulation(FL); # set trains dynamical variables to zero
     # resetDynblock(RN);
