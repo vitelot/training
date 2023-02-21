@@ -36,7 +36,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     old_status = status = ""; # trains going around, used to get stuck status
 
 
-    if save_timetable
+    if save_timetable || save_timetable_railml
         if sim_id == 0
             outfilename = "../simulation/data/timetable_simulation.csv";
         else
