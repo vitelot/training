@@ -73,7 +73,7 @@ sort!(v::Vector{Transit}) = sort!(v, by=x->x.duetime) # usage: FL.train["SB29541
 import Base.issorted
 issorted(v::Vector{Transit}) = issorted(v, by=x->x.duetime) # usage: FL.train["SB29541"].schedule
 
-import Dates: unix2datetime;
+import Dates: unix2datetime, Date, Time;
 function outputRailML(outfilename::String, df_timetable::DataFrame)
 
     # @info "RailML export not implemented yet.";
@@ -83,23 +83,17 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
 
 
     open(outfilename, "w") do OUT
-        pout(n::Int,x::String) = println(OUT, "\t"^n,x);
+        pout(n::Int,x::String) = println(OUT, "   "^n,x);
         pout(x::String) = println(OUT, x);
 
         # preamble
-        pout( 
-        """
-        <?xml version="1.0" ?>
-        <railml version="2.3" xmlns="http://www.railml.org/schemas/2016" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.railml.org/schemas/2016 ../schema/railML.xsd">
-        \t<metadata>
-        \t</metadata>"""
-        );
-
+        pout("""<?xml version="1.0" ?>""");
+        pout("""<railml version="2.3" xmlns="http://www.railml.org/schemas/2016" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.railml.org/schemas/2016 ../schema/railML.xsd">""");
+        pout(1, "<metadata>");
+        pout(1, "</metadata>");
 # infra
-        pout(
-            """\t<infrastructure id="IS_01" name="infrastructure" timetableRef="TT_01" rollingstockRef="RS_01">
-                \t\t<operationControlPoints>"""
-                );
+        pout(1, """<infrastructure id="IS_01" name="infrastructure" timetableRef="TT_01" rollingstockRef="RS_01">""")
+        pout(2, "<operationControlPoints>");
 
             # <ocp id="ocp_WATS13_2021-12-11_230000" code="91036" name="WATS13" description="Sbl Wat 1" parentOcpRef="ocp_WATS13_2021-12-11_230000">
 			# 	<propOperational operationalType="blockSignal"/>
@@ -109,55 +103,120 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
 			# 	<designator register="PLC" entry="91036" startDate="2021-12-11" endDate="2022-12-10"/>
 			# </ocp>
 
-        # ocp loop
+        # Operation Control Points (ocp) loop
         for o in unique(df_timetable.opid)
             pout(3,"<ocp id=\"ocp_$o\" code=\"9999\" name=\"$o\" description=\"$o\" parentOcpRef=\"ocp_$o\">");
 
             pout(3,"</ocp>");
         end
 
-        pout(
-        """\t\t</operationControlPoints>
-            \t</infrastructure>"""
-        );
+        pout(2, "</operationControlPoints>");
+        pout(1, "</infrastructure>");
 
 # rolling stock
-        pout("\t<rollingstock id=\"RS_01\" name=\"rollingstock\" infrastructureRef=\"IS_01\" timetableRef=\"TT_01\">");
-        pout("\t</rollingstock>");
+        pout(1, "<rollingstock id=\"RS_01\" name=\"rollingstock\" infrastructureRef=\"IS_01\" timetableRef=\"TT_01\">");
+        pout(1, "</rollingstock>");
 
 # timetable
-        pout("\t<timetable id=\"TT_01\" name=\"timetable\" infrastructureRef=\"IS_01\" rollingstockRef=\"RS_01\">")
-        pout("\t\t<trainParts>");
+        pout(1, "<timetable id=\"TT_01\" name=\"timetable\" infrastructureRef=\"IS_01\" rollingstockRef=\"RS_01\">")
+        pout(2, "<timetablePeriods>");
+        (mintime, maxtime) = extrema(df_timetable.t_scheduled);
+        minday = Date(unix2datetime(mintime));
+        starttime = Time(unix2datetime(mintime));
+        maxday = Date(unix2datetime(maxtime));
+        endtime = Time(unix2datetime(maxtime));
+        pout(3, """<timetablePeriod id="ttp_01" name="Betriebstag $minday" startDate="$minday" endDate="$maxday" startTime="$starttime" endTime="$endtime"/>""")
+        pout(2, "</timetablePeriods>");
+        
+        pout(2, "<categories>");        
+        trains = unique(df_timetable.trainid);
+        cats = [split(x,"_")[1] for x in trains];
+        for c in unique(cats)
+            pout(3, """<category id="cat_$(c)_$(c)" code="$c" name="$c" trainUsage="passenger"/>""")
+        end
+        pout(2, "</categories>");
+        
+        pout(2, "<trainParts>");
         
         gd = groupby(df_timetable, :trainid);
-        for df in gd
+        islastarrival = false;
+        arrivalsched = 0;
+        arrivalreal = 0;
+        arrivalschedday = 0;
+        arrivalrealday = 0;
+
+        for dfunsorted in gd
+            df = sort(dfunsorted, [:t_scheduled]);
             trainid = df.trainid[1];
-            (cat,nr) = split(trainid,"_");
+            (cat,nr) = split(trainid,"_", limit=2);
             pout(3,"<trainPart id=\"trp_$nr\" processStatus=\"actual\" categoryRef=\"cat_$(cat)_$(cat)\">")
             #pout(4,"<formationTT formationRef="for_$nr" weight=\"\" length=\"\" speed=\"\"/>")
             pout(4, "<ocpsTT>");
+            seq = 0;
             for r in eachrow(df)
-                opid = r.opid; kind = r.kind;
+                kind = r.kind;
                 kind == "P" && continue;
-                status = "arrival";
-                kind == "b" && (kind="begin"; status="departure")
-                kind == "e" && (kind="end";)
-                kind == "p" && (kind="pass";)
-                kind == "a" && (kind="arrive";)
-                kind == "d" && (kind="departure"; status="departure";)
-                sched = unix2datetime(r.t_scheduled); real = unix2datetime(r.t_real);
-                pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"1\" ocpType=\"$kind\">")
-                pout(6,"<times scope=\"actual\" $status=\"$real\" arrivalDay=\"0\"/>")
-                pout(6,"<times scope=\"scheduled\" $status=\"$sched\" arrivalDay=\"0\"/>")
+                opid = r.opid; 
+                sched = r.t_scheduled;
+                real = r.t_real;
+                seq += 1;
+                # dayidsched = ifelse( Date(unix2datetime(sched))==minday, 0, 1); 
+                # dayidreal =  ifelse( Date(unix2datetime(real))==minday, 0, 1); 
+                dayidsched = (Date(unix2datetime(sched))-minday).value;
+                dayidreal  = (Date(unix2datetime(real))-minday).value;
+                sched = unix2datetime(r.t_scheduled) |> Time;
+                real = unix2datetime(r.t_real) |> Time;
+                if kind == "b"
+                    kind = "begin";
+                    pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
+                    pout(6,"<times scope=\"actual\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    pout(6,"<times scope=\"scheduled\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
+                elseif kind == "e"
+                    kind = "end";
+                    pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
+                    pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\"/>")
+                    pout(6,"<times scope=\"scheduled\" arrival=\"$sched\" arrivalDay=\"$dayidsched\"/>")
+                elseif kind == "p"
+                    kind = "pass";  
+                    pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
+                    pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    pout(6,"<times scope=\"scheduled\" arrival=\"$sched\" arrivalDay=\"$dayidsched\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
+                elseif kind == "a"
+                    seq -= 1;
+                    arrivalsched = sched;
+                    arrivalreal = real;
+                    arrivalschedday = dayidsched;
+                    arrivalrealday = dayidreal;
+                    islastarrival = true;
+                    continue;
+                elseif kind == "d"
+                    kind = "stop";
+                    if !islastarrival
+                        if seq == 1
+                            arrivalsched = sched;
+                            arrivalreal = real;
+                            arrivalschedday = dayidsched;
+                            arrivalrealday = dayidreal;
+                        else
+                            @warn "Departure without arrival for $trainid in $opid at sequence $seq.";
+                        end
+                    end
+                    pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
+                    pout(6,"<times scope=\"actual\" arrival=\"$arrivalreal\" arrivalDay=\"$arrivalrealday\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    pout(6,"<times scope=\"scheduled\" arrival=\"$arrivalsched\" arrivalDay=\"$arrivalschedday\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
+                    islastarrival = false; 
+                end
+                
                 pout(5,"</ocpTT>"); 
+                
             end
             pout(4,"</ocpsTT>");
             pout(3,"</trainPart>");
         end
 
 
-        pout("\t\t</trainParts>");
-        pout("\t</timetable>");
+        pout(2, "</trainParts>");
+        pout(1, "</timetable>");
 # end
         pout("</railml>");
     end
