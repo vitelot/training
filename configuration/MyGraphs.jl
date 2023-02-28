@@ -32,7 +32,7 @@ nodes id of the link are considered. If the first column contains links in
 the form A-B, then only the first column is read.
 """
 function loadGraph(file::AbstractString; type="undirected", removespaces=false)::Graph
-    df = CSV.File(file) |> DataFrame;
+    df = CSV.File(file, comment="#") |> DataFrame;
     loadGraph(df, type=type, removespaces=removespaces)
 end
 
@@ -120,6 +120,7 @@ function BFS(G::Graph, from::AbstractString, to::AbstractString)::Vector{String}
     return [from; Path[to]]
 end
 
+
 """
     findSequence(G::Graph, from::AbstractString, to::AbstractString)::Vector{String}
 
@@ -144,9 +145,55 @@ function findSequence(G::Graph, from::AbstractString, to::AbstractString)::Vecto
 
 end
 
+"""
+    findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::Vector{Vector{String}}
+
+Perform a DFS on a graph structure.
+Returns the paths connecting node "from" to node "to" as a vector of vectors of strings.
+Returns an empty vector if the nodes are not connected. 
+"""
+function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::Vector{Vector{String}}
+    if !haskey(G.nodelist, from)
+        println("Node \"$from\" is not in the node list. Quitting.");
+        exit(1);
+    end
+    if !haskey(G.nodelist, to)
+        println("Node \"$to\" is not in the node list. Quitting.");
+        exit(1);
+    end
+    # Path = Dict{String, Vector{String}}();
+    Path = String[];
+    nonvisited = Set{String}(keys(G.nodelist));
+    Paths = Vector{Vector{String}}();
+
+    function DFS(G::Graph, from::AbstractString, to::AbstractString)::Nothing
+        from ∉ nonvisited && return;
+        length(Path) > 50 && return;
+
+        pop!(nonvisited, from);
+        push!(Path, from);
+        if from == to
+            push!(Paths, copy(Path));
+            push!(nonvisited, from);
+            pop!(Path);
+            return;
+        end
+        for b in G.nodelist[from].neighbors
+            DFS(G,b,to);
+        end
+        pop!(Path);
+        push!(nonvisited, from);
+        return;
+    end
+
+    DFS(G, from, to);
+    return Paths;
+
+end
+
 function isnode(G::Graph, s::AbstractString)::Bool
     return haskey(G.nodelist, s);
 end
 
-export Graph, loadGraph, findSequence;
+export Graph, loadGraph, findSequence, findAllSequences;
 end
