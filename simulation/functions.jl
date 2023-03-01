@@ -136,6 +136,7 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
         end
         pout(2, "</categories>");
         
+        # train parts
         pout(2, "<trainParts>");
         
         gd = groupby(df_timetable, :trainid);
@@ -216,6 +217,26 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
 
 
         pout(2, "</trainParts>");
+
+        # trains
+        pout(2, "<trains>");
+
+        for t in trains
+            (cat,nr) = split(t,"_", limit=2);
+            pout(3, "<train id=\"train_$nr\" type=\"operational\" trainNumber=\"$nr\" processStatus=\"actual\">");
+            pout(4, "<trainPartSequence sequence=\"1\">");
+            pout(5, "<trainPartRef ref=\"trp_$nr\"/>");
+            pout(4, "</trainPartSequence>");
+            pout(3, "</train>");
+        end
+        # <train id="train_19209_99837" type="operational" trainNumber="99837" processStatus="actual">
+        #            <trainPartSequence sequence="1">
+        #                          <trainPartRef ref="trp_19209_99837_PK_3_2"/>
+        #                          <brakeUsage brakeType="none" regularBrakePercentage="69"/>
+        #            </trainPartSequence>
+        #  </train>
+
+        pout(2, "</trains>");
         pout(1, "</timetable>");
 # end
         pout("</railml>");
