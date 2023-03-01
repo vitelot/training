@@ -186,7 +186,36 @@ function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::V
         return;
     end
 
+    # Following recursive BFS is not used 
+    #
+    # Queue = [from]; visited = Set([from]);
+    # function rBFS(G::Graph, to::AbstractString)::Nothing
+    #     isempty(Queue) && return;
+    #
+    #     v = popfirst!(Queue);
+    #     print("$v ");
+    #     push!(Path, v);
+    #     if v == to
+    #         push!(Paths, copy(Path));
+    #         pop!(visited, v);
+    #         pop!(Path);
+    #     end
+    #    
+    #     for u in G.nodelist[v].neighbors
+    #         if u ∉ visited
+    #             push!(visited, u);
+    #             push!(Queue, u);
+    #         end
+    #     end
+    #     rBFS(G, to);
+    #
+    #     return;
+    # end
+    #
+    # rBFS(G, to);
+    
     DFS(G, from, to);
+
     return Paths;
 
 end
