@@ -152,7 +152,7 @@ Perform a DFS on a graph structure.
 Returns the paths connecting node "from" to node "to" as a vector of vectors of strings.
 Returns an empty vector if the nodes are not connected. 
 """
-function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::Vector{Vector{String}}
+function findAllSequences(G::Graph, from::AbstractString, to::AbstractString, maxiter::Int)::Vector{Vector{String}}
     if !haskey(G.nodelist, from)
         println("Node \"$from\" is not in the node list. Quitting.");
         exit(1);
@@ -166,9 +166,9 @@ function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::V
     nonvisited = Set{String}(keys(G.nodelist));
     Paths = Vector{Vector{String}}();
 
-    function DFS(G::Graph, from::AbstractString, to::AbstractString)::Nothing
+    function DFS(G::Graph, from::AbstractString, to::AbstractString, maxiter::Int)::Nothing
         from ∉ nonvisited && return;
-        length(Path) > 50 && return;
+        length(Path) > maxiter && return;
 
         pop!(nonvisited, from);
         push!(Path, from);
@@ -179,7 +179,7 @@ function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::V
             return;
         end
         for b in G.nodelist[from].neighbors
-            DFS(G,b,to);
+            DFS(G,b,to, maxiter);
         end
         pop!(Path);
         push!(nonvisited, from);
@@ -214,7 +214,7 @@ function findAllSequences(G::Graph, from::AbstractString, to::AbstractString)::V
     #
     # rBFS(G, to);
     
-    DFS(G, from, to);
+    DFS(G, from, to, maxiter);
 
     return Paths;
 
