@@ -25,14 +25,20 @@ function parse_commandline()
             arg_type = String
             default = "../simulation/data/"
 
-        # "--exo_delays"
+        "--select_line"
+            help = "Select part of the railway network by loading the list of ops from files in the source data path folder.\n\
+            E.g., --select_line NB-MI loads the file NB-MI.csv"
+            arg_type = String
+            default = ""
+
+            # "--exo_delays"
         #     help = "Number of files with exo delays to be created."
         #     arg_type = Int
         #     default = 0
 
-        "--use_real_time"
-            help = "Use the real time column of the PAD timetable instead of the scheduled time."
-            action = :store_true
+        # "--use_real_time"
+        #     help = "Use the real time column of the PAD timetable instead of the scheduled time."
+        #     action = :store_true
 
         "--pad_schedule"
             help = "Use the scheduled time in the PAD file instead of the scheduled time found in XML."
