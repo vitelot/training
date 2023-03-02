@@ -121,10 +121,21 @@ function xmlfile_from_date()::String
         return source_path * "xml-20$year.csv";
 end
 
-# function selectLine!(df::DataFrame)
-#         linefile = source_path*select_line*".csv";
+function selectLine!(df::DataFrame)::Nothing
+        
+        linefile = source_path*select_line*".csv";
+        
+        @info "Restricting the network to the operational points defined in file $linefile";
+        
+        if !isfile(linefile)
+                error("Line file $linefile not found.")
+        end
 
-# end
+        dfline = CSV.read(linefile, comment="#", DataFrame);
+        filter!(x->x.bst ∈ dfline.bst, df);
+
+        return;
+end
 
 """
     loadPAD(file::String)::DataFrame
@@ -155,7 +166,7 @@ function loadPAD(file::String)::DataFrame
         
         # remove OP at the border
         filter!(x->!startswith(x.bstname,"Staatsgrenze"), bigpad);
-        
+
         # remove strange bst "B  G" homonym of "BG"
         # println(filter(x->x.bst=="BG", bigpad));
         # println(bigpad);
@@ -964,7 +975,12 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         dfblk = findBlocks(dfxml); #, outblkfile);
         
         cleanBstPADXML!(dfpad,dfxml);
-        
+
+        if !isempty(select_line) 
+                selectLine!(dfpad);
+                selectLine!(dfxml);
+        end
+
         if pad_schedule
                 dfout = trainMatch(dfpad,dfxml,dfblk);
         else
