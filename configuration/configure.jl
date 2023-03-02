@@ -80,9 +80,10 @@ in_file       = parsed_args["file"]
 source_path   = parsed_args["source_data_path"]
 target_path   = parsed_args["target_data_path"]
 # nr_exo_delays = parsed_args["exo_delays"];
-use_real_time = parsed_args["use_real_time"];
+# use_real_time = parsed_args["use_real_time"];
 find_rotations= parsed_args["rotations"];
 pad_schedule  = parsed_args["pad_schedule"];
+select_line   = parsed_args["select_line"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -119,6 +120,11 @@ function xmlfile_from_date()::String
         year = split(date, ".")[3];
         return source_path * "xml-20$year.csv";
 end
+
+# function selectLine!(df::DataFrame)
+#         linefile = source_path*select_line*".csv";
+
+# end
 
 """
     loadPAD(file::String)::DataFrame
@@ -948,7 +954,7 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
         @info("\tSaving rotations to file $outfile");
 end
         
-function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
+function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")::Nothing
         @info "Composing the timetable";
 
         dfpad = loadPAD(padfile);
@@ -959,7 +965,11 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         
         cleanBstPADXML!(dfpad,dfxml);
         
-        dfout = trainMatch(dfpad,dfxml,dfblk);
+        if pad_schedule
+                dfout = trainMatch(dfpad,dfxml,dfblk);
+        else
+                dfout = trainMatchXML(dfpad,dfxml,dfblk);
+        end
 
         passingStation!(dfout,dfsta);
 
@@ -967,28 +977,6 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
 
         @info "\tSaving timetable on file \"$outfile\"";
         sort!(dfout, [:train, :scheduledtime, :distance])
-        CSV.write(outfile, dfout);
-end
-
-function composeXMLTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")
-        @info "Composing the timetable using XML and the trains listed in PAD";
-
-        dfpad = loadPAD(padfile);
-        dfxml = loadXML(xmlfile);
-        dfsta = CSV.read(stationfile, DataFrame);
-
-        dfblk = findBlocks(dfxml); #, outblkfile);
-        
-        cleanBstPADXML!(dfpad,dfxml);
-        
-        dfout = trainMatchXML(dfpad,dfxml,dfblk);
-
-        passingStation!(dfout,dfsta);
-
-        handleJoinedTrains!(dfout);
-        
-        @info "\tSaving timetable on file \"$outfile\"";   
-        sort!(dfout, [:train, :scheduledtime, :distance]); 
         CSV.write(outfile, dfout);
 
         nothing;
@@ -1148,11 +1136,7 @@ function configure()
 
         generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
-        if pad_schedule
-                composeTimetable(padfile,xmlfile, stationfile, timetablefile);
-        else
-                composeXMLTimetable(padfile,xmlfile, stationfile, timetablefile);
-        end
+        composeTimetable(padfile,xmlfile, stationfile, timetablefile);
         
         if find_rotations
                 Rotations(padfile, timetablefile, rotationfile);
