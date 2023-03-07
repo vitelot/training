@@ -1,0 +1,5 @@
+block,line,length,direction,tracks,ismono
+NB-MD,10501,27720,2,1,0
+MD-NB,10501,27720,1,1,0
+MD-MI,10501,5772,2,1,0
+MI-MD,10501,5772,1,1,0
