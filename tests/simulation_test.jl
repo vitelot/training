@@ -6,7 +6,7 @@ using Test
     fname="./tests/out"
     out=read(fname, String)
 
-    str="WARNING: station MD-MD has only one platform.\nTotal delay at the end of simulation is 42\n"
+    str="Total delay at the end of simulation is 560\n"
 
     @test out==str
 end

@@ -30,26 +30,25 @@ end
 
 function initBlock(r::DataFrameRow)
     # r is a row of the block df containing: block,line,length,direction,tracks,ismono
-
     # now a block is determined by its line too
     name = string(r.block, "-", r.line); 
-
+    
     # the number of tracks is always 1 since we specify the line number; 
     # unless ricalculated with try and catch;
     # only in stations we may have many tracks;
     # one track may be used both ways if ismono==true
     
     b = Block(
-            name,
-            r.line,
-            r.length,
-            r.direction,
-            r.ismono,
-            r.tracks,
-            0,
-            Set{String}()
+        name,
+        string(r.line),
+        r.length,
+        r.direction,
+        r.ismono,
+        r.tracks,
+        0,
+        Set{String}()
         );
-
+        
     return b;
 end
 
