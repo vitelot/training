@@ -3,7 +3,7 @@
 using CSV, DataFrames;
 
 import Dates: unix2datetime, Date, Time;
-function outputRailML(outfilename::String, df_timetable::DataFrame)
+function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::DataFrame)
 
     # @info "RailML export not implemented yet.";
     # return;
@@ -14,6 +14,13 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
     open(outfilename, "w") do OUT
         pout(n::Int,x::String) = println(OUT, "   "^n,x);
         pout(x::String) = println(OUT, x);
+
+        Ops = Dict{String, NamedTuple{(:name, :code, :desc), Tuple{String, String, String}}}();
+        for r in eachrow(df_ops)
+            name = replace(r.name, r"[ _]+" => "");
+            Ops[name] = (name=r.name, code=string(r.code), desc=r.description);
+        end
+
 
         # preamble
         pout("""<?xml version="1.0" ?>""");
@@ -34,7 +41,9 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
 
         # Operation Control Points (ocp) loop
         for o in unique(df_timetable.opid)
-            pout(3,"<ocp id=\"ocp_$o\" code=\"9999\" name=\"$o\" description=\"$o\" parentOcpRef=\"ocp_$o\">");
+            haskey(Ops,o) || @info "\tKey $o is missing."
+            name, code, desc  = get(Ops, o, (name=o, code="9999", desc=o));
+            pout(3,"<ocp id=\"ocp_$o\" code=\"$code\" name=\"$name\" description=\"$desc\" parentOcpRef=\"ocp_$o\">");
 
             pout(3,"</ocp>");
         end
@@ -186,8 +195,10 @@ function csv2railml()
 
     @info "Processing file $timetablefile";
 
-    df = readCSV(timetablefile);
-    outputRailML(railmlfile, df);
+    dftbl = readCSV(timetablefile);
+    dfops = CSV.read("data/OperationalPoints.csv", comment="#", DataFrame);
+
+    outputRailML(railmlfile, dftbl, dfops);
 end
 
 csv2railml()
