@@ -40,7 +40,7 @@ data/
 # Simone things
 # data/img
 # data/delays
-postprocessing
+# postprocessing # commented by Vito
 preprocessing/trainIni.in
 preprocessing/train_starts.ipynb
 map/
