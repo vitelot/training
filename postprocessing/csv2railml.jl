@@ -1,3 +1,7 @@
+@info "Loading libraries";
+
+using CSV, DataFrames;
+
 import Dates: unix2datetime, Date, Time;
 function outputRailML(outfilename::String, df_timetable::DataFrame)
 
@@ -167,3 +171,23 @@ function outputRailML(outfilename::String, df_timetable::DataFrame)
         pout("</railml>");
     end
 end
+
+function readCSV(timetablefile::String)::DataFrame
+    if !isfile(timetablefile)
+        @warn "Input file $timetablefile does not exist. Nothing to do."
+        return;
+    end
+    return CSV.read(timetablefile, comment="#", DataFrame);
+end
+
+function csv2railml()
+    timetablefile = "data/timetable.csv";
+    railmlfile = splitext(timetablefile)[1] * ".railml";
+
+    @info "Processing file $timetablefile";
+
+    df = readCSV(timetablefile);
+    outputRailML(railmlfile, df);
+end
+
+csv2railml()
