@@ -1,8 +1,18 @@
 @info "Loading libraries";
 
 using CSV, DataFrames;
-
 import Dates: unix2datetime, Date, Time;
+
+UString = Union{String,Missing};
+
+mutable struct Opoint
+    name::UString
+    db640::UString
+    code::UString
+    desc::UString
+    coord::UString
+end
+
 function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::DataFrame)
 
     # @info "RailML export not implemented yet.";
@@ -15,10 +25,10 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
         pout(n::Int,x::String) = println(OUT, "   "^n,x);
         pout(x::String) = println(OUT, x);
 
-        Ops = Dict{String, NamedTuple{(:name, :code, :desc), Tuple{String, String, String}}}();
+        Ops = Dict{String, Opoint}();
         for r in eachrow(df_ops)
-            name = replace(r.name, r"[ _]+" => "");
-            Ops[name] = (name=r.name, code=string(r.code), desc=r.description);
+            id = replace(r.name, r"[ _]+" => "");
+            Ops[id] = Opoint(r.name, r.db640, string(r.code), r.description, r.coordinates);
         end
 
 
@@ -42,9 +52,14 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
         # Operation Control Points (ocp) loop
         for o in unique(df_timetable.opid)
             haskey(Ops,o) || @info "\tKey $o is missing."
-            name, code, desc  = get(Ops, o, (name=o, code="9999", desc=o));
-            pout(3,"<ocp id=\"ocp_$o\" code=\"$code\" name=\"$name\" description=\"$desc\" parentOcpRef=\"ocp_$o\">");
+            op = get(Ops, o, Opoint(o, o, "", o, ""));
+            db640 = op.db640;
+            code = op.code;
+            desc = op.desc;
+            coord = op.coord;
 
+            pout(3,"<ocp id=\"ocp_$o\" code=\"$code\" name=\"$db640\" description=\"$desc\" parentOcpRef=\"ocp_$o\">");
+            pout(4, "<geoCoord coord=\"$coord\"/>");
             pout(3,"</ocp>");
         end
 
