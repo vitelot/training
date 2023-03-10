@@ -1,13 +1,1 @@
-#! /bin/sh
-
-echo "#####################################"
-echo "######## PREPROCESSING ##############"
-echo "#####################################\n"
-
-cd ../preprocessing
-
-echo "julia --project=../environment preprocessing.jl $@"
-julia --project=../environment preprocessing.jl $@
-
-
-# https://www.shellscript.sh/
+/Users/servedio/prgs/training/scripts/preprocessing.sh
