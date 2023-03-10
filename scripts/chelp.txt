@@ -1,0 +1,29 @@
+usage: configure.jl [-d DATE] [-f FILE]
+                    [--source_data_path SOURCE_DATA_PATH]
+                    [--target_data_path TARGET_DATA_PATH]
+                    [--select_line SELECT_LINE] [--pad_schedule]
+                    [--rotations] [-h]
+
+optional arguments:
+  -d, --date DATE       Date from which we want to extract the
+                        timetable. (default: "09.05.18")
+  -f, --file FILE       PAD file with the timetable to process.
+                        (default: "")
+  --source_data_path SOURCE_DATA_PATH
+                        Source of the PAD timetable files. (default:
+                        "../preprocessing/data/")
+  --target_data_path TARGET_DATA_PATH
+                        Folder to write processed data for the
+                        simulation. (default: "../simulation/data/")
+  --select_line SELECT_LINE
+                        Select part of the railway network by loading
+                        the list of ops from files in the source data
+                        path folder. E.g., --select_line NB-MI loads
+                        the file NB-MI.csv (default: "")
+  --pad_schedule        Use the scheduled time in the PAD file instead
+                        of the scheduled time found in XML.
+  --rotations           Create a file with train dependencies. One
+                        train cannot start if the other has not
+                        arrived yet.
+  -h, --help            show this help message and exit
+

@@ -1,0 +1,10 @@
+#! /bin/sh
+
+file="chelp.txt"
+
+if [ ! -e $file ]
+then
+  julia --project=../environment ../configuration/configure.jl -h > $file
+fi
+
+cat $file

@@ -124,7 +124,10 @@ function convertAll(outfile = "xml-timetable.csv"; raw=true)
         # remove OP with no conventional name and of type Ixxx (OP at border)
         filter!(x->!occursin(r"^I\d+$", x.bst), df);
         # resolving homonym BG and "B  G"
-        transform!(df, :bst => ByRow(x->replace(x, r"^B +G" => "BXG")) => :bst);
+        # transform!(df, :bst => ByRow(x->replace(x, r"^B +G" => "BXG")) => :bst);
+        # we remove "B  G" that is a Grenzepunkt
+        filter!(x->!occursin(r"^B +G", x.bst), df);
+
         # remove spaces and underscores from OP names
         transform!(df, :bst => ByRow(x->replace(x, r"[ _]+" => "")) => :bst);
         # remove tabu` stations
