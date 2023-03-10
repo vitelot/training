@@ -1,6 +1,6 @@
 #! /bin/sh
 
-file="help.txt"
+file="rhelp.txt"
 
 if [ ! -e $file ]
 then
