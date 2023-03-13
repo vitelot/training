@@ -970,6 +970,16 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
                 D[d] = maintrain;
         end
 
+        joiners = filter(x->occursin("+",x), alltrains);
+        for j in joiners
+                T = split(j,"+");
+                # for t in T
+                        # use only the first one since D can hold one value only
+                        D[j] = split(T[1], "_pop")[1];
+                # end
+        end
+
+
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
         # file = "../simulation/data/rotations.csv";
         @info("\tSaving rotations to file $outfile");
@@ -990,6 +1000,14 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
                 r.trainid = fill(d, length(r.trainid));
                 append!(df, r);
         end
+        for j in joiners
+                # for example: j = "SB_37630+REX_7630_pop_NFL"
+                maintrain = split(split(j,"+")[1], "_pop")[1];
+                r = df[df.trainid .== maintrain, :];
+                r.trainid = fill(j, length(r.trainid));
+                append!(df, r);
+        end
+
         tractionfile = splitdir(outfile)[1] * "/traction_units.csv";
         @info("\tSaving traction units to file $tractionfile");
         CSV.write(tractionfile, sort(df, :trainid));
