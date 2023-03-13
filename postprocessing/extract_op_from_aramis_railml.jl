@@ -35,7 +35,6 @@ function lineScan(file::String)::DataFrame
     return df;
 end
 
-
 function getInfra(infile::String)::DataFrame
     ##### INFRASTRUCTURE SCHEMA #####
     # <infrastructure id="IS_01" name="infrastructure" timetableRef="TT_01" rollingstockRef="RS_01">
@@ -70,7 +69,57 @@ function getInfra(infile::String)::DataFrame
         isnothing(code) && (code = missing);
 
         descr = attribute(o, "description");
-        # println(id);
+        isnothing(descr) && (descr = missing);
+
+        coord = length(o["geoCoord"]) == 0 ? missing : attribute(o["geoCoord"][1], "coord"); 
+        designators = o["designator"];
+        for d in designators
+            if attribute(d, "register") == "DB640";
+                db640 = attribute(d, "entry");
+                break;
+            end
+        end
+        # println( (name,db640,code,descr,coord) )
+        push!(df, (name,db640,code,descr,coord));
+    end
+
+    @info "\tFound $(length(unique(df.name))) operational points";
+
+    return df;
+end
+
+function getInfraDWH(infile::String)::DataFrame
+
+#   <ocp id="ocp_Mlx" name="W.Mat.-Laxenburg (in Wbf)" type="operationalName" code="Mlx">
+#     <geoCoord coord="48.1843 16.3703" epsgCode="4258" />
+#     <designator register="DB640" entry="Mlx" />
+#     <designator register="PLC" entry="05526" />
+#   </ocp>
+
+    @info "Reading file $infile";
+    xdoc = parse_file(infile);
+
+    # get the root element
+    xroot = root(xdoc);  # an instance of XMLElement: <railml>
+    
+    @info "Extracting information on operational points";
+
+    Infra = xroot["infrastructure"];
+    Ops = Infra[1]["operationControlPoints"][1]["ocp"];
+
+    df = DataFrame(name=UString[], db640=UString[], code=UString[], description=UString[], coordinates=UString[]);
+
+    for o in Ops
+        id = attribute(o, "id");
+        db640 = "";
+        code = attribute(o, "code");
+        isnothing(code) && (code = missing);
+
+        name = replace(uppercase(code), r" +" => "");
+
+        descr = attribute(o, "name");
+        isnothing(descr) && (descr = missing);
+
         coord = length(o["geoCoord"]) == 0 ? missing : attribute(o["geoCoord"][1], "coord"); 
         designators = o["designator"];
         for d in designators
@@ -91,10 +140,16 @@ end
 pwd()
 cd("postprocessing")
 
-file = "data/railml_2022-08-05.xml";
+file1 = "data/railml_2022-08-05.xml";
+file2 = "data/ZugDB2022toBeOrdered20220728_030006.railml";
 
 # df = lineScan(file);
 # CSV.write("data/OperationalPoints-small.csv", sort(df, :name));
 
-df = getInfra(file);
-CSV.write("data/OperationalPoints.csv", sort(df, :name));
+df1 = getInfra(file1);
+# CSV.write("data/OperationalPoints.csv", sort(df, :name));
+
+df2 = getInfraDWH(file2);
+
+append!(df1, antijoin(df2,df1, on=:db640));
+CSV.write("data/OperationalPoints.csv", sort(df1, :name));

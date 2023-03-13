@@ -52,13 +52,13 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
         # Operation Control Points (ocp) loop
         for o in unique(df_timetable.opid)
             haskey(Ops,o) || @info "\tKey $o is missing."
-            op = get(Ops, o, Opoint(o, o, "", o, ""));
+            op = get(Ops, o, Opoint(o, o, o, o, ""));
             db640 = op.db640;
             code = op.code;
             desc = op.desc;
             coord = op.coord;
 
-            pout(3,"<ocp id=\"ocp_$o\" code=\"$code\" name=\"$db640\" description=\"$desc\" parentOcpRef=\"ocp_$o\">");
+            pout(3,"<ocp id=\"ocp_$o\" code=\"$code\" name=\"$db640\" description=\"$desc\">"); # parentOcpRef=\"ocp_$o\">");
             pout(4, "<geoCoord coord=\"$coord\"/>");
             pout(3,"</ocp>");
         end
@@ -103,16 +103,6 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
                 on += 1;
             end
             pout(4, "</trainOrder>");
-
-        #     <trainOrder>
-        #     <vehicleRef orderNumber="1" vehicleRef="veh_twagen_motor_948147460968_4"/>
-        #     <vehicleRef orderNumber="2" vehicleRef="veh_twagen_948170460968_4"/>
-        #     <vehicleRef orderNumber="3" vehicleRef="veh_twagen_948147465967_4"/>
-        #     <vehicleRef orderNumber="4" vehicleRef="veh_twagen_948147465868_4"/>
-        #     <vehicleRef orderNumber="5" vehicleRef="veh_twagen_948170460869_4"/>
-        #     <vehicleRef orderNumber="6" vehicleRef="veh_twagen_motor_948147460869_4"/>
-        # </trainOrder>
-
 
             pout(3, "</formation>");
         end
@@ -174,17 +164,17 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
                 if kind == "b"
                     kind = "begin";
                     pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
-                    pout(6,"<times scope=\"actual\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    # pout(6,"<times scope=\"actual\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
                     pout(6,"<times scope=\"scheduled\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
                 elseif kind == "e"
                     kind = "end";
                     pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
-                    pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\"/>")
+                    # pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\"/>")
                     pout(6,"<times scope=\"scheduled\" arrival=\"$sched\" arrivalDay=\"$dayidsched\"/>")
                 elseif kind == "p"
                     kind = "pass";  
                     pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
-                    pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    # pout(6,"<times scope=\"actual\" arrival=\"$real\" arrivalDay=\"$dayidreal\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
                     pout(6,"<times scope=\"scheduled\" arrival=\"$sched\" arrivalDay=\"$dayidsched\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
                 elseif kind == "a"
                     seq -= 1;
@@ -207,7 +197,7 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
                         end
                     end
                     pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
-                    pout(6,"<times scope=\"actual\" arrival=\"$arrivalreal\" arrivalDay=\"$arrivalrealday\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
+                    # pout(6,"<times scope=\"actual\" arrival=\"$arrivalreal\" arrivalDay=\"$arrivalrealday\" departure=\"$real\" departureDay=\"$dayidreal\"/>")
                     pout(6,"<times scope=\"scheduled\" arrival=\"$arrivalsched\" arrivalDay=\"$arrivalschedday\" departure=\"$sched\" departureDay=\"$dayidsched\"/>")
                     islastarrival = false; 
                 end
