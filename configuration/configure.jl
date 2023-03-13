@@ -34,7 +34,7 @@ parsed_args = parse_commandline()
 
 @info "Loading libraries";
 
-using CSV, DataFrames;
+using CSV, DataFrames, Dates;
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
@@ -84,6 +84,7 @@ target_path   = parsed_args["target_data_path"]
 find_rotations= parsed_args["rotations"];
 pad_schedule  = parsed_args["pad_schedule"];
 select_line   = parsed_args["select_line"];
+cut_day       = parsed_args["cut_day"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -180,6 +181,12 @@ function loadPAD(file::String)::DataFrame
                 :loco1, :loco2, :loco3, :loco4, :loco5
         );
         
+        if cut_day
+                day = Date(unix2datetime(minimum(bigpad.scheduledtime)));
+                @info "Restricting the analysis to day $day ignoring trains over midnight."
+                filter!(x->Date(unix2datetime(x.scheduledtime))==day, bigpad);
+        end
+
         sort(bigpad, [:train, :scheduledtime]);
 end
 
