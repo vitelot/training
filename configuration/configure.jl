@@ -957,7 +957,11 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
                 end
         end
         
-
+        detachers = filter(x->occursin("_dtc",x), alltrains);
+        for d in detachers
+                maintrain = split(d, "_dtc")[1];
+                D[d] = maintrain;
+        end
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
         # file = "../simulation/data/rotations.csv";
@@ -971,6 +975,12 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
                 maintrain = split(p,"_pop_")[1];
                 r = df[df.trainid .== maintrain, :];
                 r.trainid = fill(p, length(r.trainid));
+                append!(df, r);
+        end
+        for d in detachers
+                maintrain = split(d,"_dtc")[1];
+                r = df[df.trainid .== maintrain, :];
+                r.trainid = fill(d, length(r.trainid));
                 append!(df, r);
         end
         tractionfile = splitdir(outfile)[1] * "/traction_units.csv";
