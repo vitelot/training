@@ -961,8 +961,22 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
         # file = "../simulation/data/rotations.csv";
-        CSV.write(outfile, dd);
         @info("\tSaving rotations to file $outfile");
+        CSV.write(outfile, dd);
+
+        # let's also save the traction units
+        select!(df, :trainid, r"loco");
+        unique!(df);
+        for p in poppers
+                maintrain = split(p,"_pop_")[1];
+                r = df[df.trainid .== maintrain, :];
+                r.trainid = fill(p, length(r.trainid));
+                append!(df, r);
+        end
+        tractionfile = splitdir(outfile)[1] * "/traction_units.csv";
+        @info("\tSaving traction units to file $tractionfile");
+        CSV.write(tractionfile, sort(df, :trainid));
+
 end
         
 function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")::Nothing
