@@ -13,7 +13,7 @@ mutable struct Opoint
     coord::UString
 end
 
-function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::DataFrame)
+function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::DataFrame, df_loko::DataFrame)
 
     # @info "RailML export not implemented yet.";
     # return;
@@ -68,6 +68,57 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
 
 # rolling stock
         pout(1, "<rollingstock id=\"RS_01\" name=\"rollingstock\" infrastructureRef=\"IS_01\" timetableRef=\"TT_01\">");
+
+        pout(2, "<vehicles>");
+        dl = select(df_loko, r"loco");
+        # aggregate all locos into one vector
+        vehicles = unique(dropmissing(stack(dl,:)).value);
+        for v in vehicles
+            (id, nr) = split(v,".");
+            vid = "$id$nr"; 
+            pout(3, "<vehicle id=\"veh_$vid\" code=\"$vid\" name=\"$v\">");
+            pout(4, "<classification>");
+            pout(5, "<operator operatorClass=\"$id\"/>");
+            pout(4, "</classification>");
+            pout(3,"</vehicle>");
+        end
+        pout(2, "</vehicles>");
+
+        pout(2, "<formations>");
+        
+        gd = groupby(df_loko, :trainid);
+
+        for g in gd
+            trainid = g.trainid[1];
+            (cat,nr) = split(trainid,"_", limit=2);
+            pout(3, "<formation id=\"for_$nr\">");
+            
+            pout(4, "<trainOrder>");
+            on = 1;
+            locos = stack(g, r"loco");
+            for l in locos.value
+                ismissing(l) && continue;
+                vid = replace(l, "." => "");
+                pout(5, "<vehicleRef orderNumber=\"$on\" vehicleRef=\"veh_$vid\"/>");
+                on += 1;
+            end
+            pout(4, "</trainOrder>");
+
+        #     <trainOrder>
+        #     <vehicleRef orderNumber="1" vehicleRef="veh_twagen_motor_948147460968_4"/>
+        #     <vehicleRef orderNumber="2" vehicleRef="veh_twagen_948170460968_4"/>
+        #     <vehicleRef orderNumber="3" vehicleRef="veh_twagen_948147465967_4"/>
+        #     <vehicleRef orderNumber="4" vehicleRef="veh_twagen_948147465868_4"/>
+        #     <vehicleRef orderNumber="5" vehicleRef="veh_twagen_948170460869_4"/>
+        #     <vehicleRef orderNumber="6" vehicleRef="veh_twagen_motor_948147460869_4"/>
+        # </trainOrder>
+
+
+            pout(3, "</formation>");
+        end
+
+        pout(2, "</formations>");
+
         pout(1, "</rollingstock>");
 
 # timetable
@@ -104,7 +155,7 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
             trainid = df.trainid[1];
             (cat,nr) = split(trainid,"_", limit=2);
             pout(3,"<trainPart id=\"trp_$nr\" processStatus=\"actual\" categoryRef=\"cat_$(cat)_$(cat)\">")
-            #pout(4,"<formationTT formationRef="for_$nr" weight=\"\" length=\"\" speed=\"\"/>")
+            pout(4,"<formationTT formationRef=\"for_$nr\" weight=\"\" length=\"\" speed=\"\"/>")
             pout(4, "<ocpsTT>");
             seq = 0;
             for r in eachrow(df)
@@ -212,8 +263,9 @@ function csv2railml()
 
     dftbl = readCSV(timetablefile);
     dfops = CSV.read("data/OperationalPoints.csv", comment="#", DataFrame);
+    dfloko = CSV.read("data/traction_units.csv", types=String, comment="#", DataFrame);
 
-    outputRailML(railmlfile, dftbl, dfops);
+    outputRailML(railmlfile, dftbl, dfops, dfloko);
 end
 
 csv2railml()
