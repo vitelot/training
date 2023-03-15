@@ -67,14 +67,25 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
         pout(1, "</infrastructure>");
 
 # rolling stock
+        trains = unique(df_timetable.trainid);
+
         pout(1, "<rollingstock id=\"RS_01\" name=\"rollingstock\" infrastructureRef=\"IS_01\" timetableRef=\"TT_01\">");
 
         pout(2, "<vehicles>");
+        
         dl = select(df_loko, r"loco");
         # aggregate all locos into one vector
         vehicles = unique(dropmissing(stack(dl,:)).value);
         for v in vehicles
-            (id, nr) = split(v,".");
+            # println(v)
+
+            ss = split(v,".");
+            if length(ss) == 1
+                id = ss[1]; nr = "";
+            else
+                (id, nr) = ss;
+            end
+
             vid = "$id$nr"; 
             pout(3, "<vehicle id=\"veh_$vid\" code=\"$vid\" name=\"$v\">");
             pout(4, "<classification>");
@@ -90,6 +101,7 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
 
         for g in gd
             trainid = g.trainid[1];
+            trainid ∈ trains || continue; # skip if not in the timetable
             (cat,nr) = split(trainid,"_", limit=2);
             pout(3, "<formation id=\"for_$nr\">");
             
@@ -102,6 +114,8 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
                 pout(5, "<vehicleRef orderNumber=\"$on\" vehicleRef=\"veh_$vid\"/>");
                 on += 1;
             end
+            on == 1 && @info "Empty formation for_$nr for train $trainid";
+
             pout(4, "</trainOrder>");
 
             pout(3, "</formation>");
@@ -123,7 +137,7 @@ function outputRailML(outfilename::String, df_timetable::DataFrame, df_ops::Data
         pout(2, "</timetablePeriods>");
         
         pout(2, "<categories>");        
-        trains = unique(df_timetable.trainid);
+        # trains = unique(df_timetable.trainid);
         cats = [split(x,"_")[1] for x in trains];
         for c in unique(cats)
             pout(3, """<category id="cat_$(c)_$(c)" code="$c" name="$c" trainUsage="passenger"/>""")

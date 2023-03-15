@@ -157,6 +157,7 @@ function loadPAD(file::String)::DataFrame
                         :scheduledtime, :realtime,
                         :delay,
                         :loco1, :loco2, :loco3, :loco4, :loco5],
+                types = String,
                 skipto = 2) |> DataFrame;
         
         dropmissing!(bigpad, :scheduledtime);
@@ -879,6 +880,7 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
         @info "Generating train reassignements";
         
         df = loadPAD(padfile);
+
         dftab = CSV.read(timetablefile, select=[:train], comment="#", DataFrame);
         alltrains = unique(dftab.train);
 
@@ -907,19 +909,24 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
 
         locosymbols = filter(x->occursin("loco",x), names(df));
         # associate locos with their trains
+        # newloko = 1;
         for r in eachrow(df)
                 train = r.trainid;
                 in(train, S) && continue;
 
                 L = String[];
                 for li in locosymbols
-                    ismissing(r[li]) || push!(L, string(r[li]));
+                    isempty(r[li]) || push!(L, string(r[li]));
                 end
                 push!(S,train);
                 for l in L
                         get!(LokoTrain, l, String[]);
                         push!(LokoTrain[l], train);
                 end
+                # if isempty(L) # no locos found -> assign a default one
+                #         LokoTrain[string("9999.", newloko)] = [train];
+                #         newloko += 1;
+                # end
         end
 
         D = Dict{String,String}();
@@ -987,7 +994,20 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
 
         # let's also save the traction units
         select!(df, :trainid, r"loco");
+        
         unique!(df);
+        
+        nc = ncol(df);
+        newloko = 1;
+        for r in eachrow(df)
+                # r[1] == "EC_390" && println("### ", collect(r)," ", count(ismissing.(collect(r))));
+                if count(isempty.(collect(r))) == nc-1 # no loco present
+                        r[2] = string("9999.", newloko); # add a default one
+                        newloko += 1;
+                        # println(r)
+                end
+        end
+
         for p in poppers
                 maintrain = split(p,"_pop_")[1];
                 r = df[df.trainid .== maintrain, :];
