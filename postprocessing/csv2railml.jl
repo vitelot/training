@@ -378,13 +378,15 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
         pout(1, "</rollingstock>");
 
 # timetable
-        pout(1, "<timetable id=\"TT_01\" name=\"timetable\" infrastructureRef=\"IS_01\" rollingstockRef=\"RS_01\">")
+        pout(1, """  <timetable infrastructureRef="infra_ZugDB_PR" rollingstockRef="tt_ZugDB_PR" id="tt_ZugDB_PR">""");
+        # pout(1, "<timetable id=\"TT_01\" name=\"timetable\" infrastructureRef=\"IS_01\" rollingstockRef=\"RS_01\">")
         pout(2, "<timetablePeriods>");
         (mintime, maxtime) = extrema(df_timetable.t_scheduled);
         minday = Date(unix2datetime(mintime));
         starttime = Time(unix2datetime(mintime));
         maxday = Date(unix2datetime(maxtime));
         endtime = Time(unix2datetime(maxtime));
+
         pout(3, """<timetablePeriod id="ttp_01" name="Betriebstag $minday" startDate="$minday" endDate="$maxday" startTime="$starttime" endTime="$endtime"/>""")
         pout(2, "</timetablePeriods>");
         
@@ -397,6 +399,13 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
         pout(2, "</categories>");
         
         # train parts
+
+        # <trainPart id="tp_45260.1.261371.opp_261371" code="45260" trainNumber="45260" processStatus="toBeOrdered" timetablePeriodRef="ttp_2021_2022" categoryRef="cat_261371">
+        #     <formationTT formationRef="fmt_2558" weight="90000" timetableLoad="0" length="18.980000" speed="160" />
+        #     <operatingPeriodRef ref="opp_261371" />
+        #     <ocpsTT>
+
+
         pout(2, "<trainParts>");
         
         gd = groupby(df_timetable, :trainid);
@@ -410,7 +419,7 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
             df = sort(dfunsorted, [:t_scheduled]);
             trainid = df.trainid[1];
             (cat,nr) = split(trainid,"_", limit=2);
-            pout(3,"<trainPart id=\"trp_$nr\" processStatus=\"actual\" categoryRef=\"cat_$(cat)_$(cat)\">")
+            pout(3,"<trainPart id=\"trp_$nr\" code=\"$nr\" trainNumber=\"$nr\" processStatus=\"actual\" categoryRef=\"cat_$(cat)_$(cat)\">")
             pout(4,"<formationTT formationRef=\"for_$nr\" weight=\"\" length=\"\" speed=\"\"/>")
             pout(4, "<ocpsTT>");
             seq = 0;
@@ -427,6 +436,11 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
                 dayidreal  = (Date(unix2datetime(real))-minday).value;
                 sched = unix2datetime(r.t_scheduled) |> Time;
                 real = unix2datetime(r.t_real) |> Time;
+
+                #         <ocpTT sequence="1" ocpRef="ocp_83TS_CM" remarks="ZUGB" ocpType="pass">
+                #             <times departure="18:55:00" departureDay="0" scope="scheduled" />
+                #         </ocpTT>
+
                 if kind == "b"
                     kind = "begin";
                     pout(5,"<ocpTT ocpRef=\"ocp_$opid\" sequence=\"$seq\" ocpType=\"$kind\">")
@@ -481,6 +495,12 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
         # trains
         pout(2, "<trains>");
 
+        # <train id="tro_240869" type="operational" trainNumber="46667" scope="primary" name="" remarks="flex">
+        #     <trainPartSequence sequence="1">
+        #         <trainPartRef ref="tp_46667.1.240869.opp_240869" position="1" />
+        #     </trainPartSequence>
+        # </train>
+
         for t in trains
             (cat,nr) = split(t,"_", limit=2);
             pout(3, "<train id=\"train_$nr\" type=\"operational\" trainNumber=\"$nr\" processStatus=\"actual\">");
@@ -489,12 +509,6 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
             pout(4, "</trainPartSequence>");
             pout(3, "</train>");
         end
-        # <train id="train_19209_99837" type="operational" trainNumber="99837" processStatus="actual">
-        #            <trainPartSequence sequence="1">
-        #                          <trainPartRef ref="trp_19209_99837_PK_3_2"/>
-        #                          <brakeUsage brakeType="none" regularBrakePercentage="69"/>
-        #            </trainPartSequence>
-        #  </train>
 
         pout(2, "</trains>");
         pout(1, "</timetable>");
