@@ -62,6 +62,7 @@ const ACCEPTED_TRAJ_CODE        = ["Z","E"];
 const POPPING_JUMPS = 10; # number of jumps allowed to fill in timetable holes
 const FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to need to go through a station while transiting
 const STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
+const ARRIVE_IN_STATION = 20; # if a departure without arrive is detected, assume the train arrived this amount of seconds before
 
 # list of stations not found in the rinf data
 EXTRA_STATION_FILE = "./data/extra-stations.csv";
@@ -1033,7 +1034,29 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
         CSV.write(tractionfile, sort(df, :trainid));
 
 end
-        
+      
+function checkAD(dt::DataFrame)
+        # when a departure is found without an arrival it is because the arrival has been marked as 
+        # Ausfall. We then assume that the train arrived in station ARRIVE_IN_STATION seconds before.
+        @info "Checking arrive-departure combinations";
+        dfappend = similar(dt, 0);
+        gt = groupby(dt, :train);
+        for g in gt
+                lasttype = "";
+                for r in eachrow(g)
+                        type = r.transittype;
+                        if type == "d" && lasttype != "a" && rownumber(r) > 1
+                                @info ("\tDeparture with no arrive in train $(r.train), operational point $(r.bst)");
+                                push!(dfappend, (r.train, r.bst, "a", r.direction, r.line, r.distance, r.scheduledtime-ARRIVE_IN_STATION));
+                        end
+                        lasttype = type;
+                end
+        end
+        append!(dt, dfappend);
+
+        nothing;
+end
+
 function composeTimetable(padfile::String, xmlfile::String, stationfile::String, outfile="timetable.csv")::Nothing
         @info "Composing the timetable";
 
@@ -1059,8 +1082,10 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         passingStation!(dfout,dfsta);
 
         handleJoinedTrains!(dfout);
+        
+        checkAD(dfout);
 
-        @info "\tSaving timetable on file \"$outfile\"";
+        @info "Saving timetable on file \"$outfile\"";
         sort!(dfout, [:train, :scheduledtime, :distance])
         CSV.write(outfile, dfout);
 
@@ -1158,7 +1183,7 @@ end
 function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stationfile="stations.csv")
         @info "Doing a sanity check on the produced files"
 
-        dt = CSV.File(timetablefile, select=[:train,:bst]) |> DataFrame;
+        dt = CSV.File(timetablefile, select=[:train,:bst,:transittype]) |> DataFrame;
         ds = CSV.File(stationfile, select=[:id]) |> DataFrame;
         db = CSV.File(blkfile, select=[:block]) |> DataFrame;
         select!(db, :block => ByRow(x->split(x,"-")) => [:op1,:op2]);
@@ -1172,8 +1197,20 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
                 @warn "There are $(length(setdiff(sett,setb))) operational points that are in the timetable and not in the blocks. This is a problem";
         end
 
-        S = Set{String}();
         gt = groupby(dt, :train);
+        for g in gt
+                lasttype = "";
+                for r in eachrow(g)
+                        type = r.transittype;
+                        if type == "d" && lasttype != "a" && rownumber(r) != 1
+                                @warn ("Departure with no arrive in train $(r.train) ops $(r.bst)");
+                        end
+                        lasttype = type;
+                end
+        end
+
+        # check for Station coverage
+        S = Set{String}();
         for g in gt
                 last = "";
                 for r in eachrow(g)
