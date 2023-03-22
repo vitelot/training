@@ -312,8 +312,8 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
 
             pout(3,"<ocp id=\"ocp_$o\" name=\"$desc\" type=\"operationalName\" code=\"$db640\">");
             pout(4, "<geoCoord coord=\"$coord\"/>");
-            pout(4, "<designator register=\"DB640\" entry=\"$db640\">");
-            pout(4, "<designator register=\"PLC\" entry=\"$code\">");
+            pout(4, "<designator register=\"DB640\" entry=\"$db640\"/>");
+            pout(4, "<designator register=\"PLC\" entry=\"$code\"/>");
             pout(3,"</ocp>");
         end
 
