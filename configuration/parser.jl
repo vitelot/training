@@ -31,10 +31,10 @@ function parse_commandline()
             arg_type = String
             default = ""
 
-            # "--exo_delays"
-        #     help = "Number of files with exo delays to be created."
-        #     arg_type = Int
-        #     default = 0
+        "--exo_delays"
+            help = "Number of files with exo delays to be created."
+            arg_type = Int
+            default = 0
 
         # "--use_real_time"
         #     help = "Use the real time column of the PAD timetable instead of the scheduled time."
