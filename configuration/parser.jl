@@ -56,6 +56,10 @@ function parse_commandline()
             help = "Restrict the timetable to one day ignoring trains over midnight."
             action = :store_true
 
+        "--skip"
+            help = "Used to skip parts of code for testing."
+            action = :store_true
+
         # "--buffering"
         #     help = "Number of seconds to increase the buffering time of trains at selected stations stations. The list of trains and stations is in the code not in a file yet."
         #     arg_type = Int

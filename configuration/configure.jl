@@ -38,7 +38,7 @@ using CSV, DataFrames, Dates;
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
-# include("parser.jl");
+include("exo_delays.jl");
 
 import Base.pop!;
 function pop!(df::AbstractDataFrame)::NamedTuple
@@ -80,12 +80,13 @@ date          = parsed_args["date"] # default = "09.05.18"
 in_file       = parsed_args["file"]
 source_path   = parsed_args["source_data_path"]
 target_path   = parsed_args["target_data_path"]
-# nr_exo_delays = parsed_args["exo_delays"];
+nr_exo_delays = parsed_args["exo_delays"];
 # use_real_time = parsed_args["use_real_time"];
 find_rotations= parsed_args["rotations"];
 pad_schedule  = parsed_args["pad_schedule"];
 select_line   = parsed_args["select_line"];
 cut_day       = parsed_args["cut_day"];
+skip          = parsed_args["skip"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -1256,12 +1257,21 @@ function configure()
         stationfile = target_path*"stations.csv";
         rotationfile= target_path*"rotations.csv";
 
-        generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
+        # generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
-        composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        # composeTimetable(padfile,xmlfile, stationfile, timetablefile);
         
-        if find_rotations
-                Rotations(padfile, timetablefile, rotationfile);
+        # if find_rotations
+        #         Rotations(padfile, timetablefile, rotationfile);
+        # end
+
+        if nr_exo_delays>0
+                SampleExoDelays(
+                    "./data/NumberOfDelays.csv",
+                    "./data/DelayList.csv",
+                    "../simulation/data/timetable.csv",
+                    "../simulation/data/delays/imposed_exo_delay.csv",
+                    nr_exo_delays);
         end
 
         sanityCheck(timetablefile, outblkfile, stationfile);
