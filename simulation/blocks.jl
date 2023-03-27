@@ -184,16 +184,16 @@ Resets the dynamical variables of the blocks (trains running on them) in case of
 function resetDynblock(RN::Network)
     # passing the valuea of RN to modify it before restarting the simulation in the try and catch, 
     # resetting blocks is mandatory, being that it doesn't exit before re-entering in simulation
+    print_flow::Bool = Opt["print_flow"];
 
-    Opt["print_flow"] && @info "Resetting the occupation of blocks in order to restart.";
+    print_flow && @info "Resetting the occupation of blocks in order to restart.";
 
     for b in values(RN.blocks)
         b.nt = 0;
         b.train = Set{String}();
     end
     for s in values(RN.stations)
-        s.train = Set{String}();
-        s.nt = Dict(1 => 0, 2 => 0, 0 => 0);
+        s.train = Dict(1=>Set{String}(), 2=>Set{String}(), 0=>Set{String}());
     end
 
 end

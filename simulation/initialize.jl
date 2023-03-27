@@ -225,8 +225,15 @@ function imposeDelays(FL::Fleet, df::DataFrame)::Nothing
 
     for r in eachrow(df)
         (train, block, delay) = r;
-
         train ∈ BLACKLIST && continue;
+        
+        (o1, o2) = split(block, "-");
+        if o1 == o2 # it's a station
+            block = replace(o1, r"[ _]+" => "");
+        else
+            # if the block is not a station we have to find to which line it belongs
+            @warn "Delays on blocks other than stations [$block] is not implemented yet.";
+        end 
 
         FL.train[train].delay[block] = delay;
 

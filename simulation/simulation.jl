@@ -1,7 +1,7 @@
 """
 simulation engine
+returns true if trains get stuck
 """
-
 function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     # get the required options
@@ -120,7 +120,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 train.dyn.n_opoints_visited += 1;
                 n_op = train.dyn.n_opoints_visited; # number of opoints passed
 
-                c = count(i->i=='-', train.dyn.currentBlock);
+                c = count('-', train.dyn.currentBlock);
                 if c == 2 # it's a block
                     currentBlock = BK[train.dyn.currentBlock]; # e.g. "HGZ1-HG-22201"
                 elseif c==0 # it's a station
@@ -203,7 +203,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         end
                         delay_imposed = get(train.delay, nextBlockid,0);
                         # if delay_imposed>0
-                        #     println("$trainid,$nextBlockid,$delay_imposed");
+                        #     println("##### $trainid,$nextBlockid,$delay_imposed");
                         # end
 
                         tt = t + nextBlockRealTime + delay_imposed;

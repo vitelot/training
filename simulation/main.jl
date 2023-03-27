@@ -19,7 +19,7 @@ function one_sim(RN::Network, FL::Fleet)::Nothing
     #inserting delays from data/delays/ repo.
     if isdir(delay_folder)
          delays_array = loadDelays();
-         empty(delays_array) || imposeDelays(FL, delays_array[1]);
+         isempty(delays_array) || imposeDelays(FL, delays_array[1]);
 
     elseif inject_delays
          printstyled("The option --inject_delays is active, but no path specified to the folder with delays in par.ini\n", bold=true);
@@ -57,7 +57,11 @@ function multiple_sim(RN::Network, FL::Fleet)::Nothing
 
         isempty(delays_array) || imposeDelays(FL, delays_array[simulation_id]);
 
-        simulation(RN, FL, simulation_id) && println("successfully ended, restarting");
+        if simulation(RN, FL, simulation_id)
+            println("Trains got stuck in simulatio nr $simulation_id, restarting.");
+        else
+            println("Successfully ended, restarting.");
+        end
 
         resetSimulation(FL); # set trains dynamical variables to zero
         resetDynblock(RN); # reinitialize the blocks
