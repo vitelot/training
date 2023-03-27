@@ -76,17 +76,18 @@ TRAINS_TO_REMOVE_FILE = "./data/trains-to-remove.csv";
 # #CLI parser
 # parsed_args = parse_commandline()
 
-date          = parsed_args["date"] # default = "09.05.18"
-in_file       = parsed_args["file"]
-source_path   = parsed_args["source_data_path"]
-target_path   = parsed_args["target_data_path"]
-nr_exo_delays = parsed_args["exo_delays"];
+date::String          = parsed_args["date"] # default = "09.05.18"
+in_file::String       = parsed_args["file"]
+source_path::String   = parsed_args["source_data_path"]
+target_path::String   = parsed_args["target_data_path"]
+nr_exo_delays::Int    = parsed_args["exo_delays"];
+delays_only::Bool     = parsed_args["delays_only"];
 # use_real_time = parsed_args["use_real_time"];
-find_rotations= parsed_args["rotations"];
-pad_schedule  = parsed_args["pad_schedule"];
-select_line   = parsed_args["select_line"];
-cut_day       = parsed_args["cut_day"];
-skip          = parsed_args["skip"];
+find_rotations::Bool  = parsed_args["rotations"];
+pad_schedule::Bool    = parsed_args["pad_schedule"];
+select_line::String   = parsed_args["select_line"];
+cut_day::Bool         = parsed_args["cut_day"];
+skip::Bool            = parsed_args["skip"];
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -1232,7 +1233,7 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
         nothing;
 end
 
-function configure()
+function configure()::Nothing
         # padfile = "rex5803pad.csv";
         # xmlfile = "xml-2018.csv";
         
@@ -1249,7 +1250,16 @@ function configure()
                 padfile = source_path * in_file; #inputfile_from_date(date,source_path)
         end
 
-        
+        if nr_exo_delays>0 && delays_only
+                SampleExoDelays(
+                    "./data/NumberOfDelays.csv",
+                    "./data/DelayList.csv",
+                    "../simulation/data/timetable.csv",
+                    "../simulation/data/delays/imposed_exo_delay.csv",
+                    nr_exo_delays);
+                return;    
+        end
+
         xmlfile     = xmlfile_from_date();
         rinfbkfile  = source_path*"rinf-blocks.csv";
         rinfopfile  = source_path*"rinf-OperationalPoints.csv";
@@ -1275,6 +1285,8 @@ function configure()
         end
 
         sanityCheck(timetablefile, outblkfile, stationfile);
+
+        return;
 end
 
 configure();

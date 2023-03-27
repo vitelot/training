@@ -36,6 +36,11 @@ function parse_commandline()
             arg_type = Int
             default = 0
 
+        "--delays_only"
+            help = "Skip *ALL* the configuration actions except the sampling of delays."
+            action = :store_true
+
+
         # "--use_real_time"
         #     help = "Use the real time column of the PAD timetable instead of the scheduled time."
         #     action = :store_true
@@ -57,7 +62,7 @@ function parse_commandline()
             action = :store_true
 
         "--skip"
-            help = "Used to skip parts of code for testing."
+            help = "Used to skip parts of code for testing. [Not yet used]"
             action = :store_true
 
         # "--buffering"
