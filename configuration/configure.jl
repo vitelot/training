@@ -1257,13 +1257,13 @@ function configure()
         stationfile = target_path*"stations.csv";
         rotationfile= target_path*"rotations.csv";
 
-        # generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
+        generateBlocks(xmlfile, rinfbkfile, rinfopfile, outblkfile, stationfile); 
 
-        # composeTimetable(padfile,xmlfile, stationfile, timetablefile);
+        composeTimetable(padfile,xmlfile, stationfile, timetablefile);
         
-        # if find_rotations
-        #         Rotations(padfile, timetablefile, rotationfile);
-        # end
+        if find_rotations
+                Rotations(padfile, timetablefile, rotationfile);
+        end
 
         if nr_exo_delays>0
                 SampleExoDelays(
