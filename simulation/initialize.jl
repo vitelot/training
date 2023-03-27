@@ -65,10 +65,11 @@ end
 """takes the timetable.csv file and loads the Fleet """
 function loadFleet()::Fleet
 
-    file = Opt["timetable_file"];
-    rotation_file = Opt["rotation_file"];
+    file::String          = Opt["timetable_file"];
+    rotation_file::String = Opt["rotation_file"];
+    print_flow::Bool      = Opt["print_flow"];
 
-    Opt["print_flow"] && println("Loading fleet information")
+    print_flow && println("Loading fleet information")
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
@@ -80,8 +81,7 @@ function loadFleet()::Fleet
     Rot = Dict{String,String}();
     if isfile(rotation_file)
         Rot = Dict(CSV.File(rotation_file, comment="#"));
-        Opt["print_flow"] && println("Rotations loaded");
-        @info "Rotations loaded.";
+        print_flow && @info("Rotations loaded.");
     end
 
     # build the schedule for every train
@@ -114,19 +114,18 @@ function loadFleet()::Fleet
     end
 
     FL.n = length(Trains);
-    df = nothing; # free memory for a better world
+    #df = nothing; # free memory for a better world
 
     # initialize the delay on the blocks
     for train in keys(Trains)
         # be sure the schedule is sorted
         Schedule = Trains[train].schedule;
         issorted(Schedule) || sort!(Schedule);
-
     end
 
-    Opt["print_flow"] && println("Fleet loaded ($(FL.n) trains)")
-    return FL
+    print_flow && println("Fleet loaded ($(FL.n) trains)")
 
+    return FL;
 end
 
 
@@ -146,36 +145,36 @@ each df defines a different simulation to be done
 """
 function loadDelays()::Vector{DataFrame}
 
-    print_imposed_delay = Opt["print_imposed_delay"];
+    print_imposed_delay::Bool = Opt["print_imposed_delay"];
+    multi_simulation::Bool    = Opt["multi_simulation"];
+    repo::String              = Opt["imposed_delay_repo_path"];
 
-    delays_array=DataFrame[];
-
-    repo = Opt["imposed_delay_repo_path"]
     occursin(r"/$", repo) || (repo *= "/"); # add slash to the folder name if not present
+    
+    delays_array = DataFrame[];
 
-    files=sort(read_non_hidden_files(repo))
+    files = sort(read_non_hidden_files(repo));
 
 
     if isempty(files)
-        print_imposed_delay && println("No imposed delay file was found. Simulating without imposed delays.")
-        return (delays_array,1);
+        print_imposed_delay && @info("No imposed delay file was found. Simulating without imposed delays.");
+        return DataFrame[];
     end
 
-    if Opt["multi_simulation"]
+    if multi_simulation
         for file in files
-            delay= DataFrame(CSV.File(repo*file, comment="#"))
-            push!(delays_array,delay)
+            delaydf = DataFrame(CSV.File(repo*file, comment="#"));
+            push!(delays_array,delaydf);
         end
     else
         file = files[1];
-        delay= DataFrame(CSV.File(repo*file, comment="#"))
-        push!(delays_array,delay)
+        delaydf = DataFrame(CSV.File(repo*file, comment="#"));
+        push!(delays_array, delaydf);
     end
 
     Opt["print_flow"] && println("Delays loaded. The number of delay scenarios is: ",length(delays_array));
-    delay=nothing
 
-    return delays_array
+    return delays_array;
 end
 
 """
@@ -212,31 +211,31 @@ function resetDelays(FL::Fleet)
 end
 
 """imposes the delays for the actual simulation """
-function imposeDelays(FL::Fleet, df::DataFrame)
+function imposeDelays(FL::Fleet, df::DataFrame)::Nothing
 
     BLACKLIST = [""]; #["SB_29229"];
 
-    print_imposed_delay = Opt["print_imposed_delay"];
+    print_imposed_delay::Bool = Opt["print_imposed_delay"];
+    print_flow::Bool          = Opt["print_flow"];
 
     # reset the delays imposed in the previous simulation
     resetDelays(FL);
 
     # df = delays_array[simulation_id];
 
-    c=0;
-    for i = 1:nrow(df)
-        (train, block, delay) = df[i,:];
+    for r in eachrow(df)
+        (train, block, delay) = r;
 
         train ∈ BLACKLIST && continue;
 
-        FL.train[train].delay[block]=delay
+        FL.train[train].delay[block] = delay;
 
         if print_imposed_delay
             println("Imposed $delay to train $train, at block $block.")
         end
     end
 
-    Opt["print_flow"] && println("$(nrow(df)) Delays imposed");
+    print_flow && println("$(nrow(df)) Delays imposed");
     df = nothing;
 end
 

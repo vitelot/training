@@ -13,26 +13,6 @@ function read_non_hidden_files(repo::AbstractString)::Vector{String}
 end
 
 """
-If test mode is enabled, runs speed test without printing simulation results on std out
-"""
-function runTest(RN::Network, FL::Fleet)
-
-#    print("\nPerforming speed test with no output. Please be patient.\r")
-    # if Opt["test"] == 2
-    #     print("Using @btime ...\r")
-    #     @btime simulation($RN, $FL)
-    # else
-        @time simulation(RN, FL)
-        # @info("Macro @time was used.\n")
-    # end
-end
-
-# """ranged random number generator"""
-# function myRand(min::Float64, max::Float64)::Float64
-#     return rand(range(min,length=20,stop=max))
-# end
-
-"""
  function that calculates the status of the simulation as a string of blocks
  and their occupancies in terms of train id;
  has also a hashing function to try to speed up
