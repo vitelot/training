@@ -49,18 +49,19 @@ function multiple_sim(RN::Network, FL::Fleet)::Nothing
     end
     
     number_simulations = length(delays_array);
+    @info "Going to run $number_simulations simulations."
     for simulation_id in 1:number_simulations
 
-        print_flow && println("##################################################################");
+        @info("##################################################################");
         # print_flow && println("Starting simulation number $simulation_id")
-        print_flow && (@info "Starting simulation number $simulation_id");
+        @info "Starting simulation number $simulation_id";
 
         isempty(delays_array) || imposeDelays(FL, delays_array[simulation_id]);
 
         if simulation(RN, FL, simulation_id)
-            println("Trains got stuck in simulatio nr $simulation_id, restarting.");
+            @info("Trains got stuck in simulation nr $simulation_id, discarding.");
         else
-            println("Successfully ended, restarting.");
+            @info("Simulation nr $simulation_id successfully ended, restarting.");
         end
 
         resetSimulation(FL); # set trains dynamical variables to zero
