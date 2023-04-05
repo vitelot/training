@@ -202,6 +202,10 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                             end
                         end
                         delay_imposed = get(train.delay, nextBlockid,0);
+
+                        # here we will handle gains
+                        # ....
+                        
                         # if delay_imposed>0
                         #     println("##### $trainid,$nextBlockid,$delay_imposed");
                         # end
