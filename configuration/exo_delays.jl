@@ -59,7 +59,7 @@ function SampleExoDelays(
     # the following is very time consuming. we follow another approach, i.e., using a larger effective_n.
     # filter!(x-> x.trainid ∈ trains, df);      # Filter the trains present in the timetable in use
 
-    select!(df, Not(:day)); # remove the day column - in the future select the timeframe you need
+    select!(df, [:trainid, :block, :delay]); # remove the day column - in the future select the timeframe you need
 
     dfnrow = nrow(df);
     baseoutfile, extension = splitext(outfile);
@@ -68,7 +68,7 @@ function SampleExoDelays(
 
     for i in 1:nsamples
         n=rand(dfn.number); # Total number of exogeneous delays we inject
-        effective_n = round(Int, n*1.2); # 20% more delays to compensate for non running trains and duplicate lines
+        effective_n = round(Int, n*1.22); # 20% more delays to compensate for non running trains and duplicate lines
         sample_row_idxs = rand(1:dfnrow, effective_n); # It samples n rows
         dfout = df[sample_row_idxs, :];
         unique!(dfout);
