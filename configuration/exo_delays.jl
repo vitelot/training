@@ -53,13 +53,13 @@ function SampleExoDelays(
 
     df=DataFrame(CSV.File(fileDelayList));
     
-    dropmissing!(df, :train);
+    dropmissing!(df, :trainid);
     @info "\tSelecting the trains to be delayed."
 
     # the following is very time consuming. we follow another approach, i.e., using a larger effective_n.
     # filter!(x-> x.train ∈ trains, df);      # Filter the trains present in the timetable in use
 
-    select!(df, [:train, :block, :delay]); # remove the day column - in the future select the timeframe you need
+    select!(df, [:trainid, :block, :delay]); # remove the day column - in the future select the timeframe you need
 
     dfnrow = nrow(df);
     baseoutfile, extension = splitext(outfile);
@@ -72,7 +72,7 @@ function SampleExoDelays(
         sample_row_idxs = rand(1:dfnrow, effective_n); # It samples n rows
         dfout = df[sample_row_idxs, :];
         unique!(dfout);
-        filter!(x-> x.train ∈ trains, dfout);
+        filter!(x-> x.trainid ∈ trains, dfout);
         @info "\tFile nr $i, $n delays required, $(nrow(dfout)) delays created instead ($(round(Int,100*nrow(dfout)/n))%)";
         sequence = lpad(i,4,"0");
         outfile = "$(baseoutfile)_$sequence" * "$extension";
