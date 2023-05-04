@@ -282,6 +282,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 #Event = nothing; #don't need to do that. it will be garbage collected.
                 # resetSimulation(FL); # set trains dynamical variables to zero
                 # resetDynblock(RN);
+                @info "Simulation got stuck. Exiting.";
                 return true;
             end
             t_evaluated=0

@@ -441,14 +441,14 @@ function outputRailMLv22(outfilename::String, df_timetable::DataFrame, df_ops::D
                 kind == "P" && continue;
                 opid = r.opid; 
                 sched = r.t_scheduled;
-                real = r.t_real;
+                real = sched; #r.t_real; # it is unused in this railml2.2
                 seq += 1;
                 # dayidsched = ifelse( Date(unix2datetime(sched))==minday, 0, 1); 
                 # dayidreal =  ifelse( Date(unix2datetime(real))==minday, 0, 1); 
                 dayidsched = (Date(unix2datetime(sched))-minday).value;
                 dayidreal  = (Date(unix2datetime(real))-minday).value;
                 sched = unix2datetime(r.t_scheduled) |> Time;
-                real = unix2datetime(r.t_real) |> Time;
+                real = sched; # unix2datetime(r.t_real) |> Time; # it is unused in this railml2.2
 
                 #         <ocpTT sequence="1" ocpRef="ocp_83TS_CM" remarks="ZUGB" ocpType="pass">
                 #             <times departure="18:55:00" departureDay="0" scope="scheduled" />
