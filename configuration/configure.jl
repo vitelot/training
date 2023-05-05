@@ -178,7 +178,7 @@ function loadPAD(file::String)::DataFrame
         # filter!(x->!==(x.bst,"B  G"), bigpad);
         
         select!(bigpad,
-                [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :train,
+                [:traintype, :trainnr] => ByRow((x,y)->string(x,"_",y)) => :trainid,
                 :bst => ByRow(x->replace(x,r"[ _]+"=>"")) => :bst,
                 :transittype => ByRow(x->translateGerman(x)) => :transittype,
                 :scheduledtime => ByRow(x->dateToSeconds(x)) => :scheduledtime,
@@ -191,7 +191,7 @@ function loadPAD(file::String)::DataFrame
                 filter!(x->Date(unix2datetime(x.scheduledtime))==day, bigpad);
         end
 
-        sort(bigpad, [:train, :scheduledtime]);
+        sort(bigpad, [:trainid, :scheduledtime]);
 end
 
 """
@@ -295,13 +295,13 @@ change a bit wrt the scheduled time in XML.
 function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
         @info "Building a timetable from the XML schedule";
         gdxml = groupby(dfxml, :train);
-        gdpad = groupby(dfpad, :train);
+        gdpad = groupby(dfpad, :trainid);
  
         # based on the scheduled PAD data, we build a dictionary with
         # key = train-bst and value with the scheduled time at that bst; to be used to fill the voids in the xml. 
         Dpad = Dict{String, Int}();
         for gd in gdpad
-                train = gd.train[1];
+                train = gd.trainid[1];
 
                 for r in eachrow(gd)
                         key = string(train, "-", r.bst,"-", r.transittype);
@@ -316,14 +316,14 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         end
 
         # these are the trains we shall consider
-        padtrainlist = unique(dfpad.train);
+        padtrainlist = unique(dfpad.trainid);
         xmltrainlist = unique(dfxml.train);
 
         # select all trains in pad that are in xml
         trainlist = filter(x-> x ∈ xmltrainlist && x ∉ removetrainlist, padtrainlist);
         
         # this will be our processed schedule
-        dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
+        dfout = DataFrame(trainid =UString[], bst=UString[], transittype=UString[],
                 direction=UInt[],
                 line=UString[], distance=UInt[],
                 scheduledtime=UInt[]
@@ -398,7 +398,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         end
         
         # now we fix the remaining zeros in the scheduled time
-        gdxml = groupby(dfout, :train);
+        gdxml = groupby(dfout, :trainid);
 
         # The remaining time gaps are just a few, so we decide to delete them.
         # Julia does not allow the deletion from a subdataframe
@@ -406,7 +406,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
         ToDelete = String[];
         for gd in gdxml
                 nrowgd = nrow(gd);
-                train = gd.train[1];
+                train = gd.trainid[1];
 
                 # index of the first non zero scheduled time
                 f = findfirst(x->x>0, gd.scheduledtime);
@@ -469,9 +469,9 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                 end
         end
         length(ToDelete) > 0 && @info("\tDeleting $ToDelete since their initial and final scheduled time cannot be inferred");
-        filter!(x-> string(x.train,"-",x.bst) ∉ ToDelete, dfout);
+        filter!(x-> string(x.trainid,"-",x.bst) ∉ ToDelete, dfout);
         
-        gdxml = groupby(dfout, :train);
+        gdxml = groupby(dfout, :trainid);
         for gd in gdxml
                 for i = 2:nrow(gd)
                         # last correction for the day jump
@@ -492,7 +492,7 @@ TBW
 """
 function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataFrame
         @info "Building a clean timetable";
-        gdpad = groupby(dfpad, :train);
+        gdpad = groupby(dfpad, :trainid);
         gdxml = groupby(dfxml, :train);
         
         G = loadGraph(copy(dfblk), type="directed");
@@ -518,7 +518,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
         end
         
         # this will be our processed schedule
-        dfout = DataFrame(train =UString[], bst=UString[], transittype=UString[],
+        dfout = DataFrame(trainid =UString[], bst=UString[], transittype=UString[],
                 direction=UInt[],
                 line=UString[], distance=UInt[],
                 scheduledtime=UInt[]
@@ -529,7 +529,7 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                 nrowgd = nrow(gd);
                 nrowgd>1 || continue; # remove one line trains
 
-                train = gd.train[1];
+                train = gd.trainid[1];
                 poppy = ""; ispopping=false;
                 cumuldist = distance = 0; iscumul = false;
 
@@ -680,13 +680,13 @@ function trainMatch(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::DataF
                 r   = dfout[i,:];
                 nr  = dfout[i+1,:];
                 # if arrival and departure coincide than the train is passing by
-                if r.train==nr.train && r.bst==nr.bst && r.scheduledtime==nr.scheduledtime
-                        r.train = "delete";
+                if r.trainid==nr.trainid && r.bst==nr.bst && r.scheduledtime==nr.scheduledtime
+                        r.trainid = "delete";
                         nr.transittype = "p";
                 end
         end
  
-        filter!(x-> x.train != "delete", dfout)
+        filter!(x-> x.trainid != "delete", dfout)
 end
 
 function passingStation!(dftab::DataFrame, dfsta::DataFrame)::DataFrame
@@ -697,11 +697,11 @@ function passingStation!(dftab::DataFrame, dfsta::DataFrame)::DataFrame
 
         dfplus = similar(dftab, 0);
 
-        gd = groupby(dftab, :train);
+        gd = groupby(dftab, :trainid);
 
         for df in gd
                 issorted(df.scheduledtime) || sort!(df, :scheduledtime);
-                train = df.train[1];
+                train = df.trainid[1];
                 nrowdf = nrow(df);
                 # cure the arrival and pass at stations that must be arrival+departure
                 for i in 1:nrowdf-1
@@ -750,7 +750,7 @@ function passingStation!(dftab::DataFrame, dfsta::DataFrame)::DataFrame
                 end
         end
         append!(dftab, dfplus);
-        sort!(dftab, [:train, :scheduledtime])
+        sort!(dftab, [:trainid, :scheduledtime])
 end
 
 """
@@ -758,7 +758,7 @@ Find joined trains and create a unique train
 """
 function handleJoinedTrains!(df::DataFrame)::DataFrame
 
-        sort!(df, [:train,:scheduledtime]);
+        sort!(df, [:trainid,:scheduledtime]);
     
         @info "Handling joined trains"
         # return df;
@@ -767,7 +767,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         for r in eachrow(df)
                 key = string(r.scheduledtime,"-",r.bst);
                 get!(D,key,Set{String}());
-                push!(D[key], r.train);
+                push!(D[key], r.trainid);
         end
     
         # remove events with only one train. p[2] or last(p) accesses the values of dictionaries.
@@ -797,7 +797,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         # end
 
         # the train field gets larger than 15 bytes
-        df.train = String31.(df.train);
+        df.trainid = String31.(df.trainid);
 
         # after detaching trains are sent to dfnew
         dfnew = similar(df, 0); # empty similar dataframe
@@ -811,14 +811,14 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
             dflocal = similar(df,0);
             
             for train in trains
-                append!(dft,  df[df.train .== train, :]);
+                append!(dft,  df[df.trainid .== train, :]);
             end
             
             gd = groupby(dft, [:bst,:scheduledtime]);
             
             for d in gd
                 du = unique(d);
-                convoy = join(sort(du.train),"+");
+                convoy = join(sort(du.trainid),"+");
                 push!(dflocal, (convoy, du[1,2:end]...));
             end
             
@@ -870,12 +870,12 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
         end
     
         # remove them from the total schedule
-        filter!(x->x.train ∉ S, df);
+        filter!(x->x.trainid ∉ S, df);
     
         # append the new convoys and trains
         append!(df, dfnew);
     
-        sort!(df, [:train,:scheduledtime]);
+        sort!(df, [:trainid,:scheduledtime]);
         return df;
 end
 
@@ -1042,14 +1042,14 @@ function checkAD(dt::DataFrame)
         # Ausfall. We then assume that the train arrived in station ARRIVE_IN_STATION seconds before.
         @info "Checking arrive-departure combinations";
         dfappend = similar(dt, 0);
-        gt = groupby(dt, :train);
+        gt = groupby(dt, :trainid);
         for g in gt
                 lasttype = "";
                 for r in eachrow(g)
                         type = r.transittype;
                         if type == "d" && lasttype != "a" && rownumber(r) > 1
                                 @info ("\tDeparture with no arrive in train $(r.train), operational point $(r.bst)");
-                                push!(dfappend, (r.train, r.bst, "a", r.direction, r.line, r.distance, r.scheduledtime-ARRIVE_IN_STATION));
+                                push!(dfappend, (r.trainid, r.bst, "a", r.direction, r.line, r.distance, r.scheduledtime-ARRIVE_IN_STATION));
                         end
                         lasttype = type;
                 end
@@ -1088,7 +1088,7 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         checkAD(dfout);
 
         @info "Saving timetable on file \"$outfile\"";
-        sort!(dfout, [:train, :scheduledtime, :distance])
+        sort!(dfout, [:trainid, :scheduledtime, :distance])
         CSV.write(outfile, dfout);
 
         nothing;
@@ -1185,7 +1185,7 @@ end
 function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stationfile="stations.csv")
         @info "Doing a sanity check on the produced files"
 
-        dt = CSV.File(timetablefile, select=[:train,:bst,:transittype]) |> DataFrame;
+        dt = CSV.File(timetablefile, select=[:trainid,:bst,:transittype]) |> DataFrame;
         ds = CSV.File(stationfile, select=[:id]) |> DataFrame;
         db = CSV.File(blkfile, select=[:block]) |> DataFrame;
         select!(db, :block => ByRow(x->split(x,"-")) => [:op1,:op2]);
@@ -1199,13 +1199,13 @@ function sanityCheck(timetablefile = "timetable.csv", blkfile="blocks.csv", stat
                 @warn "There are $(length(setdiff(sett,setb))) operational points that are in the timetable and not in the blocks. This is a problem";
         end
 
-        gt = groupby(dt, :train);
+        gt = groupby(dt, :trainid);
         for g in gt
                 lasttype = "";
                 for r in eachrow(g)
                         type = r.transittype;
                         if type == "d" && lasttype != "a" && rownumber(r) != 1
-                                @warn ("Departure with no arrive in train $(r.train) ops $(r.bst)");
+                                @warn ("Departure with no arrive in train $(r.trainid) ops $(r.bst)");
                         end
                         lasttype = type;
                 end
