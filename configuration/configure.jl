@@ -830,7 +830,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
             # IsDetached = Set{String}();
             was_attached = already_detached = false;
             for r in eachrow(dflocal)
-                train = r.train;
+                train = r.trainid;
     
                 # if it's a convoy
                 if occursin("+", train)
@@ -848,7 +848,7 @@ function handleJoinedTrains!(df::DataFrame)::DataFrame
                     # continue;
                 else
                     if was_attached
-                        push!(dflocalnew, (r.train*dtc, r[2:end]...));
+                        push!(dflocalnew, (r.trainid*dtc, r[2:end]...));
                         already_detached = true;
                     else
                         push!(dflocalnew, r);
@@ -884,11 +884,11 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
         
         df = loadPAD(padfile);
 
-        dftab = CSV.read(timetablefile, select=[:train], comment="#", DataFrame);
-        alltrains = unique(dftab.train);
+        dftab = CSV.read(timetablefile, select=[:trainid], comment="#", DataFrame);
+        alltrains = unique(dftab.trainid);
 
         select!(df, 
-                :train => :trainid,
+                :trainid,# => :trainid,
                 :scheduledtime => :stime, 
                 r"loco");
 
@@ -1048,7 +1048,7 @@ function checkAD(dt::DataFrame)
                 for r in eachrow(g)
                         type = r.transittype;
                         if type == "d" && lasttype != "a" && rownumber(r) > 1
-                                @info ("\tDeparture with no arrive in train $(r.train), operational point $(r.bst)");
+                                @info ("\tDeparture with no arrive in train $(r.trainid), operational point $(r.bst)");
                                 push!(dfappend, (r.trainid, r.bst, "a", r.direction, r.line, r.distance, r.scheduledtime-ARRIVE_IN_STATION));
                         end
                         lasttype = type;
