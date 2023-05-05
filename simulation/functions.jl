@@ -22,13 +22,18 @@ function netStatus(RN::Network; hashing::Bool=false)
     BK = RN.blocks;
     ST = RN.stations;
 
-    status = "";
+    status = "\n";
     for blk in values(BK) # we might need a sort here because the order of keys may change
-        status *= "$(blk.id):$(blk.train)\n\n";
+        if blk.nt > 0 # save into status if not empty
+            status *= "$(blk.nt)::$(blk.id)::$(blk.train)\n\n";
+        end
     end
     status *= "###############################\n\n";
     for station in values(ST) # we might need a sort here because the order of keys may change
-        status *= "$(station.id):$(station.train)\n\n";
+        nt = sum([length(x) for x in values(station.train)]); # save into status if not empty
+        if nt>0
+            status *= "$(station.id):: $(station.train)\n\n";
+        end
     end
 
     #hashing && return sha256(status) |> bytes2hex; #sha256()->hexadecimal; bytes2hex(sha256())->string
