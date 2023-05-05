@@ -1147,6 +1147,9 @@ function generateBlocks(xmlfile::String,
         end
     end
 
+    # remove duplicates
+    unique!(xmlbk, [:block,:line]);
+
     @info "\tSaving complete block information on file \"$outblkfile\"";
     CSV.write(outblkfile, sort(xmlbk, :block));
 
