@@ -426,7 +426,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
 
                         if t == 0
                                 if i == 1
-                                        @info("\tFirst point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tFirst point has still zero time: $(gd[i,:trainid]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # get info from previous time and distance
@@ -435,7 +435,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 
                                 i1 = i+1
                                 if i1 > nrowgd
-                                        @info("\tLast point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tLast point has still zero time: $(gd[i,:trainid]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # find next non zero time
