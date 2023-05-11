@@ -21,7 +21,8 @@ function initStation(r::DataFrameRow)
             r.id,
             P,
             r.nsidings,
-            NT
+            NT,
+            rownumber(r) # use a distinct id for each block/station for the moment
             # Set{String}()
     );
     return s;
@@ -46,7 +47,8 @@ function initBlock(r::DataFrameRow)
         r.ismono,
         r.tracks,
         0,
-        Set{String}()
+        Set{String}(),
+        rownumber(r) # use a distinct id for each block for the moment
         );
         
     return b;
