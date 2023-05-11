@@ -29,6 +29,7 @@ Description:
 """
 
 include("parser.jl");
+include("strategies.jl")
 #CLI parser
 parsed_args = parse_commandline()
 
@@ -426,7 +427,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
 
                         if t == 0
                                 if i == 1
-                                        @info("\tFirst point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tFirst point has still zero time: $(gd[i,:trainid]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # get info from previous time and distance
@@ -435,7 +436,7 @@ function trainMatchXML(dfpad::DataFrame, dfxml::DataFrame, dfblk::DataFrame)::Da
                                 
                                 i1 = i+1
                                 if i1 > nrowgd
-                                        @info("\tLast point has still zero time: $(gd[i,:train]),$(gd[i,:bst])");
+                                        @info("\tLast point has still zero time: $(gd[i,:trainid]),$(gd[i,:bst])");
                                         continue;
                                 end
                                 # find next non zero time
@@ -1079,6 +1080,14 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
                 dfout = trainMatch(dfpad,dfxml,dfblk);
         else
                 dfout = trainMatchXML(dfpad,dfxml,dfblk);
+        end
+
+        # Rerouting to Pottendorfer Linie from Sudbahn
+        reroute_trainids = ["RJ_130"]
+        for trainid in reroute_trainids
+            @info "Rerouting $(trainid) to Pottendorfer Linie.."
+            dfout = reroute_sudbahn_to_pottendorfer(dfout, trainid=trainid)
+            @info "Rerouting of $(trainid) done!"
         end
 
         passingStation!(dfout,dfsta);
