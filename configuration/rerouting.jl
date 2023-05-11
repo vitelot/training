@@ -3,8 +3,8 @@ using CSV, DataFrames
 include("construct_pottendorfer_line.jl")
 
 function main(timetable="timetable.csv", trainid="RJ_130")
-    df = DataFrame(CSV.File(timetable))
-    filter!(row -> row[:trainid] == trainid, df)
+    df_full = DataFrame(CSV.File(timetable))
+    df = filter(row -> row[:trainid] == trainid, df_full)
 
     # Locate all the rows for a given trainid whose bst is between NB and MI
     # First locate the rows corresponding to NB and MI
@@ -53,8 +53,17 @@ function main(timetable="timetable.csv", trainid="RJ_130")
     df_after_MI[!, :distance] .= df_after_MI[!, :block_length] .+ df_pottendorfer[end, :distance]
     select!(df_after_MI, Not([:block_length, :block_reach_time]))
     append!(df_upto_NB, df_pottendorfer, cols=:setequal, promote=true)
-    append!(df_upto_NB, df_after_MI, cols=:setequal)
-    CSV.write("timetable-$(trainid)-rerouted.csv", df_upto_NB)
+    append!(df_upto_NB, df_after_MI, cols=:setequal) # df_upto_NB now contains all the data up to the last station
+    empty!(df)
+    df = df_upto_NB
+    df_upto_NB = Nothing
+
+    # Now replace the part of the full schedule by the rerouted schedule 
+    trainid_start_ix = findall(df_full[!, :trainid] .== trainid)[1]
+    trainid_end_ix = findall(df_full[!, :trainid] .== trainid)[end]
+    df = vcat(df_full[1:trainid_start_ix-1, :], df, df_full[trainid_end_ix+1:end, :])
+    CSV.write("timetable-$(trainid)-rerouted.csv", df)
+    return df
 end
 
 main()
