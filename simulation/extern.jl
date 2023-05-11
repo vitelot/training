@@ -64,6 +64,17 @@ function Block()
     Block("","",0,0,0,0,0,Set{String}()); #the null empty block
 end
 
+# a SuperBlock is a set of consecutive blocks with one track used in both directions that allow one train only
+mutable struct SuperBlock
+    id::Int
+    isempty::Bool
+    trainid::String # the train on it
+end
+
+function SuperBlock(id::Int)
+    SuperBlock(id, true, "") # set up a superblock with an id
+end
+
 mutable struct Network
     ns::Int # number of stations (Operational Points = Betriebstellen)
     stations::Dict{String,Station} #contains all the ops with many tracks, platforms
