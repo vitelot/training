@@ -22,7 +22,7 @@ function initStation(r::DataFrameRow)
             P,
             r.nsidings,
             NT,
-            rownumber(r) # use a distinct id for each block/station for the moment
+            10000+rownumber(r) # use a distinct id for each block/station for the moment
             # Set{String}()
     );
     return s;
