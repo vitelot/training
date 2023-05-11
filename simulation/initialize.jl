@@ -38,6 +38,7 @@ function loadInfrastructure()::Network
 
     for r in eachrow(df)
         # block,line,length,direction,ismono
+        # superblock va creato qui e linkato in initblock altrimenti anche se hanno stesso id sono distinti
         b = initBlock(r);
         RN.blocks[b.id] = b; 
         RN.nb += 1;

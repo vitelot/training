@@ -22,7 +22,7 @@ function initStation(r::DataFrameRow)
             P,
             r.nsidings,
             NT,
-            SuperBlock(10000+rownumber(r)) # use a distinct id for each block/station for the moment
+            SuperBlock(-10000-rownumber(r)) # use a distinct id for each block/station for the moment
             # Set{String}()
     );
     return s;
@@ -48,7 +48,7 @@ function initBlock(r::DataFrameRow)
         r.tracks,
         0,
         Set{String}(),
-        SuperBlock(rownumber(r)) # use a distinct id for each block for the moment
+        SuperBlock(-rownumber(r)) # use a distinct id for each block for the moment
         );
         
     return b;
@@ -57,26 +57,32 @@ end
 function isBlockFree(station::Station, direction::Int)::Bool
     # the direction is found in the blocks, but not for stations, so we need to pass it in the arguments
 
-    # there is at least one platform available
-    if length(station.train[direction]) < station.platforms[direction]
-        return true;
-    end
+    if station.sblock.id <= 0 # if the superblock coincides with the block itself
+        # there is at least one platform available
+        if length(station.train[direction]) < station.platforms[direction]
+            return true;
+        end
 
-    # there is at least one platform with a common direction available
-    if length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
-        return true;
-    end
+        # there is at least one platform with a common direction available
+        if length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
+            return true;
+        end
 
-    return false;
+        return false;
+    else
+        return station.sblock.isempty;
+    end
 end
 
 function isBlockFree(blk::Block, direction::Int)::Bool
-
-    return blk.nt < blk.tracks;
-
+    if blk.sblock.id <= 0
+        return blk.nt < blk.tracks;
+    else
+        return blk.sblock.isempty;
+    end
 end
 
-function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
+function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)::Nothing
 
     # if station.id == "REN"
             
@@ -85,6 +91,12 @@ function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
     #     println("#2# $station");
     #     println("#2# #####");
     # end
+
+    if station.sblock.id > 0 # this station is part of a one track superblock
+        station.sblock.isempty = true;
+        station.sblock.trainid = "";
+        return;
+    end
 
     for S in values(station.train) # dictionary with set of trains in each direction
         if train.id ∈ S
@@ -98,7 +110,13 @@ function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
     return;
 end
 
-function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Nothing
+
+    if blk.sblock.id > 0
+        blk.sblock.isempty = true;
+        blk.sblock.trainid = "";
+        return;
+    end
 
     pop!(blk.train, train.id);
 
@@ -107,8 +125,12 @@ function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
     return;
 end
 
-function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
-
+function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)::Nothing
+    if station.sblock.id > 0 # this station is part of a one track superblock
+        station.sblock.isempty = false;
+        station.sblock.trainid = train.id;
+        return;
+    end
     
     # if the tracks dedicated to the direction are free, occupy one at first
     if length(station.train[direction]) < station.platforms[direction]
@@ -126,12 +148,19 @@ function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
 end
 
-function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Nothing
     # COMMON_DIRECTION = 0;
+
+    if blk.sblock.id > 0 # this block is part of a one track superblock
+        blk.sblock.isempty = false;
+        blk.sblock.trainid = train.id;
+        return;
+    end
 
     push!(blk.train, train.id)
     blk.nt += 1;
 
+    return;
 end
 
 """

@@ -30,6 +30,7 @@ Opt = Dict{String,Any}(); # options read from par.ini
 # end
 
 # a SuperBlock is a set of consecutive blocks with one track used in both directions that allow one train only
+# a non positive id means that the block/station coincides with a block
 mutable struct SuperBlock
     id::Int
     isempty::Bool
