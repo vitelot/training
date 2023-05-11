@@ -22,7 +22,7 @@ function initStation(r::DataFrameRow)
             P,
             r.nsidings,
             NT,
-            10000+rownumber(r) # use a distinct id for each block/station for the moment
+            SuperBlock(10000+rownumber(r)) # use a distinct id for each block/station for the moment
             # Set{String}()
     );
     return s;
@@ -48,7 +48,7 @@ function initBlock(r::DataFrameRow)
         r.tracks,
         0,
         Set{String}(),
-        rownumber(r) # use a distinct id for each block for the moment
+        SuperBlock(rownumber(r)) # use a distinct id for each block for the moment
         );
         
     return b;

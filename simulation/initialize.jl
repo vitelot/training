@@ -41,7 +41,7 @@ function loadInfrastructure()::Network
         b = initBlock(r);
         RN.blocks[b.id] = b; 
         RN.nb += 1;
-        RN.superblocks[b.sblockid] = SuperBlock(b.sblockid);
+        get!(RN.superblocks, b.sblock.id, b.sblock);
     end
 
     df = DataFrame(CSV.File(stationfile, comment="#"));
@@ -51,7 +51,7 @@ function loadInfrastructure()::Network
         s = initStation(r);
         RN.stations[s.id] = s; 
         RN.ns += 1;
-        RN.superblocks[s.sblockid] = SuperBlock(s.sblockid);
+        get!(RN.superblocks, s.sblock.id, s.sblock);
     end
 
     df = nothing # explicitly free the memory
