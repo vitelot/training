@@ -4,54 +4,74 @@
 
 COMMON_DIRECTION = 0; # index for the platforms used in both ways at stations
 
-function initStation(r::DataFrameRow)
-    # Stations are special blocks
-    nrplatforms = r.ntracks;
-    # we have the same number of platforms per direction
-    # if we have an odd number of platforms, we reserve one for both directions
-    n2 = div(nrplatforms,2);
-    n0 = rem(nrplatforms,2); # remainder
+function initStations(df::DataFrame, RN::Network)::Nothing
 
-    P = Dict(1 => n2, 2 => n2, 0 => n0);
-    # initial occupations at zero
-    # NT = Dict(1 => 0, 2 => 0, 0 => 0);
-    NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
+    for r in eachrow(df)
+        # Stations are special blocks
+        nrplatforms = r.ntracks;
+        # we have the same number of platforms per direction
+        # if we have an odd number of platforms, we reserve one for both directions
+        n2 = div(nrplatforms,2);
+        n0 = rem(nrplatforms,2); # remainder
 
-    s = Station(
-            r.id,
-            P,
-            r.nsidings,
-            NT,
-            SuperBlock(-10000-rownumber(r)) # use a distinct id for each block/station for the moment
-            # Set{String}()
-    );
-    return s;
+        P = Dict(1 => n2, 2 => n2, 0 => n0);
+        # initial occupations at zero
+        # NT = Dict(1 => 0, 2 => 0, 0 => 0);
+        NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
+
+        sblockid = -rownumber(r)-10000;
+        get!(RN.superblocks, sblockid, SuperBlock(sblockid));
+
+        s = Station(
+                r.id,
+                P,
+                r.nsidings,
+                NT,
+                RN.superblocks[sblockid] # use a distinct id for each block/station for the moment
+                # Set{String}()
+        );
+
+        RN.stations[s.id] = s; 
+        RN.ns += 1;
+    end
+
+    return;
 end
 
 
-function initBlock(r::DataFrameRow)
-    # r is a row of the block df containing: block,line,length,direction,tracks,ismono
-    # now a block is determined by its line too
-    name = string(r.block, "-", r.line); 
-    
-    # the number of tracks is always 1 since we specify the line number; 
-    # unless ricalculated with try and catch;
-    # only in stations we may have many tracks;
-    # one track may be used both ways if ismono==true
-    
-    b = Block(
-        name,
-        string(r.line),
-        r.length,
-        r.direction,
-        r.ismono,
-        r.tracks,
-        0,
-        Set{String}(),
-        SuperBlock(-rownumber(r)) # use a distinct id for each block for the moment
-        );
+function initBlocks(df::DataFrame, RN::Network)::Nothing
+
+    for r in eachrow(df)
+
+        # r is a row of the block df containing: block,line,length,direction,tracks,ismono
+        # now a block is determined by its line too
+        name = string(r.block, "-", r.line); 
         
-    return b;
+        sblockid = -rownumber(r);
+        
+        get!(RN.superblocks, sblockid, SuperBlock(sblockid));
+        
+        # the number of tracks is always 1 since we specify the line number; 
+        # unless ricalculated with try and catch;
+        # only in stations we may have many tracks;
+        # one track may be used both ways if ismono==true
+        
+        b = Block(
+            name,
+            string(r.line),
+            r.length,
+            r.direction,
+            r.ismono,
+            r.tracks,
+            0,
+            Set{String}(),
+            RN.superblocks[sblockid] # use a distinct id for each block for the moment
+            );
+
+        RN.blocks[name] = b; 
+        RN.nb += 1;
+    end
+    return;
 end
 
 function isBlockFree(station::Station, direction::Int)::Bool

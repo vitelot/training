@@ -35,27 +35,12 @@ function loadInfrastructure()::Network
     stationfile = Opt["station_file"];
 
     df = DataFrame(CSV.File(blockfile, comment="#"));
-
-    for r in eachrow(df)
-        # block,line,length,direction,ismono
-        # superblock va creato qui e linkato in initblock altrimenti anche se hanno stesso id sono distinti
-        b = initBlock(r);
-        RN.blocks[b.id] = b; 
-        RN.nb += 1;
-        get!(RN.superblocks, b.sblock.id, b.sblock);
-    end
+    initBlocks(df, RN);
 
     df = DataFrame(CSV.File(stationfile, comment="#"));
+    initStations(df, RN);
 
-    for r in eachrow(df)
-        # id,ntracks,nsidings
-        s = initStation(r);
-        RN.stations[s.id] = s; 
-        RN.ns += 1;
-        get!(RN.superblocks, s.sblock.id, s.sblock);
-    end
-
-    df = nothing # explicitly free the memory
+    #df = nothing # explicitly free the memory
 
     # insert the empty block
     RN.blocks[""] = Block();

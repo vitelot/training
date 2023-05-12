@@ -7,7 +7,7 @@ and the packages to be loaded
 using DataFrames, CSV;
 # using Dates;
 # using StatsBase;
-# using PrettyPrint;
+using PrettyPrint;
 # using Profile
 # using InteractiveUtils
 import Base.show;
