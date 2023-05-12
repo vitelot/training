@@ -29,6 +29,7 @@ Description:
 """
 
 include("parser.jl");
+include("strategies.jl")
 #CLI parser
 parsed_args = parse_commandline()
 
@@ -72,6 +73,9 @@ STATION_EXCEPTION_FILE = "./data/station-exceptions.csv";
 BLOCK_EXCEPTION_FILE = "./data/block-exceptions.csv";
 # list of trains to remove because are redundant (overlap with others and generate conflicts)
 TRAINS_TO_REMOVE_FILE = "./data/trains-to-remove.csv";
+# list of trains to reroute to Pottendorfer line (10601) from Sudbahn (10501)
+# at Wiener Neustadt up to Wien Meidling
+TRAINS_TO_REROUTE_FILE = "./data/trains-to-reroute-to-Pottendorfer.csv"
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -1079,6 +1083,14 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
                 dfout = trainMatch(dfpad,dfxml,dfblk);
         else
                 dfout = trainMatchXML(dfpad,dfxml,dfblk);
+        end
+
+        # Rerouting to Pottendorfer Linie from Sudbahn
+        #reroute_trainids = ["RJ_130"]
+        for trainid in readlines(TRAINS_TO_REROUTE_FILE)
+            @info "Rerouting $(trainid) to Pottendorfer Linie.."
+            reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
+            @info "Rerouting of $(trainid) done!"
         end
 
         passingStation!(dfout,dfsta);
