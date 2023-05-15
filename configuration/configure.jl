@@ -92,6 +92,7 @@ pad_schedule::Bool    = parsed_args["pad_schedule"];
 select_line::String   = parsed_args["select_line"];
 cut_day::Bool         = parsed_args["cut_day"];
 skip::Bool            = parsed_args["skip"];
+reroute::Bool         = parsed_args["reroute"]
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 
@@ -1086,11 +1087,12 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
         end
 
         # Rerouting to Pottendorfer Linie from Sudbahn
-        #reroute_trainids = ["RJ_130"]
-        for trainid in readlines(TRAINS_TO_REROUTE_FILE)
-            @info "Rerouting $(trainid) to Pottendorfer Linie.."
-            reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
-            @info "Rerouting of $(trainid) done!"
+        if reroute
+            for trainid in readlines(TRAINS_TO_REROUTE_FILE)
+                @info "Rerouting $(trainid) to Pottendorfer Linie.."
+                reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
+                @info "Rerouting of $(trainid) done!"
+            end
         end
 
         passingStation!(dfout,dfsta);

@@ -70,6 +70,10 @@ function parse_commandline()
         #     arg_type = Int
         #     default = 0
 
+        "--reroute"
+            help = "Reroute trains in the file \"configuration/data/trains-to-reroute-to-Pottendorfer.csv\" to Pottendorfer Linie from Sudbahn"
+            action = :store_true
+
     end
 
     return parse_args(s)
