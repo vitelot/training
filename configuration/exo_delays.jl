@@ -48,8 +48,8 @@ function SampleExoDelays(
     @info "\tLoading data."
 
     dfn=DataFrame(CSV.File(fileNdelay, select=[:number]));
-    dftbl=DataFrame(CSV.File(fileTimetable, select=[:train])); # Or Mon, Tue, ... Or timetable
-    trains=unique(dftbl.train);
+    dftbl=DataFrame(CSV.File(fileTimetable, select=[:trainid])); # Or Mon, Tue, ... Or timetable
+    trains=unique(dftbl.trainid);
 
     df=DataFrame(CSV.File(fileDelayList));
     
