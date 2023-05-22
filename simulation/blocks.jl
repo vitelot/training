@@ -74,7 +74,7 @@ function initBlocks(df::DataFrame, RN::Network)::Nothing
     return;
 end
 
-function isBlockFree(station::Station, direction::Int)::Bool
+function isBlockFree(station::Station, trainid::String, direction::Int)::Bool
     # the direction is found in the blocks, but not for stations, so we need to pass it in the arguments
 
     if station.sblock.id <= 0 # if the superblock coincides with the block itself
@@ -90,15 +90,31 @@ function isBlockFree(station::Station, direction::Int)::Bool
 
         return false;
     else
-        return station.sblock.isempty;
+        if station.sblock.isempty
+            return true;
+        else
+            if station.sblock.trainid == trainid
+                return true;
+            else
+                return false;
+            end
+        end
     end
 end
 
-function isBlockFree(blk::Block, direction::Int)::Bool
+function isBlockFree(blk::Block, trainid::String, direction::Int)::Bool
     if blk.sblock.id <= 0
         return blk.nt < blk.tracks;
     else
-        return blk.sblock.isempty;
+        if blk.sblock.isempty
+            return true;
+        else
+            if blk.sblock.trainid == trainid
+                return true;
+            else
+                return false;
+            end
+        end
     end
 end
 
