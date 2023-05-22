@@ -1,6 +1,7 @@
 """
 configure.jl
 
+OLD README, must be changed
 Input: 
         1) a csv file with the daily PAD Zuglaufdaten as provided by OeBB
         2) a csv file with the preprocessed xml containing the yearly scheduled timetable 
@@ -1125,11 +1126,14 @@ function generateBlocks(xmlfile::String,
 
     xmlbk.tracks = Vector{Int}(undef, nrow(xmlbk));
     xmlbk.ismono = Vector{Int}(undef, nrow(xmlbk));
+    xmlbk.superblock = Vector{Int}(undef, nrow(xmlbk));
+
     for r in eachrow(xmlbk)
         block,line,_length,_direction = r[:];
         blk = string(block,"-",line);
         r[:ismono] = get(Bk, blk, UNASSIGNED) |> Int; # -1 == unassigned
         r[:tracks] = 1; # nr of tracks is 1 for every block but may change with the try and catch
+        r[:superblock] = 0; # if it is <=0 superblock is ignored by the sim
     end
 
     if isfile(BLOCK_EXCEPTION_FILE)
@@ -1157,7 +1161,7 @@ function generateBlocks(xmlfile::String,
     places_type = ["station", "small station", "passenger stop", "junction"];
     filter!(x-> x.type ∈ places_type, rinfop);
     select!(rinfop, [:id, :ntracks, :nsidings]);
-    
+
     # add station exceptions that are wrong in the rinf 
     if isfile(STATION_EXCEPTION_FILE)
         @info "Processing station exceptions found in $STATION_EXCEPTION_FILE";
@@ -1179,6 +1183,8 @@ function generateBlocks(xmlfile::String,
     else
         @warn "No $EXTRA_STATION_FILE file found."
     end
+
+    rinfop.superblock = zeros(Int, nrow(rinfop)); # if <=0 superblocks are ignored in the sim
 
     @info "\tSaving station information to file \"$outopfile\"";
     CSV.write(outopfile, sort(rinfop));
