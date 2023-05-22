@@ -19,7 +19,7 @@ function initStations(df::DataFrame, RN::Network)::Nothing
         # NT = Dict(1 => 0, 2 => 0, 0 => 0);
         NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
 
-        sblockid = -rownumber(r)-10000;
+        sblockid = r.superblock;
         get!(RN.superblocks, sblockid, SuperBlock(sblockid));
 
         s = Station(
@@ -47,7 +47,7 @@ function initBlocks(df::DataFrame, RN::Network)::Nothing
         # now a block is determined by its line too
         name = string(r.block, "-", r.line); 
         
-        sblockid = -rownumber(r);
+        sblockid = r.superblock;
         
         get!(RN.superblocks, sblockid, SuperBlock(sblockid));
         
