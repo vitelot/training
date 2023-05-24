@@ -7,7 +7,7 @@ and the packages to be loaded
 using DataFrames, CSV;
 # using Dates;
 # using StatsBase;
-# using PrettyPrint;
+using PrettyPrint;
 # using Profile
 # using InteractiveUtils
 import Base.show;
@@ -29,6 +29,18 @@ Opt = Dict{String,Any}(); # options read from par.ini
 #     isStation::Bool
 # end
 
+# a SuperBlock is a set of consecutive blocks with one track used in both directions that allow one train only
+# a non positive id means that the block/station coincides with a block
+mutable struct SuperBlock
+    id::Int
+    isempty::Bool
+    trainid::String # the train on it
+end
+
+function SuperBlock(id::Int)
+    SuperBlock(id, true, "") # set up a default free superblock with an id
+end
+
 mutable struct Station
     id::String          # each station has got its own name
     # line::String        # the line a block is serving
@@ -42,10 +54,11 @@ mutable struct Station
     # dynamical part:
     # nt::Dict{Int,Int}     # number of trains in the station according to direction 
     train::Dict{Int,Set{String}}    # which train is on a direction
+    sblock::SuperBlock       # superblock it belongs to
 end
 
 function Station()
-    Station("",Dict{Int,Int}(),0,Dict{Int,Set{String}}()); #the null empty station
+    Station("",Dict{Int,Int}(),0,Dict{Int,Set{String}}(),SuperBlock(0)); #the null empty station
 end
 
 mutable struct Block
@@ -58,10 +71,11 @@ mutable struct Block
     # dynamical part:
     nt::Int             # number of trains on the block (size of next set)
     train::Set{String}  # which train is on it, for platforms: which train is in which of the directions
+    sblock::SuperBlock  # superblock it belongs to
 end
 
 function Block()
-    Block("","",0,0,0,0,0,Set{String}()); #the null empty block
+    Block("","",0,0,0,0,0,Set{String}(),SuperBlock(0)); #the null empty block
 end
 
 mutable struct Network
@@ -69,10 +83,11 @@ mutable struct Network
     stations::Dict{String,Station} #contains all the ops with many tracks, platforms
     nb::Int # nr of blocks
     blocks::Dict{String,Block} #all the blocks
+    superblocks::Dict{Int,SuperBlock} # all the superblocks
 end
 
 function Network() # default initialization
-    Network(0,Dict{String,Station}(),0,Dict{String,Block}())
+    Network(0,Dict{String,Station}(),0,Dict{String,Block}(),Dict{Int,SuperBlock}())
 end
 
 # mutable struct Delay # used to keep Transit as immutable

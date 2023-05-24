@@ -37,6 +37,7 @@ p?pp*
 # scripts/help.txt
 data/
 old/
+.vscode/
 
 # Simone things
 # data/img

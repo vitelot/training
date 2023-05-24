@@ -156,7 +156,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                         nextBlock = BK[nextBlockid];
                     end
 
-                    if isBlockFree(nextBlock, direction) # using Julia multiple dispatch
+                    if isBlockFree(nextBlock, trainid, direction) # using Julia multiple dispatch
                         #updating current block
                         if currentBlock.id != ""
                             decreaseBlockOccupancy!(train, currentBlock, direction);
@@ -221,7 +221,15 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                     
                     else # block/station is full
 
-                        print_train_wait && println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].")
+                        if print_train_wait
+                            if nextBlock.sblock.isempty 
+                                println("Train $trainid needs to wait. Next block [$nextBlockid] is full [$(nextBlock.train)].");
+                            else
+                                print("Train $trainid needs to wait. "); 
+                                print("Next superblock [$nextBlockid:$(nextBlock.sblock.id)] is full [$(nextBlock.sblock.trainid)]. ");
+                                println("Time $t.");
+                            end
+                        end
                         # if trainid=="R_2217"
                         #     println("#1# $currentBlock");
                         #     println("#1# $nextBlock");

@@ -107,6 +107,11 @@ function main()
 
     #load the railway net
     RN = loadInfrastructure();
+    # @warn "just exit for a test; saving the infra to file RN.txt";
+    # open("../simulation/data/RN.txt", "w") do OUTtest
+    #     pprintln(OUTtest, RN);
+    # end
+    # exit();
 
     FL = loadFleet();
     # @warn "just exit for a test; saving the fleet to file FL.txt";

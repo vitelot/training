@@ -4,77 +4,121 @@
 
 COMMON_DIRECTION = 0; # index for the platforms used in both ways at stations
 
-function initStation(r::DataFrameRow)
-    # Stations are special blocks
-    nrplatforms = r.ntracks;
-    # we have the same number of platforms per direction
-    # if we have an odd number of platforms, we reserve one for both directions
-    n2 = div(nrplatforms,2);
-    n0 = rem(nrplatforms,2); # remainder
+function initStations(df::DataFrame, RN::Network)::Nothing
 
-    P = Dict(1 => n2, 2 => n2, 0 => n0);
-    # initial occupations at zero
-    # NT = Dict(1 => 0, 2 => 0, 0 => 0);
-    NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
+    for r in eachrow(df)
+        # Stations are special blocks
+        nrplatforms = r.ntracks;
+        # we have the same number of platforms per direction
+        # if we have an odd number of platforms, we reserve one for both directions
+        n2 = div(nrplatforms,2);
+        n0 = rem(nrplatforms,2); # remainder
 
-    s = Station(
-            r.id,
-            P,
-            r.nsidings,
-            NT
-            # Set{String}()
-    );
-    return s;
-end
+        P = Dict(1 => n2, 2 => n2, 0 => n0);
+        # initial occupations at zero
+        # NT = Dict(1 => 0, 2 => 0, 0 => 0);
+        NT = Dict(1 => Set{String}(), 2 => Set{String}(), 0 => Set{String}());
 
+        sblockid = r.superblock;
+        get!(RN.superblocks, sblockid, SuperBlock(sblockid));
 
-function initBlock(r::DataFrameRow)
-    # r is a row of the block df containing: block,line,length,direction,tracks,ismono
-    # now a block is determined by its line too
-    name = string(r.block, "-", r.line); 
-    
-    # the number of tracks is always 1 since we specify the line number; 
-    # unless ricalculated with try and catch;
-    # only in stations we may have many tracks;
-    # one track may be used both ways if ismono==true
-    
-    b = Block(
-        name,
-        string(r.line),
-        r.length,
-        r.direction,
-        r.ismono,
-        r.tracks,
-        0,
-        Set{String}()
+        s = Station(
+                r.id,
+                P,
+                r.nsidings,
+                NT,
+                RN.superblocks[sblockid] # use a distinct id for each block/station for the moment
+                # Set{String}()
         );
-        
-    return b;
+
+        RN.stations[s.id] = s; 
+        RN.ns += 1;
+    end
+
+    return;
 end
 
-function isBlockFree(station::Station, direction::Int)::Bool
+
+function initBlocks(df::DataFrame, RN::Network)::Nothing
+
+    for r in eachrow(df)
+
+        # r is a row of the block df containing: block,line,length,direction,tracks,ismono
+        # now a block is determined by its line too
+        name = string(r.block, "-", r.line); 
+        
+        sblockid = r.superblock;
+        
+        get!(RN.superblocks, sblockid, SuperBlock(sblockid));
+        
+        # the number of tracks is always 1 since we specify the line number; 
+        # unless ricalculated with try and catch;
+        # only in stations we may have many tracks;
+        # one track may be used both ways if ismono==true
+        
+        b = Block(
+            name,
+            string(r.line),
+            r.length,
+            r.direction,
+            r.ismono,
+            r.tracks,
+            0,
+            Set{String}(),
+            RN.superblocks[sblockid] # use a distinct id for each block for the moment
+            );
+
+        RN.blocks[name] = b; 
+        RN.nb += 1;
+    end
+    return;
+end
+
+function isBlockFree(station::Station, trainid::String, direction::Int)::Bool
     # the direction is found in the blocks, but not for stations, so we need to pass it in the arguments
 
-    # there is at least one platform available
-    if length(station.train[direction]) < station.platforms[direction]
-        return true;
-    end
+    if station.sblock.id <= 0 # if the superblock coincides with the block itself
+        # there is at least one platform available
+        if length(station.train[direction]) < station.platforms[direction]
+            return true;
+        end
 
-    # there is at least one platform with a common direction available
-    if length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
-        return true;
-    end
+        # there is at least one platform with a common direction available
+        if length(station.train[COMMON_DIRECTION]) < station.platforms[COMMON_DIRECTION]
+            return true;
+        end
 
-    return false;
+        return false;
+    else
+        if station.sblock.isempty
+            return true;
+        else
+            if station.sblock.trainid == trainid
+                return true;
+            else
+                return false;
+            end
+        end
+    end
 end
 
-function isBlockFree(blk::Block, direction::Int)::Bool
-
-    return blk.nt < blk.tracks;
-
+function isBlockFree(blk::Block, trainid::String, direction::Int)::Bool
+    if blk.sblock.id <= 0
+        return blk.nt < blk.tracks;
+    else
+        if blk.sblock.isempty
+            return true;
+        else
+            if blk.sblock.trainid == trainid
+                return true;
+            else
+                return false;
+            end
+        end
+    end
 end
 
-function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
+function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)::Nothing
 
     # if station.id == "REN"
             
@@ -83,6 +127,12 @@ function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
     #     println("#2# $station");
     #     println("#2# #####");
     # end
+
+    if station.sblock.id > 0 # this station is part of a one track superblock
+        station.sblock.isempty = true;
+        station.sblock.trainid = "";
+        return;
+    end
 
     for S in values(station.train) # dictionary with set of trains in each direction
         if train.id ∈ S
@@ -96,7 +146,13 @@ function decreaseBlockOccupancy!(train::Train, station::Station, direction::Int)
     return;
 end
 
-function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Nothing
+
+    if blk.sblock.id > 0
+        blk.sblock.isempty = true;
+        blk.sblock.trainid = "";
+        return;
+    end
 
     pop!(blk.train, train.id);
 
@@ -105,8 +161,12 @@ function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
     return;
 end
 
-function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
-
+function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)::Nothing
+    if station.sblock.id > 0 # this station is part of a one track superblock
+        station.sblock.isempty = false;
+        station.sblock.trainid = train.id;
+        return;
+    end
     
     # if the tracks dedicated to the direction are free, occupy one at first
     if length(station.train[direction]) < station.platforms[direction]
@@ -124,12 +184,19 @@ function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
 end
 
-function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)
+function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Nothing
     # COMMON_DIRECTION = 0;
+
+    if blk.sblock.id > 0 # this block is part of a one track superblock
+        blk.sblock.isempty = false;
+        blk.sblock.trainid = train.id;
+        return;
+    end
 
     push!(blk.train, train.id)
     blk.nt += 1;
 
+    return;
 end
 
 """

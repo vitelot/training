@@ -25,7 +25,7 @@
 
 
 """
-takes the blocks.csv file and builds the network
+takes the blocks.csv and stations.csv files and builds the network
 """
 function loadInfrastructure()::Network
     #creating and initializing a data struct network
@@ -35,28 +35,17 @@ function loadInfrastructure()::Network
     stationfile = Opt["station_file"];
 
     df = DataFrame(CSV.File(blockfile, comment="#"));
-
-    for r in eachrow(df)
-        # block,line,length,direction,ismono
-        b = initBlock(r);
-        RN.blocks[b.id] = b; 
-        RN.nb += 1
-    end
+    initBlocks(df, RN);
 
     df = DataFrame(CSV.File(stationfile, comment="#"));
+    initStations(df, RN);
 
-    for r in eachrow(df)
-        # id,ntracks,nsidings
-        s = initStation(r);
-        RN.stations[s.id] = s; 
-        RN.ns += 1
-    end
-
-    df = nothing # explicitly free the memory
+    #df = nothing # explicitly free the memory
 
     # insert the empty block
     RN.blocks[""] = Block();
     RN.stations[""] = Station();
+    RN.superblocks[0] = SuperBlock(0);
 
     Opt["print_flow"] && println("Infrastructure loaded")
     RN
