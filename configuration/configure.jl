@@ -30,13 +30,14 @@ Description:
 """
 
 include("parser.jl");
-include("strategies.jl")
 #CLI parser
 parsed_args = parse_commandline()
 
 @info "Loading libraries";
 
 using CSV, DataFrames, Dates;
+
+include("strategies.jl")
 include("MyGraphs.jl");
 include("MyDates.jl");
 using .MyGraphs, .MyDates;
@@ -94,6 +95,12 @@ select_line::String   = parsed_args["select_line"];
 cut_day::Bool         = parsed_args["cut_day"];
 skip::Bool            = parsed_args["skip"];
 reroute::Bool         = parsed_args["reroute"]
+gui::Bool             = parsed_args["gui"]
+
+if gui
+        include("gui.jl") # we load the gtk libs only if needed
+end
+
 
 @enum TrackNr TWOTRACKS=0 ONETRACK=1 UNASSIGNED=-1; # kind of block (monorail, doublerail)
 

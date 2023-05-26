@@ -5,6 +5,10 @@ function parse_commandline()
 
     @add_arg_table s begin
 
+        "--gui", "-g"
+            help = "Activate the Graphical User Interface to select options. All other command line options will be ignored."
+            action = :store_true
+
         "--date", "-d"
             help = "Date from which we want to extract the timetable."
             arg_type = String
