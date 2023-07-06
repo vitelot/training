@@ -19,6 +19,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
     print_rot               = Opt["print_rotations"];
     catch_conflicts         = Opt["catch_conflict"];
     use_buffering_time      = Opt["use_buffering_time"];
+    output_path             = Opt["output_path"]
     ##variabili
 
     #t in events that are between an evaluation of stuck sim and another
@@ -38,10 +39,12 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
     if save_timetable || save_timetable_railml
         if sim_id == 0
-            outfilename = "../simulation/data/timetable_simulation";
+            #outfilename = "../simulation/data/timetable_simulation";
+            outfilename = "$(output_path)/timetable_simulation";
         else
             paddedsimid = lpad(sim_id,4,"0");
-            outfilename = "../simulation/data/timetable_simulation_$(paddedsimid)";
+            #outfilename = "../simulation/data/timetable_simulation_$(paddedsimid)";
+            outfilename = "$(output_path)/timetable_simulation_$(paddedsimid)";
         end
 
         # out_file = open(outfilename, "w");

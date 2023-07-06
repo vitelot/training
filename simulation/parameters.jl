@@ -31,6 +31,7 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="trains_info_file")     Opt[key] = val
         elseif(key=="rotation_file")        Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
+        elseif(key=="output_path")          Opt[key] = val
         ####################################################################
         elseif(key=="simulate")             Opt[key] = parse(Bool, val)
         elseif(key=="use_buffering_time")   Opt[key] = parse(Bool, val)

@@ -66,17 +66,19 @@ const FAST_STATION_TRANSIT_TIME = 10;  # time in sec that a train is supposed to
 const STATION_LENGTH = 200; # average length of stations in meters; used to estimate passing time
 const ARRIVE_IN_STATION = 20; # if a departure without arrive is detected, assume the train arrived this amount of seconds before
 
+config_path::String   = parsed_args["config_data_path"]
+
 # list of stations not found in the rinf data
-EXTRA_STATION_FILE = "./data/extra-stations.csv";
+EXTRA_STATION_FILE = "$(config_path)/extra-stations.csv";
 # list of stations that are incorrect in rinf
-STATION_EXCEPTION_FILE = "./data/station-exceptions.csv";
+STATION_EXCEPTION_FILE = "$(config_path)/station-exceptions.csv";
 # list of blocks that are incorrect in rinf
-BLOCK_EXCEPTION_FILE = "./data/block-exceptions.csv";
+BLOCK_EXCEPTION_FILE = "$(config_path)/block-exceptions.csv";
 # list of trains to remove because are redundant (overlap with others and generate conflicts)
-TRAINS_TO_REMOVE_FILE = "./data/trains-to-remove.csv";
+TRAINS_TO_REMOVE_FILE = "$(config_path)/trains-to-remove.csv";
 # list of trains to reroute to Pottendorfer line (10601) from Sudbahn (10501)
 # at Wiener Neustadt up to Wien Meidling
-TRAINS_TO_REROUTE_FILE = "./data/trains-to-reroute-to-Pottendorfer.csv"
+TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute-to-Pottendorfer.csv"
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -1275,10 +1277,10 @@ function configure()::Nothing
 
         if nr_exo_delays>0 && delays_only
                 SampleExoDelays(
-                    "./data/NumberOfDelays.csv",
-                    "./data/DelayList.csv",
-                    "../simulation/data/timetable.csv",
-                    "../simulation/data/delays/imposed_exo_delay.csv",
+                    "$(config_path)/NumberOfDelays.csv",
+                    "$(config_path)/DelayList.csv",
+                    "$(target_path)/timetable.csv",
+                    "$(target_path)/delays/imposed_exo_delay.csv",
                     nr_exo_delays);
                 return;    
         end
@@ -1300,10 +1302,10 @@ function configure()::Nothing
 
         if nr_exo_delays>0
                 SampleExoDelays(
-                    "./data/NumberOfDelays.csv",
-                    "./data/DelayList.csv",
-                    "../simulation/data/timetable.csv",
-                    "../simulation/data/delays/imposed_exo_delay.csv",
+                    "$(config_path)/NumberOfDelays.csv",
+                    "$(config_path)/DelayList.csv",
+                    "$(target_path)/timetable.csv",
+                    "$(target_path)/delays/imposed_exo_delay.csv",
                     nr_exo_delays);
         end
 

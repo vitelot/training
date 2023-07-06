@@ -20,6 +20,11 @@ function parse_commandline()
             arg_type = String
             default = "../preprocessing/data/"
 
+        "--config_data_path"
+            help = "Path of the data required by configure.jl"
+            arg_type = String
+            default = "./data/"
+
         "--target_data_path"
             help = "Folder to write processed data for the simulation."
             arg_type = String
