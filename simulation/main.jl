@@ -35,7 +35,7 @@ function one_sim(RN::Network, FL::Fleet)::Nothing
 end
 
 
-function multiple_sim(RN::Network, FL::Fleet)::Nothing
+function multiple_sim(RN::Network, FL::Fleet; num_sims=-1)::Nothing
 
     delay_folder::String = Opt["imposed_delay_repo_path"];
     print_flow::Bool     = Opt["print_flow"];
@@ -48,7 +48,11 @@ function multiple_sim(RN::Network, FL::Fleet)::Nothing
         return;
     end
     
-    number_simulations = length(delays_array);
+    if num_sims==-1
+        number_simulations = length(delays_array);
+    else
+        number_simulations = num_sims
+    end
     @info "Going to run $number_simulations simulations."
     for simulation_id in 1:number_simulations
 
@@ -99,6 +103,7 @@ function main()
     
     simulate::Bool  = Opt["simulate"];
     run_test::Bool  = Opt["test"];
+    num_sims::Int   = Opt["num_sims"]
 
     if parsed_args["version"]
         println("Program version $ProgramVersion");
@@ -134,7 +139,11 @@ function main()
     else
         #one or multiple simulations
         if parsed_args["multi_simulation"]
-            multiple_sim(RN, FL);
+            if num_sims == -1
+                multiple_sim(RN, FL);
+            else
+                multiple_sim(RN, FL, num_sims=num_sims);
+            end
         else
             one_sim(RN, FL);
         end

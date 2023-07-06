@@ -11,6 +11,7 @@ function loadOptions(parsed_args::Dict)
     Opt["catch_conflict"]       = parsed_args["catch_conflict"]
     Opt["inject_delays"]        = parsed_args["inject_delays"]
     Opt["multi_simulation"]     = parsed_args["multi_simulation"]
+    Opt["num_sims"]             = parsed_args["num_sims"]
 
     if !isfile(file)
         createIniFile(file)

@@ -54,6 +54,13 @@ function parse_commandline()
                     If the --multi_simulation flag is not specified, the first ordered delay file is used."
             action = :store_true
 
+        "--num_sims"
+            help = "The number of simulations to carry out. This number should at most be the number of
+                    delay files available. By default the number of simulations would be equal to the 
+                    total number of delay files."
+            arg_type = Int
+            default = -1
+
             # "--opt1"
             #     help = "an option with an argument"
             # "--opt2", "-o"
