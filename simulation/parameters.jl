@@ -12,6 +12,7 @@ function loadOptions(parsed_args::Dict)
     Opt["inject_delays"]        = parsed_args["inject_delays"]
     Opt["multi_simulation"]     = parsed_args["multi_simulation"]
     Opt["num_sims"]             = parsed_args["num_sims"]
+    Opt["output_path"]          = parsed_args["output_path"]
 
     if !isfile(file)
         createIniFile(file)
@@ -32,7 +33,6 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="trains_info_file")     Opt[key] = val
         elseif(key=="rotation_file")        Opt[key] = val
         elseif(key=="imposed_delay_repo_path")      Opt[key] = val
-        elseif(key=="output_path")          Opt[key] = val
         ####################################################################
         elseif(key=="simulate")             Opt[key] = parse(Bool, val)
         elseif(key=="use_buffering_time")   Opt[key] = parse(Bool, val)
