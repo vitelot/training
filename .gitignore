@@ -33,6 +33,7 @@ p?pp*
 *.dat
 *.agr
 *.png
+*.zip
 data/
 old/
 .vscode/
