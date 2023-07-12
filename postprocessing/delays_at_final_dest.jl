@@ -30,7 +30,8 @@ function main(dir1="/Users/servedio/prgs/training/simulation/data/rotations",
 
     delayList_rot = Int[];
     for file in files_rot 
-        # file = "timetable_simulation_0001.csv";
+
+        @info "Processing file $dir1/$file";
 
         df = CSV.read("$dir1/$file", DataFrame);
 
@@ -45,9 +46,8 @@ function main(dir1="/Users/servedio/prgs/training/simulation/data/rotations",
 
     delayList_norot = Int[];
     for file in files_norot 
-        # file = "timetable_simulation_0001.csv";
 
-
+        @info "Processing file $dir2/$file";
 
         df = CSV.read("$dir2/$file", DataFrame);
 
@@ -59,6 +59,8 @@ function main(dir1="/Users/servedio/prgs/training/simulation/data/rotations",
             push!(delayList_norot, delay);
         end
     end
+    
+    @info "Building the cumulative distribution";
 
     (del_rot, r_rot) = cumul!(delayList_rot);
     (del_norot, r_norot) = cumul!(delayList_norot);
