@@ -23,26 +23,12 @@
 # environment.
 # Manifest.toml
 
-# my things
 vari
 out*
 .DS_Store
-# data/*.csv
-# data/*.gz
-# data/OeBB
-# data/data_password
 p?pp*
 *.ini
-# hidden_data/
-# scripts/help.txt
+*.pdf
 data/
 old/
 .vscode/
-
-# Simone things
-# data/img
-# data/delays
-# postprocessing # commented by Vito
-preprocessing/trainIni.in
-preprocessing/train_starts.ipynb
-map/
