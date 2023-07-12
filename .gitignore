@@ -29,6 +29,10 @@ out*
 p?pp*
 *.ini
 *.pdf
+*.csv
+*.dat
+*.agr
 data/
 old/
 .vscode/
+
