@@ -63,6 +63,12 @@ function main(dir1="/Users/servedio/prgs/training/simulation/data/rotations",
     (del_rot, r_rot) = cumul!(delayList_rot);
     (del_norot, r_norot) = cumul!(delayList_norot);
 
+    dfout = DataFrame(delay=del_rot, cumulprob=r_rot);
+    CSV.write("final_dest_delays_rotations.csv", dfout);
+
+    dfout = DataFrame(delay=del_norot, cumulprob=r_norot);
+    CSV.write("final_dest_delays_norotations.csv", dfout);
+
     @info "Building the figure";
     plot(del_rot, r_rot,
         xscale=:log10,
