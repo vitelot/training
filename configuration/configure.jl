@@ -81,7 +81,7 @@ source_path::String   = parsed_args["source_data_path"]
 target_path::String   = parsed_args["target_data_path"]
 nr_exo_delays::Int    = parsed_args["exo_delays"];
 delays_only::Bool     = parsed_args["delays_only"];
-# use_real_time = parsed_args["use_real_time"];
+use_real_time         = parsed_args["use_real_time"];
 find_rotations::Bool  = parsed_args["rotations"];
 pad_schedule::Bool    = parsed_args["pad_schedule"];
 select_line::String   = parsed_args["select_line"];
@@ -163,6 +163,9 @@ function loadPAD(file::String)::DataFrame
                 types = String,
                 skipto = 2) |> DataFrame;
         
+        # use a dirty trick to work with real time instead of scheduled
+        use_real_time && rename!(bigpad, :scheduledtime => :unusedtime, :realtime => :scheduledtime);
+
         dropmissing!(bigpad, :scheduledtime);
         filter!(x->length(x.scheduledtime)>0, bigpad );
 
