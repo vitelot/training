@@ -78,7 +78,8 @@ BLOCK_EXCEPTION_FILE = "$(config_path)/block-exceptions.csv";
 TRAINS_TO_REMOVE_FILE = "$(config_path)/trains-to-remove.csv";
 # list of trains to reroute to Pottendorfer line (10601) from Sudbahn (10501)
 # at Wiener Neustadt up to Wien Meidling
-TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute-to-Pottendorfer.csv"
+#TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute-to-Pottendorfer.csv"
+TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute.csv"
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -1091,11 +1092,22 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
 
         # Rerouting to Pottendorfer Linie from Sudbahn
         if reroute
-            for trainid in readlines(TRAINS_TO_REROUTE_FILE)
-                @info "Rerouting $(trainid) to Pottendorfer Linie.."
-                reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
+            for line in readlines(TRAINS_TO_REROUTE_FILE)
+                line = split(line, ",")
+                trainid = String(line[1])
+                reroute_start = String(line[2])
+                reroute_via = String(line[3])
+                reroute_end = String(line[4])
+                @info "Rerouting $(trainid) at $(reroute_start) via $(reroute_via) up to $(reroute_end)..."
+                #reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
+                construct_rerouted_schedule!(dfout, 
+                                     reroute_start=reroute_start, 
+                                     reroute_via=reroute_via, 
+                                     reroute_end=reroute_end, 
+                                     trainid=trainid)
                 @info "Rerouting of $(trainid) done!"
             end
+            sort!(dfout, :trainid)
         end
 
         passingStation!(dfout,dfsta);
