@@ -215,16 +215,16 @@ function extract_reroute_schedule(df::DataFrame;
 
     train_found = false
     for group in groupby(df, [:trainid])
-        ix_reroute_start = findfirst(==(reroute_start), group.bst)
+        ix_reroute_start = findlast(==(reroute_start), group.bst)
         ix_reroute_end   = findfirst(==(reroute_end), group.bst)
         if ix_reroute_start < ix_reroute_end
             # Now we have found a right train whose schedule can be copied!
-            @info "We have found a right train! It is $(group[1, :trainid])"
+            @info "We have found a train whose schedule can be copied! It is $(group[1, :trainid])"
             train_found = true
-            df_reroute = DataFrame(group[ix_reroute_start:ix_reroute_end, :])
+            df_reroute = DataFrame(group[ix_reroute_start+1:ix_reroute_end, :])
 
-            # Correct the scheduledtime
-            df_reroute[!, :scheduledtime] .-= df_reroute[1, :scheduledtime]
+            # Correct the scheduledtime by subtracting the departure time at reroute_start
+            df_reroute[!, :scheduledtime] .-= group[ix_reroute_start, :scheduledtime]
             return df_reroute
         end
     end
@@ -247,7 +247,7 @@ function construct_rerouted_schedule!(df_full::DataFrame;
     df = filter(row -> row[:trainid] == trainid, df_full)
     train_type = String(match(r"([A-Z]+)_[\d]+", trainid)[1])
 
-    ix_reroute_start = findfirst(==(reroute_start), df[!, :bst])
+    ix_reroute_start = findlast(==(reroute_start), df[!, :bst])
     ix_reroute_end   = findfirst(==(reroute_end),  df[!, :bst])
 
     # Create a base schedule for rerouting
@@ -259,12 +259,12 @@ function construct_rerouted_schedule!(df_full::DataFrame;
     df_reroute[!, :trainid] .= trainid
 
     # Now construct the full schedule
-    df_first    = DataFrame(df[1:ix_reroute_start-1, :])
+    df_first    = DataFrame(df[1:ix_reroute_start, :])
     df_reroute[!, :scheduledtime] .+= df[ix_reroute_start, :scheduledtime] 
-    df_last = df[ix_reroute_end+2:end, :]
+    df_last = df[ix_reroute_end:end, :]
     df_last[!, :scheduledtime] .-= df_last[1, :scheduledtime]
-    df_last[!, :scheduledtime] .+= df_reroute[end, :scheduledtime] 
-    df = vcat(df_first, df_reroute, df_last)
+    df_last[!, :scheduledtime] .+= df_reroute[end, :scheduledtime]
+    df = vcat(df_first, df_reroute[1:end-1, :], df_last)
     filter!(row -> row[:trainid] != trainid, df_full)
     append!(df_full, df, promote=true)
     #sort!(df_full, :trainid)
