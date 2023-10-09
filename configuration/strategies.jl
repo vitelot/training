@@ -207,7 +207,7 @@ function extract_reroute_schedule(df::DataFrame;
     transform!(df, :trainid => ByRow(x -> match(r"([A-Z]+)_[\d]", x)[1]) => :traintype)
 
     # Keep only the relevant train type and then drop the traintype column
-    filter!(row -> row[:traintype] == train_type, df)
+    df = filter(row -> row[:traintype] == train_type, df)
     select!(df, Not([:traintype]))
 
     # Now keep only those trains which run via the "reroute_via" station 
@@ -251,6 +251,7 @@ function construct_rerouted_schedule!(df_full::DataFrame;
     ix_reroute_end   = findfirst(==(reroute_end),  df[!, :bst])
 
     # Create a base schedule for rerouting
+    #println(first(filter(row -> startswith(row[:trainid], "R_"), df_full), 5))
     df_reroute = extract_reroute_schedule(df_full, 
                                           reroute_start=reroute_start,
                                           reroute_via=reroute_via,
@@ -258,6 +259,7 @@ function construct_rerouted_schedule!(df_full::DataFrame;
                                           train_type=train_type)
     df_reroute[!, :trainid] .= trainid
 
+    #println(first(filter(row -> startswith(row[:trainid], "R_"), df_full), 5))
     # Now construct the full schedule
     df_first    = DataFrame(df[1:ix_reroute_start, :])
     df_reroute[!, :scheduledtime] .+= df[ix_reroute_start, :scheduledtime] 
@@ -266,7 +268,11 @@ function construct_rerouted_schedule!(df_full::DataFrame;
     df_last[!, :scheduledtime] .+= df_reroute[end, :scheduledtime]
     df = vcat(df_first, df_reroute[1:end-1, :], df_last)
     filter!(row -> row[:trainid] != trainid, df_full)
-    append!(df_full, df, promote=true)
+    select!(df_full, Not([:traintype]))
+    #println(first(df_full, 5))
+    #println(first(df, 5))
+    append!(df_full, df)
+    #append!(df_full, df, promote=true)
     #sort!(df_full, :trainid)
 
 end
