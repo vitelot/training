@@ -168,7 +168,7 @@ function reroute_sudbahn_to_pottendorfer!(df_full; trainid="RJ_130")
     if nrow(df_upto_NB) > 0
         df_pottendorfer[!, :distance] .+= df_upto_NB[end, :distance]
     end
-    println(first(df_pottendorfer, 5))
+    #println(first(df_pottendorfer, 5))
     if nrow(df_after_MI) > 0
         # Correct the scheduledtime along Sudbahn after exiting MI 
         df_after_MI[!, :scheduledtime] = df_pottendorfer[end, :scheduledtime] .+ df_after_MI[!, :block_reach_time] 
@@ -192,4 +192,87 @@ function reroute_sudbahn_to_pottendorfer!(df_full; trainid="RJ_130")
     append!(df_full, df, promote=true)
     sort!(df_full, :trainid)
     #return df_full
+end
+
+function extract_reroute_schedule(df::DataFrame;
+    reroute_start::String,
+    reroute_via::String,
+    reroute_end::String,
+    train_type::String
+    )::DataFrame
+
+    #println(first(df, 5))
+    #println(first(filter(row -> row[:bst] == "PM", df), 5))
+    # Add train types
+    transform!(df, :trainid => ByRow(x -> match(r"([A-Z]+)_[\d]", x)[1]) => :traintype)
+
+    # Keep only the relevant train type and then drop the traintype column
+    df = filter(row -> row[:traintype] == train_type, df)
+    select!(df, Not([:traintype]))
+
+    # Now keep only those trains which run via the "reroute_via" station 
+    df = combine(groupby(df, [:trainid]), group -> any(group[!, :bst] .== reroute_via) ? group : DataFrame())
+
+    train_found = false
+    for group in groupby(df, [:trainid])
+        ix_reroute_start = findlast(==(reroute_start), group.bst)
+        ix_reroute_end   = findfirst(==(reroute_end), group.bst)
+        if ix_reroute_start < ix_reroute_end
+            # Now we have found a right train whose schedule can be copied!
+            @info "We have found a train whose schedule can be copied! It is $(group[1, :trainid])"
+            train_found = true
+            df_reroute = DataFrame(group[ix_reroute_start+1:ix_reroute_end, :])
+
+            # Correct the scheduledtime by subtracting the departure time at reroute_start
+            df_reroute[!, :scheduledtime] .-= group[ix_reroute_start, :scheduledtime]
+            return df_reroute
+        end
+    end
+    if ~train_found
+        @warn "There is no train available whose schedule can be copied for rerouting, exiting now ..."
+        exit()
+    end
+end
+
+function construct_rerouted_schedule!(df_full::DataFrame;
+        reroute_start::String, 
+        reroute_via::String, 
+        reroute_end::String,
+        trainid::String,
+    )
+
+    #println(first(df_full, 5))
+    #println(first(filter(row -> row[:bst] == "PM", df_full), 5))
+    # Extract sub-dataframe corresponding to the given trainid
+    df = filter(row -> row[:trainid] == trainid, df_full)
+    train_type = String(match(r"([A-Z]+)_[\d]+", trainid)[1])
+
+    ix_reroute_start = findlast(==(reroute_start), df[!, :bst])
+    ix_reroute_end   = findfirst(==(reroute_end),  df[!, :bst])
+
+    # Create a base schedule for rerouting
+    #println(first(filter(row -> startswith(row[:trainid], "R_"), df_full), 5))
+    df_reroute = extract_reroute_schedule(df_full, 
+                                          reroute_start=reroute_start,
+                                          reroute_via=reroute_via,
+                                          reroute_end=reroute_end,
+                                          train_type=train_type)
+    df_reroute[!, :trainid] .= trainid
+
+    #println(first(filter(row -> startswith(row[:trainid], "R_"), df_full), 5))
+    # Now construct the full schedule
+    df_first    = DataFrame(df[1:ix_reroute_start, :])
+    df_reroute[!, :scheduledtime] .+= df[ix_reroute_start, :scheduledtime] 
+    df_last = df[ix_reroute_end:end, :]
+    df_last[!, :scheduledtime] .-= df_last[1, :scheduledtime]
+    df_last[!, :scheduledtime] .+= df_reroute[end, :scheduledtime]
+    df = vcat(df_first, df_reroute[1:end-1, :], df_last)
+    filter!(row -> row[:trainid] != trainid, df_full)
+    select!(df_full, Not([:traintype]))
+    #println(first(df_full, 5))
+    #println(first(df, 5))
+    append!(df_full, df)
+    #append!(df_full, df, promote=true)
+    #sort!(df_full, :trainid)
+
 end
