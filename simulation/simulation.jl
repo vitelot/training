@@ -142,9 +142,11 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
 
                     if current_opid == nextopid
                         nextBlockid = current_opid;
+                        naked_nextBlockid = current_opid;
                         nextBlock = ST[nextBlockid]; # it's a station
                     else
                         nextBlockid = current_opid*"-"*nextopid*"-"*line;
+                        naked_nextBlockid = current_opid*"-"*nextopid; # nextBlockid without line
                         # some blocks do not exist on the starting op line and we find one that fits
                         if !haskey(BK, nextBlockid)
                             print_notifications && @info "\tBlock $nextBlockid not found on train $trainid";
@@ -204,7 +206,7 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                                 end
                             end
                         end
-                        delay_imposed = get(train.delay, nextBlockid,0);
+                        delay_imposed = get(train.delay, naked_nextBlockid,0);
 
                         # here we will handle gains
                         # ....
