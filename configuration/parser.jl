@@ -45,10 +45,9 @@ function parse_commandline()
             help = "Skip *ALL* the configuration actions except the sampling of delays."
             action = :store_true
 
-
-        # "--use_real_time"
-        #     help = "Use the real time column of the PAD timetable instead of the scheduled time."
-        #     action = :store_true
+        "--use_real_time"
+            help = "Use the real time column of the PAD timetable instead of the scheduled time."
+            action = :store_true
 
         "--pad_schedule"
             help = "Use the scheduled time in the PAD file instead of the scheduled time found in XML."

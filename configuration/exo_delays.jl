@@ -48,8 +48,9 @@ function SampleExoDelays(
     @info "\tLoading data."
 
     dfn=DataFrame(CSV.File(fileNdelay, select=[:number]));
-    dftbl=DataFrame(CSV.File(fileTimetable, select=[:trainid])); # Or Mon, Tue, ... Or timetable
+    dftbl=DataFrame(CSV.File(fileTimetable, select=[:trainid, :bst])); # Or Mon, Tue, ... Or timetable
     trains=unique(dftbl.trainid);
+    ops = unique(dftbl.bst);
 
     df=DataFrame(CSV.File(fileDelayList));
     
@@ -72,7 +73,7 @@ function SampleExoDelays(
         sample_row_idxs = rand(1:dfnrow, effective_n); # It samples n rows
         dfout = df[sample_row_idxs, :];
         unique!(dfout);
-        filter!(x-> x.trainid ∈ trains, dfout);
+        filter!(x-> (x.trainid ∈ trains)&&(x.block ∈ ops), dfout); # REMINDER: check when there is a blk instead of a station 
         @info "\tFile nr $i, $n delays required, $(nrow(dfout)) delays created instead ($(round(Int,100*nrow(dfout)/n))%)";
         sequence = lpad(i,4,"0");
         outfile = "$(baseoutfile)_$sequence" * "$extension";

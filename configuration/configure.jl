@@ -3,16 +3,8 @@ configure.jl
 
 OLD README, must be changed
 Input: 
-        1) a csv file with the daily PAD Zuglaufdaten as provided by OeBB
-        2) a csv file with the preprocessed xml containing the yearly scheduled timetable 
-        3) a csv file with the blocks found from the RINF data: "rinf-blocks.csv"
-        4) a csv file with the operational points determined from RINF: "rinf-OperationalPoints.csv"
-                        outfile = "blocks.csv"
+
 Output:
-        1) a csv file with the timetable to use in the simulation: "timetable.csv"
-        2) a csv file with the list of blocks for the simulation: "blocks.csv"
-        3) a csv file with the list of operational points with more than one track (stations, junctions)
-        - an intermediate file "blocks-xml-YEAR.csv" distilled from RINF and XML
 
 Description:
         The task of this script is to cure the many issues present in data.
@@ -91,7 +83,7 @@ source_path::String   = parsed_args["source_data_path"]
 target_path::String   = parsed_args["target_data_path"]
 nr_exo_delays::Int    = parsed_args["exo_delays"];
 delays_only::Bool     = parsed_args["delays_only"];
-# use_real_time = parsed_args["use_real_time"];
+use_real_time         = parsed_args["use_real_time"];
 find_rotations::Bool  = parsed_args["rotations"];
 pad_schedule::Bool    = parsed_args["pad_schedule"];
 select_line::String   = parsed_args["select_line"];
@@ -173,6 +165,9 @@ function loadPAD(file::String)::DataFrame
                 types = String,
                 skipto = 2) |> DataFrame;
         
+        # use a dirty trick to work with real time instead of scheduled
+        use_real_time && rename!(bigpad, :scheduledtime => :unusedtime, :realtime => :scheduledtime);
+
         dropmissing!(bigpad, :scheduledtime);
         filter!(x->length(x.scheduledtime)>0, bigpad );
 
