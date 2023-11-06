@@ -76,7 +76,7 @@ function parse_commandline()
         #     default = 0
 
         "--reroute"
-            help = "Reroute trains in the file \"configuration/data/trains-to-reroute-to-Pottendorfer.csv\" to Pottendorfer Linie from Sudbahn"
+            help = "Reroute trains in the file \"configuration/data/trains-to-reroute.csv\" to an alternate path"
             action = :store_true
 
     end

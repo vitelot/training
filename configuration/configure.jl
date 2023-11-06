@@ -80,6 +80,7 @@ TRAINS_TO_REMOVE_FILE = "$(config_path)/trains-to-remove.csv";
 # at Wiener Neustadt up to Wien Meidling
 #TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute-to-Pottendorfer.csv"
 TRAINS_TO_REROUTE_FILE = "$(config_path)/trains-to-reroute.csv"
+TRAINS_TO_DECOUPLE_FILE = "$(config_path)/decoupled_rotations.csv"
 
 # #CLI parser
 # parsed_args = parse_commandline()
@@ -1000,6 +1001,25 @@ function Rotations(padfile::String, timetablefile::String, outfile::String)
 
 
         dd = DataFrame(train=collect(keys(D)), waitsfor=collect(values(D)))
+
+        # Remove the decoupled trains
+        df_decoupled = CSV.read("$(config_path)/decoupled_rotations.csv", header=[:train, :waitsfor], DataFrame)
+        decoupled_trains = []
+        for (ix, row) in enumerate(eachrow(df_decoupled))
+            push!(decoupled_trains, (df_decoupled[ix, :train], df_decoupled[ix, :waitsfor]))
+        end
+        dd[!, :keep] .= true
+        println(decoupled_trains)
+        for (train, waitsfor) in decoupled_trains
+            for row in eachrow(dd)
+                if (row[:train] == train) && (row[:waitsfor] == waitsfor)
+                    row[:keep] = false 
+                end
+            end
+        end
+        filter!(row -> row[:keep], dd)
+        select!(dd, [:train, :waitsfor])
+
         # file = "../simulation/data/rotations.csv";
         @info("\tSaving rotations to file $outfile");
         CSV.write(outfile, dd);
@@ -1090,9 +1110,8 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
                 dfout = trainMatchXML(dfpad,dfxml,dfblk);
         end
 
-        # Rerouting to Pottendorfer Linie from Sudbahn
+        # Rerouting to an alternate route
         if reroute
-            println(filter(row -> startswith(row[:trainid], "R_"), dfout))
             for line in readlines(TRAINS_TO_REROUTE_FILE)
                 if !startswith(line, '#')
                     line = split(line, ",")
@@ -1101,7 +1120,6 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
                     reroute_via = String(line[3])
                     reroute_end = String(line[4])
                     @info "Rerouting $(trainid) at $(reroute_start) via $(reroute_via) up to $(reroute_end)..."
-                    #reroute_sudbahn_to_pottendorfer!(dfout, trainid=trainid)
                     construct_rerouted_schedule!(dfout, 
                                          reroute_start=reroute_start, 
                                          reroute_via=reroute_via, 
@@ -1110,7 +1128,6 @@ function composeTimetable(padfile::String, xmlfile::String, stationfile::String,
                     @info "Rerouting of $(trainid) done!"
                 end
             end
-            println(filter(row -> startswith(row[:trainid], "R_"), dfout))
             sort!(dfout, :trainid)
         end
 
