@@ -15,7 +15,9 @@ function loadOptions(parsed_args::Dict)
     Opt["output_path"]          = parsed_args["output_path"]
 
     if !isfile(file)
-        createIniFile(file)
+        dir = dirname(file);
+        isdir(dir) || mkdir(dir); 
+        createIniFile(file);
     end
 
 
@@ -115,11 +117,11 @@ function createIniFile(file::String)
 #############################
 Version                 $ProgramVersion # Program's version
 #############################
-timetable_file          ../simulation/data/timetable.csv # contains the timetable to simulate
-block_file              ../simulation/data/blocks.csv    # contains the nr of tracks for each block
-station_file            ../simulation/data/stations.csv  # contains info on the operational points with platforms and multiple tracks
-rotation_file           ../simulation/data/rotations.csv # list of train dependencies: one train does not start if the other has not arrived
-imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../simulation/data/delays/
+timetable_file          ../running/data/timetable.csv # contains the timetable to simulate
+block_file              ../running/data/blocks.csv    # contains the nr of tracks for each block
+station_file            ../running/data/stations.csv  # contains info on the operational points with platforms and multiple tracks
+rotation_file           ../running/data/rotations.csv # list of train dependencies: one train does not start if the other has not arrived
+imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../running/data/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 use_buffering_time      0   # if true, trains will try to recover delay by using their buffer at stations

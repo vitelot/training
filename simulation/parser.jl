@@ -12,12 +12,12 @@ function parse_commandline()
         "--ini", "-i"
             help = "path for the .ini file"
             arg_type = String
-            default = "../simulation/data/par.ini"
+            default = "../running/data/par.ini"
 
         "--output_path", "-o"
             help = "Folder where the generated timetables are to be stored"
             arg_type = String
-            default = "../simulation/data"
+            default = "../running/data"
 
         "--timetable_file", "-t"
             help = "override the path to the timetable file"
