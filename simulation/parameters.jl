@@ -20,6 +20,7 @@ function loadOptions(parsed_args::Dict)
         createIniFile(file);
     end
 
+    isdir(Opt["output_path"]) || mkdir(Opt["output_path"]);
 
     for line in eachline(file)
         occursin(r"^#", line) && continue # ignore lines beginning with #
