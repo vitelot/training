@@ -78,8 +78,8 @@ jobs:
         run: |
             julia --project=environment --code-coverage=user ${{ github.workspace }}/tests/simulation_test.jl
 
-      - name: send results to codecov.io, watching at simulation folder
-        run: julia --project=environment -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
+      # - name: send results to codecov.io, watching at simulation folder
+      #   run: julia --project=environment -e 'using Pkg; using Coverage; Codecov.submit(process_folder("simulation"))'
 
       # - name: julia-actions/julia-processcoverage@v1
       #   uses: julia-actions/julia-processcoverage@v1
