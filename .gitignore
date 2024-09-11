@@ -39,3 +39,4 @@ old/
 .vscode/
 
 Manifest.toml
+old*
