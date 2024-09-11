@@ -117,11 +117,11 @@ function createIniFile(file::String)
 #############################
 Version                 $ProgramVersion # Program's version
 #############################
-timetable_file          ../running/data/timetable.csv # contains the timetable to simulate
-block_file              ../running/data/blocks.csv    # contains the nr of tracks for each block
-station_file            ../running/data/stations.csv  # contains info on the operational points with platforms and multiple tracks
-rotation_file           ../running/data/rotations.csv # list of train dependencies: one train does not start if the other has not arrived
-imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../running/data/delays/
+timetable_file          ../running/simdata/timetable.csv # contains the timetable to simulate
+block_file              ../running/simdata/blocks.csv    # contains the nr of tracks for each block
+station_file            ../running/simdata/stations.csv  # contains info on the operational points with platforms and multiple tracks
+rotation_file           ../running/simdata/rotations.csv # list of train dependencies: one train does not start if the other has not arrived
+imposed_delay_repo_path None   # contains files with delay assignments, e.g., ../running/simdata/delays/
 #############################
 simulate                1   # if false do not run the simulation but load the data and exit RN,FL
 use_buffering_time      0   # if true, trains will try to recover delay by using their buffer at stations
