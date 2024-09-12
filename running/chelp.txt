@@ -1,8 +1,16 @@
-usage: configure.jl [-d DATE] [-f FILE]
-                    [--source_data_path SOURCE_DATA_PATH]
-                    [--target_data_path TARGET_DATA_PATH]
-                    [--select_line SELECT_LINE] [--pad_schedule]
-                    [--rotations] [-h]
+#####################################
+############ CONFIGURE ##############
+#####################################
+
+julia --project=../environment configure.jl -h
+usage: strategies.jl [-d DATE] [-f FILE]
+                     [--source_data_path SOURCE_DATA_PATH]
+                     [--config_data_path CONFIG_DATA_PATH]
+                     [--target_data_path TARGET_DATA_PATH]
+                     [--select_line SELECT_LINE]
+                     [--exo_delays EXO_DELAYS] [--delays_only]
+                     [--use_real_time] [--pad_schedule] [--rotations]
+                     [--cut_day] [--skip] [--reroute] [-h]
 
 optional arguments:
   -d, --date DATE       Date from which we want to extract the
@@ -12,6 +20,9 @@ optional arguments:
   --source_data_path SOURCE_DATA_PATH
                         Source of the PAD timetable files. (default:
                         "../preprocessing/data/")
+  --config_data_path CONFIG_DATA_PATH
+                        Path of the data required by configure.jl
+                        (default: "./data/")
   --target_data_path TARGET_DATA_PATH
                         Folder to write processed data for the
                         simulation. (default: "../simulation/data/")
@@ -20,10 +31,24 @@ optional arguments:
                         the list of ops from files in the source data
                         path folder. E.g., --select_line NB-MI loads
                         the file NB-MI.csv (default: "")
+  --exo_delays EXO_DELAYS
+                        Number of files with exo delays to be created.
+                        (type: Int64, default: 0)
+  --delays_only         Skip *ALL* the configuration actions except
+                        the sampling of delays.
+  --use_real_time       Use the real time column of the PAD timetable
+                        instead of the scheduled time.
   --pad_schedule        Use the scheduled time in the PAD file instead
                         of the scheduled time found in XML.
   --rotations           Create a file with train dependencies. One
                         train cannot start if the other has not
                         arrived yet.
+  --cut_day             Restrict the timetable to one day ignoring
+                        trains over midnight.
+  --skip                Used to skip parts of code for testing. [Not
+                        yet used]
+  --reroute             Reroute trains in the file
+                        "configuration/data/trains-to-reroute.csv" to
+                        an alternate path
   -h, --help            show this help message and exit
 
