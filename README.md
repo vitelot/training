@@ -67,6 +67,7 @@ cd running
 ```
 
 This will start the railway system simulation using the configured input files.
+If the parameter file `par.ini` does not exist it will create one.
 
 ## Documentation
 
