@@ -1,0 +1,5 @@
+id,ntracks,nsidings,length,maxspeed,superblock
+S,4,2,300,60,0
+A,4,4,400,60,0
+POL,2,0,200,80,0
+VEG,2,0,150,80,0

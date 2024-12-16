@@ -11,15 +11,17 @@ out*
 p?pp*
 *.ini
 *.pdf
-*.csv
+*.key
+# *.csv
 *.dat
 *.agr
 *.png
 *.zip
 data/
-simdata/
+# simdata/
 old/
 .vscode/
+results/
 
 Manifest.toml
 old*
