@@ -92,9 +92,8 @@ function runTest(RN::Network, FL::Fleet)::Nothing
 end
 
 function main()
-    @info "Starting main()";
+    @info "Starting simulation version $ProgramVersion";
 
-    
     #CLI parser
     parsed_args = parse_commandline();
     
