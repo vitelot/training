@@ -257,7 +257,13 @@ function simulation(RN::Network, FL::Fleet, sim_id::Int=0)::Bool
                 #train ended his schedule
                 else
                     if length(train.schedule) > 1 # yes, there are fossile trains with one entry only
-                        print_train_end && (((t-duetime)> 0) && println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at unix time $t"))
+                        if print_train_end 
+                            if t-duetime> 0
+                                println("Train $trainid ended in $current_opid with a delay of $(t-duetime) seconds at unix time $t");
+                            else
+                                println("Train $trainid ended in $current_opid on time at unix time $t");
+                            end
+                        end
 
                         #updating the values in the corresponding block, train ended
                         decreaseBlockOccupancy!(train, currentBlock, direction);
