@@ -47,7 +47,7 @@ function loadInfrastructure()::Network
     RN.stations[""] = Station();
     RN.superblocks[0] = SuperBlock(0);
 
-    Opt["print_flow"] && println("Infrastructure loaded")
+    Opt["print_flow"] && @info("\tInfrastructure loaded")
     RN
 end
 
@@ -58,7 +58,7 @@ function loadFleet()::Fleet
     rotation_file::String = Opt["rotation_file"];
     print_flow::Bool      = Opt["print_flow"];
 
-    print_flow && println("Loading fleet information")
+    print_flow && @info("\tLoading fleet information")
 
     FL = Fleet(0,Dict{String, Train}())
     df = DataFrame(CSV.File(file, comment="#"))
@@ -70,7 +70,7 @@ function loadFleet()::Fleet
     Rot = Dict{String,String}();
     if isfile(rotation_file)
         Rot = Dict(CSV.File(rotation_file, comment="#"));
-        print_flow && @info("Rotations loaded.");
+        print_flow && @info("\tRotations loaded");
     end
 
     # build the schedule for every train
@@ -108,7 +108,7 @@ function loadFleet()::Fleet
         issorted(Schedule) || sort!(Schedule);
     end
 
-    print_flow && println("Fleet loaded ($(FL.n) trains)")
+    print_flow && @info("\tFleet loaded ($(FL.n) trains)")
 
     return FL;
 end
@@ -157,7 +157,7 @@ function loadDelays()::Vector{DataFrame}
         push!(delays_array, delaydf);
     end
 
-    Opt["print_flow"] && println("Delays loaded. The number of delay scenarios is: ",length(delays_array));
+    Opt["print_flow"] && @info("\tDelays loaded. The number of delay scenarios is: ",length(delays_array));
 
     return delays_array;
 end
@@ -238,7 +238,7 @@ function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 
     E = Dict{Int,Vector{Transit}}()
 
-    Opt["print_flow"] && println("Initializing the event table")
+    Opt["print_flow"] && @info("\tInitializing the event table")
 
     for trainid in keys(FL.train)
 

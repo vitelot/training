@@ -27,7 +27,7 @@ function one_sim(RN::Network, FL::Fleet)::Nothing
     end
 
     print_flow && println("##################################################################")
-    print_flow && println("Starting simulation")
+    print_flow && @info("Starting simulation")
 
     simulation(RN, FL);
 
