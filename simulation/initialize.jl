@@ -223,7 +223,11 @@ function imposeDelays(FL::Fleet, df::DataFrame)::Nothing
         FL.train[train].delay[block] = delay;
 
         if print_imposed_delay
-            println("Imposed $delay to train $train, at block $block.")
+            if occursin("-", block)
+                println("Imposed $delay to train $train, at block $block.")
+            else
+                println("Imposed $delay to train $train, at station $block.")
+            end
         end
     end
 
