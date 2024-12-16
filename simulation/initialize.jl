@@ -77,10 +77,6 @@ function loadFleet()::Fleet
     for r in eachrow(df)
         (train, bts, kind, direction, line, _distance, duetime) = r[:];
 
-        #restore original name from poppers since the direction is associated with the plain name
-        unpopped  = replace(train, r"_pop_.*" => "");
-        # direction = get(train2dir, unpopped, 0);
-
         str = Transit(
                 train,
                 bts,
@@ -93,7 +89,7 @@ function loadFleet()::Fleet
         if !haskey(Trains, train)
             Trains[train] = Train(
                                 train,
-                                get(Rot, unpopped, ""),
+                                get(Rot, train, ""),
                                 Transit[],
                                 DynTrain(0,"",""),
                                 Dict{String,Int}()
