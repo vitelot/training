@@ -51,7 +51,17 @@ function loadInfrastructure()::Network
     RN
 end
 
-"""takes the timetable.csv file and loads the Fleet """
+"""
+    loadFleet()::Fleet
+
+Loads the train fleet and schedules from the `timetable.csv` file.
+
+- Reads train schedules (including rotations if provided).
+- Initializes each train's dynamic state and delay dictionary.
+
+# Returns
+- `Fleet` object containing train information and schedules.
+"""
 function loadFleet()::Fleet
 
     file::String          = Opt["timetable_file"];
@@ -124,9 +134,16 @@ end
 # end
 
 """
-Takes all the delay files in the data/delays/ directory
-and loads it in a vector of dataframes;
-each df defines a different simulation to be done
+    loadDelays()::Vector{DataFrame}
+
+Loads delay files from the `data/delays/` directory.
+
+- Reads multiple delay files, each defining a delay scenario.
+- Supports multi-scenario simulation.
+
+# Returns
+- A vector of DataFrames, where each DataFrame contains delay data.
+
 """
 function loadDelays()::Vector{DataFrame}
 
@@ -184,6 +201,16 @@ function resetDelays(FL::Fleet, df::DataFrame)
 
 end
 
+"""
+    resetDelays(FL::Fleet)
+
+Resets all delays for the train fleet to zero.
+
+- Clears the `delay` dictionary for each train in the fleet.
+
+# Arguments
+- `FL::Fleet`: The fleet object containing train delay data.
+"""
 function resetDelays(FL::Fleet)
     print_imposed_delay = Opt["print_imposed_delay"];
 
@@ -195,7 +222,18 @@ function resetDelays(FL::Fleet)
 
 end
 
-"""imposes the delays for the actual simulation """
+"""
+    imposeDelays(FL::Fleet, df::DataFrame)::Nothing
+
+Imposes delays on the train fleet using a DataFrame of delay values.
+
+- Delays are applied to specific trains and blocks/stations as specified.
+- Resets previous delays before applying new ones.
+
+# Arguments
+- `FL::Fleet`: The current fleet object.
+- `df::DataFrame`: A DataFrame with `train`, `block`, and `delay` columns.
+"""
 function imposeDelays(FL::Fleet, df::DataFrame)::Nothing
 
     BLACKLIST = [""]; #["SB_29229"];
@@ -236,7 +274,18 @@ function imposeDelays(FL::Fleet, df::DataFrame)::Nothing
 end
 
 """
-Initializes the Event dict, having times as keys and the first train event in that time as values
+    initEvent(FL::Fleet)::Dict{Int, Vector{Transit}}
+
+Initializes the event dictionary for the simulation.
+
+- The event dictionary maps event times to a list of train transits scheduled at those times.
+- Extracts the first transit event from each train's schedule.
+
+# Arguments
+- `FL::Fleet`: The fleet object containing train schedules.
+
+# Returns
+- A dictionary `Dict{Int, Vector{Transit}}` mapping times to train events.
 """
 function initEvent(FL::Fleet)::Dict{Int,Vector{Transit}}
 

@@ -161,6 +161,18 @@ function decreaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Noth
     return;
 end
 
+"""
+    increaseBlockOccupancy!(train::Train, station::Station, direction::String)
+
+Increases the occupancy of a station track when a train moves into it.
+
+- Updates the station track's occupancy status and assigns the train to it.
+
+# Arguments
+- `train::Train`: The train moving into the block.
+- `station::Station`: The station being occupied.
+- `direction::String`: The direction of the train.
+"""
 function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)::Nothing
     if station.sblock.id > 0 # this station is part of a one track superblock
         station.sblock.isempty = false;
@@ -184,6 +196,19 @@ function increaseBlockOccupancy!(train::Train, station::Station, direction::Int)
 
 end
 
+"""
+    increaseBlockOccupancy!(train::Train, block::Block, direction::String)
+
+Increases the occupancy of a block when a train moves into it.
+
+- Updates the block's occupancy status and assigns the train to it.
+
+# Arguments
+- `train::Train`: The train moving into the block.
+- `block::Block`: The block being occupied.
+- `direction::Int`: The direction of the train.
+
+"""
 function increaseBlockOccupancy!(train::Train, blk::Block, direction::Int)::Nothing
     # COMMON_DIRECTION = 0;
 
