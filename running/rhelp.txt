@@ -25,7 +25,8 @@ optional arguments:
                         using the @time macro -- disable all outputs
   --multi_simulation    a flag for running multiple simulations
   --catch_conflict      a flag for running routines for checking the
-                        structure of the railway
+                        structure of the railway. It is currently
+                        disabled.
   --inject_delays       The program searches for delays to inject in
                         the simulation.                    The
                         corresponding files with the lists of trians
