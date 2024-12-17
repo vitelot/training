@@ -19,7 +19,7 @@ p?pp*
 *.zip
 data/
 # simdata/
-old/
+old_scripts/
 .vscode/
 results/
 
