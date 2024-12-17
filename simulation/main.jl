@@ -134,7 +134,8 @@ function main()
     end
 
     if parsed_args["catch_conflict"]
-        catch_conflict(RN,FL,parsed_args);
+        @warn("The catch conflict procedure has been disabled");
+        # catch_conflict(RN,FL,parsed_args);
     else
         #one or multiple simulations
         if parsed_args["multi_simulation"]

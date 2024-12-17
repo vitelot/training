@@ -42,9 +42,9 @@ function parse_commandline()
             help = "a flag for running multiple simulations"
             action = :store_true
 
-        "--catch_conflict"
-            help = "a flag for running routines for checking the structure of the railway"
-            action = :store_true
+        # "--catch_conflict"
+        #     help = "a flag for running routines for checking the structure of the railway"
+        #     action = :store_true
 
         "--inject_delays"
             help = "The program searches for delays to inject in the simulation.

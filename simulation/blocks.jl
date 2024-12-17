@@ -290,7 +290,30 @@ function resetDynblock(RN::Network)
 
 end
 
-function catch_conflict(RN,FL,parsed_args)
+function isStation(bst_name::AbstractString)
+    a = split(bst_name, "-");
+    return a[1] == a[2];
+end
+
+"""
+    catch_conflict(RN, FL::Fleet, parsed_args)
+
+Detect and resolve conflicts arising from insufficient block capacity in the railway network simulation.
+
+# Arguments
+- `RN`: Railway network configuration or structure.
+- `FL::Fleet`: The fleet of trains participating in the simulation.
+- `parsed_args`: Parsed arguments containing configuration options.
+
+# Description
+The `catch_conflict` function runs the `one_sim(RN, FL)` simulation to identify blocks where conflicts occur, such as multiple trains occupying the same block. If a conflict arises:
+- A `KeyError` is triggered, indicating a missing or insufficiently defined block.
+- If the block is identified as a station, the user is warned to update the station data in `../configuration/data/extra-stations.csv`.
+- For generic blocks, a warning prompts the user to update the block definitions in `../simulation/data/blocks.csv` to increase track capacity or define missing blocks.
+
+The function continues running the simulation iteratively until no more conflicts are detected, allowing the railway network to adapt dynamically by updating block capacities as needed.
+"""
+function catch_conflict(RN::Network, FL::Fleet,parsed_args)
 
     timetable_file = Opt["timetable_file"];
 
@@ -359,11 +382,7 @@ function catch_conflict(RN,FL,parsed_args)
         out_station_file_name = "../simulation/data/stations_catch.csv";
     end
     print_infra(RN, out_block_file_name, out_station_file_name);
-
+    
 end
 
 
-function isStation(bst_name::AbstractString)
-     a = split(bst_name, "-");
-     return a[1] == a[2];
-end
