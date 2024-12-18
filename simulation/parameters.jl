@@ -57,7 +57,8 @@ function loadOptions(parsed_args::Dict)
         elseif(key=="save_timetable")        Opt[key] = parse(Bool, val)
         elseif(key=="save_timetable_railml") Opt[key] = parse(Bool, val)
         ####################################################################
-        else println("WARNING: input parameter $key does not exist")
+        else 
+            @warn("WARNING: input parameter $key does not exist")
         end
     end
 
