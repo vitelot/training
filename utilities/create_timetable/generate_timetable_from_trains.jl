@@ -162,4 +162,4 @@ function main()
 end
 
 TimeTable = main();
-CSV.write("timetable.csv", TimeTable);
+CSV.write("timetable.csv", sort(TimeTable,:train));
