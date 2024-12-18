@@ -47,7 +47,7 @@ function loadInfrastructure()::Network
     RN.stations[""] = Station();
     RN.superblocks[0] = SuperBlock(0);
 
-    Opt["print_flow"] && @info("\tInfrastructure loaded")
+    Opt["print_flow"] && @info("\tInfrastructure loaded ($(RN.nb) blocks and $(RN.ns) stations)")
     RN
 end
 
