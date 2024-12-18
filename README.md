@@ -45,10 +45,10 @@ The simulation operates on a block-based system, where:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/railway-simulation.git
+git clone https://github.com/vitelot/training.git
 
 # Enter the project directory
-cd railway-simulation
+cd training
 
 # Activate the project environment and install dependencies
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
