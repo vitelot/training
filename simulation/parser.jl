@@ -46,11 +46,8 @@ function parse_commandline()
             help = "a flag for running routines for checking the structure of the railway. It is currently disabled."
             action = :store_true
 
-        "--inject_delays"
-            help = "The program searches for delays to inject in the simulation.
-                    The corresponding files with the lists of trians to delay must be placed
-                    in the folder specified in par.ini under imposed_delay_repo_path, which usually
-                    is the /data/delays/ folder;
+        "--inject_delays", "-j"
+            help = "The program searches for delays to inject in the simulation. The corresponding files with the lists of trains to delay must be placed in the folder specified in par.ini under imposed_delay_repo_path, which usually is the /data/delays/ folder;
                     If the --multi_simulation flag is not specified, the first ordered delay file is used."
             action = :store_true
 

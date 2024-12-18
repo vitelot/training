@@ -1,9 +1,9 @@
-Running the simulation with flags -h
-julia --project=../environment main.jl -h
+Running the simulation with flags --help
+julia --project=../environment main.jl --help
 usage: main.jl [-v] [-i INI] [-o OUTPUT_PATH] [-t TIMETABLE_FILE]
                [-b BLOCK_FILE] [-s STATION_FILE] [--speed_test]
-               [--multi_simulation] [--catch_conflict]
-               [--inject_delays] [--num_sims NUM_SIMS] [-h]
+               [--multi_simulation] [--catch_conflict] [-j]
+               [--num_sims NUM_SIMS] [-h]
 
 optional arguments:
   -v, --version         show the simulation's version
@@ -27,16 +27,14 @@ optional arguments:
   --catch_conflict      a flag for running routines for checking the
                         structure of the railway. It is currently
                         disabled.
-  --inject_delays       The program searches for delays to inject in
-                        the simulation.                    The
-                        corresponding files with the lists of trians
-                        to delay must be placed                    in
+  -j, --inject_delays   The program searches for delays to inject in
+                        the simulation. The corresponding files with
+                        the lists of trains to delay must be placed in
                         the folder specified in par.ini under
-                        imposed_delay_repo_path, which usually
-                        is the /data/delays/ folder;
-                        If the --multi_simulation flag is not
-                        specified, the first ordered delay file is
-                        used.
+                        imposed_delay_repo_path, which usually is the
+                        /data/delays/ folder;                    If
+                        the --multi_simulation flag is not specified,
+                        the first ordered delay file is used.
   --num_sims NUM_SIMS   The number of simulations to carry out. This
                         number should at most be the number of
                         delay files available. By default the number
