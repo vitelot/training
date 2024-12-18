@@ -1,5 +1,8 @@
+#! /Users/servedio/.juliaup/bin/julia
+
 # Determine the timetable based on the trains.csv file
 using CSV, DataFrames, Dates;
+@info "Loading libraries";
 
 @enum SpeedClass unknown slow normal fast
 
@@ -162,4 +165,5 @@ function main()
 end
 
 TimeTable = main();
+@info "Writing timetable";
 CSV.write("timetable.csv", sort(TimeTable,:train));
