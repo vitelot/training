@@ -50,6 +50,9 @@ git clone https://github.com/vitelot/training.git
 # Enter the project directory
 cd training
 
+# Switch to the restyling branch
+git checkout restyling
+
 # Activate the project environment and install dependencies
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 ```
