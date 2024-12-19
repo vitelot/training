@@ -35,22 +35,20 @@ Defines the characteristics of railway track blocks.
 - `length`: Block length (units)
 - `direction`: Traffic direction (1 or 2)
 - `tracks`: Number of tracks in the block
-- `ismono`: Indicates if the track is used in both directions
 - `superblock`: Shared track usage indicator
 - `speed`: Maximum speed (can be multiple values separated by hyphens)
 
 ### Example
 ```csv
-block,line,length,direction,tracks,ismono,superblock,speed
-S-SN,10101,1200,2,1,0,0,80-140-250
-SN-VEGS,10101,2340,2,1,0,0,80-140-250
-VEGS-VEG,10101,1115,2,1,0,0,80-140-250
-VEG-POLS,10101,1950,2,1,0,0,80-140-250
+block,line,length,direction,tracks,superblock,speed
+S-SN,10101,1200,2,1,0,80-140-250
+SN-VEGS,10101,2340,2,1,0,80-140-250
+VEGS-VEG,10101,1115,2,1,0,80-140-250
+VEG-POLS,10101,1950,2,1,0,80-140-250
 ```
 
 ### Notes
 - `direction`: Currently supports only values 1 or 2
-- `ismono`: Boolean indicator of bidirectional track usage
 - `speed`: Can specify multiple speed limits, likely for different train types or sections
 
 ## rotations.csv

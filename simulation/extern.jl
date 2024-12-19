@@ -47,7 +47,6 @@ mutable struct Station
     # isStation::Bool     # tells if a block is in a station and possibly involves passengers; it can be a junction otherwise
     # length::Int         # length in meters
     # direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
-    # ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     platforms::Dict{Int,Int} # number of platforms per direction key=direction, value=nrtracks
     sidings::Int          # not used for the moment
     
@@ -66,7 +65,6 @@ mutable struct Block
     line::String        # the line a block is serving
     length::Int         # length in meters
     direction::Int      # can be 1 or 2 (e.g., 1=north 2=south)
-    ismono::Int         # 1=there is only one track used both ways, 0=one specific way, -1=unassigned
     tracks::Int         # number of parallel tracks (multiple trains allowed)
     # dynamical part:
     nt::Int             # number of trains on the block (size of next set)
@@ -75,7 +73,7 @@ mutable struct Block
 end
 
 function Block()
-    Block("","",0,0,0,0,0,Set{String}(),SuperBlock(0)); #the null empty block
+    Block("","",0,0,0,0,Set{String}(),SuperBlock(0)); #the null empty block
 end
 
 mutable struct Network

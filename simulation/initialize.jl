@@ -174,7 +174,7 @@ function loadDelays()::Vector{DataFrame}
         push!(delays_array, delaydf);
     end
 
-    Opt["print_flow"] && @info("\tDelays loaded. The number of delay scenarios is: ",length(delays_array));
+    Opt["print_flow"] && @info("\tDelays loaded. The number of delay scenarios is: $(length(delays_array))");
 
     return delays_array;
 end

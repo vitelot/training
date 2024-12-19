@@ -43,44 +43,30 @@ function initBlocks(df::DataFrame, RN::Network)::Nothing
 
     # print_flow              = Opt["print_flow"];
 
-    # superblockidbase = 1270; # to assign to superblocks with index 0 and ismono==1
+    # superblocks have to be assigned in the configuration phase
 
     for r in eachrow(df)
 
-        # r is a row of the block df containing: block,line,length,direction,tracks,ismono,superblock
+        # r is a row of the block df containing: block,line,length,direction,tracks,superblock
         # now a block is determined by its line too
         name = string(r.block, "-", r.line); 
         
         sblockid = r.superblock;
        
         # i'm afraid we need to set superblocks by hand in the configuration setup
-        # and the ismono flag is unused!
-        # if r.ismono==1 && sblockid<=0
-        #     sameblock = join(reverse(split(r.block,"-")),"-"); # this is the same block in reverse order since ismono==1
-        #     sameblockname = string(sameblock,"-", r.line); # we assume it's on the same line
-        #     if haskey(RN.blocks, sameblockname) # we already found this block and already assigned a superblock id
-        #         sblockid = RN.blocks[sameblockname].sblock.id;
-        #         print_flow && println("Assigned same superblock $sblockid of block $sameblockname to block $name");
-        #     else
-        #         sblockid = superblockidbase;
-        #         print_flow && println("Assigned superblock $sblockid to block $name");
-        #         superblockidbase += 1;
-        #     end
-        # end
 
         get!(RN.superblocks, sblockid, SuperBlock(sblockid));
         
         # the number of tracks is always 1 since we specify the line number; 
         # unless ricalculated with try and catch;
         # only in stations we may have many tracks;
-        # one track may be used both ways if ismono==true
+        # one track may be used both ways if it belongs to a superblock
         
         b = Block(
             name,
             string(r.line),
             r.length,
             r.direction,
-            r.ismono,
             r.tracks,
             0,
             Set{String}(),
@@ -251,7 +237,7 @@ function print_infra(RN::Network, out_block_file_name::String, out_station_file_
     
     open(out_block_file_name, "w") do OUT
 
-        println(OUT, "block,line,length,direction,tracks,ismono");
+        println(OUT, "block,line,length,direction,tracks,superblock");
 
         for blockName in sort(collect(keys(RN.blocks)))
 
@@ -266,9 +252,9 @@ function print_infra(RN::Network, out_block_file_name::String, out_station_file_
             dir = blk.direction;
             length = blk.length;
             ntracks = blk.tracks;
-            ismono = blk.ismono;
+            sblock = blk.sblock.id;
 
-            println(OUT, "$blk,$line,$length,$dir,$ntracks,$ismono");
+            println(OUT, "$blk,$line,$length,$dir,$ntracks,$sblock");
 
         end
     end

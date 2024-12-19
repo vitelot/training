@@ -56,7 +56,6 @@ The script leverages:
 | `length`     | Length of the block in meters.                                                 |
 | `direction`  | Direction of travelling (e.g., `1` for southwards, `2` for northwards).          |
 | `tracks`     | Number of tracks in the block.                                                 |
-| `ismono`     | Whether the block is monodirectional (binary: `0` or `1`).                     |
 | `superblock` | Identifier for larger block with only one track that can be travelled in both directions.                                         |
 | `speed`      | Speed limits for the block (e.g., `80-140-250` indicating limits per class).   |
 
@@ -113,9 +112,9 @@ The script leverages:
 | RJ   | 100    | S-A         | 180-300      | S-SN-VEGS-VEG-POLS-POL-POLN-AS-A  | 1116.001 | fast        | 06:00         |
 
 2. **`blocks.csv`**:
-| block   | line  | length | direction | tracks | ismono | superblock | speed       |
-|---------|-------|--------|-----------|--------|--------|------------|-------------|
-| S-SN    | 10101 | 1200   | 2         | 1      | 0      | 0          | 80-140-250  |
+| block   | line  | length | direction | tracks | superblock | speed       |
+|---------|-------|--------|-----------|--------|------------|-------------|
+| S-SN    | 10101 | 1200   | 2         | 1      |  0         | 80-140-250  |
 
 3. **`stations.csv`**:
 | id   | ntracks | nsidings | length | maxspeed | superblock |
